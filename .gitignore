@@ -6,3 +6,5 @@ wandb/*
 *wandb*
 auto_mask/*
 .idea*
+data/*
+img/*

@@ -1,0 +1,30 @@
+python main_pretrain.py \
+    --seed 0 \
+    --alpha_entropy 0 \
+    --alpha_sparsity 0 \
+    --batch_size 128 \
+    --classifier_lr 0.1 \
+    --dataset stl10 \
+    --lr 0.13234838295784523 \
+    --mask_lr 0.01946841419435407 \
+    --optimizer sgd \
+    --scheduler warmup_cosine \
+    --weight_decay 8.504658547335148e-05 \
+    --temperature 0.2 \
+    --max_epochs 400 \
+    --N 6 \
+    --encoder resnet1d \
+    --mask_fbase 128 \
+    --method simclr_adios \
+    --output_dim 256 \
+    --proj_hidden_dim 2048 \
+    --unet_norm gn \
+    --data_dir "/Users/yj31/Dropbox/My Mac (C02FR2BBMD6T)/Documents/GitHub/adios/data" \
+    --wandb_dir "/Users/yj31/Dropbox/My Mac (C02FR2BBMD6T)/Documents/GitHub/adios" \
+    --checkpoint_dir "/Users/yj31/Dropbox/My Mac (C02FR2BBMD6T)/Documents/GitHub/adios/trained_models" \
+    --project adios_debug \
+    --entity yilongju \
+    --name simclr_adios_resnet18_ECG_debug \
+    --wandb True \
+    --ptl_accelerator "cpu"
+#    --gpus 0

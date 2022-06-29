@@ -46,11 +46,22 @@ def parse_args_pretrain() -> argparse.Namespace:
     # add method-specific arguments
     parser.add_argument("--method", type=str)
 
+    # add method-specific arguments
+    parser.add_argument("--seed", type=int, default=-1)
+
     # THIS LINE IS KEY TO PULL THE MODEL NAME
     temp_args, _ = parser.parse_known_args()
 
     # add model specific args
     parser = METHODS[temp_args.method].add_model_specific_args(parser)
+
+    # Config for pytorch lightning accelerator
+    parser.add_argument("--ptl_accelerator", type=str, default="ddp", help='pytorch lightning accelerator')
+
+    # Config for ECG data
+    parser.add_argument("--channel_ID", type=int, default=2)
+
+
 
     # add auto umap, auto mask args
     parser.add_argument("--auto_umap", type=str2bool, nargs='?',
@@ -64,6 +75,7 @@ def parse_args_pretrain() -> argparse.Namespace:
     parser.add_argument("--wandb_dir", type=str)
     parser.add_argument("--validation_frequency", type=int, default=1)
     parser.add_argument("--pretrained_dir", type=str, default=None)
+    # parser.add_argument("--checkpoint_dir", type=str, default=None)
     # optionally add checkpointer and AutoUMAP args
     temp_args, _ = parser.parse_known_args()
     if temp_args.wandb:

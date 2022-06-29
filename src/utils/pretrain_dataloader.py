@@ -119,6 +119,53 @@ class BaseTransform:
     def __repr__(self) -> str:
         return str(self.transform)
 
+class ECGTransform(BaseTransform):
+    def __init__(
+        self,
+        brightness: float,
+        contrast: float,
+        saturation: float,
+        hue: float,
+        size: int,
+        gaussian_prob: float = 0.0,
+        solarization_prob: float = 0.0,
+        min_scale: float = 0.08,
+    ):
+        """Applies ECG transformations.
+
+        Args:
+            brightness (float): sampled uniformly in [max(0, 1 - brightness), 1 + brightness].
+            contrast (float): sampled uniformly in [max(0, 1 - contrast), 1 + contrast].
+            saturation (float): sampled uniformly in [max(0, 1 - saturation), 1 + saturation].
+            hue (float): sampled uniformly in [-hue, hue].
+            gaussian_prob (float, optional): probability of applying gaussian blur. Defaults to 0.0.
+            solarization_prob (float, optional): probability of applying solarization. Defaults
+                to 0.0.
+            min_scale (float, optional): minimum scale of the crops. Defaults to 0.08.
+        """
+
+        super().__init__()
+        self.transform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(
+                    (size, size),
+                    scale=(min_scale, 1.0),
+                    interpolation=transforms.InterpolationMode.BICUBIC,
+                ),
+                transforms.RandomApply(
+                    [transforms.ColorJitter(brightness, contrast, saturation, hue)], p=0.8
+                ),
+                transforms.RandomGrayscale(p=0.2),
+                transforms.RandomApply([GaussianBlur()], p=gaussian_prob),
+                transforms.RandomApply([Solarization()], p=solarization_prob),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.ToTensor(),
+                transforms.Normalize((0.4914, 0.4823, 0.4466), (0.247, 0.243, 0.261)),
+            ]
+        )
+
+
+
 
 class CifarTransform(BaseTransform):
     def __init__(
@@ -586,7 +633,6 @@ def prepare_datasets(
             download=True,
             transform=transform,
         )
-
     elif dataset in ["imagenet", "imagenet100", "imagenet100s"]:
         train_dir = os.path.join(data_dir, train_dir)
         train_dataset = dataset_with_index(ImageFolder)(train_dir, transform)
@@ -598,12 +644,19 @@ def prepare_datasets(
         raise Exception(f"Dataset {dataset} is not implemented! Please choose from"
                         f" {N_CLASSES_PER_DATASET.keys()}")
 
+    print(f"Dataset {dataset}: size = {len(train_dataset)}")
+    print(f"Dataset[0] size = {len(train_dataset[0])}\n{train_dataset[0]}")
+    print(f"Dataset[0][0]: {train_dataset[0][0]}")
+    print(f"Dataset[0][1] size = {len(train_dataset[0][1])}")
+    print(f"Dataset[0][1][:] size = {[ele.shape for ele in train_dataset[0][1]]}")
+    print(f"Dataset[0][2]: {train_dataset[0][2]}")
+
     return train_dataset
 
 
 def prepare_dataloader(
     train_dataset: Dataset, batch_size: int = 64, num_workers: int = 4
-) -> DataLoader:
+, shuffle: bool = False, drop_last: bool = False) -> DataLoader:
     """Prepares the training dataloader for pretraining.
 
     Args:
@@ -618,9 +671,9 @@ def prepare_dataloader(
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=shuffle,
         num_workers=num_workers,
         pin_memory=True,
-        drop_last=True,
+        drop_last=drop_last,
     )
     return train_loader

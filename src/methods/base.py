@@ -30,6 +30,8 @@ from src.utils.backbones import (
     vit_tiny,
 )
 
+from src.models.ResNet1D import ResNet1D
+
 SUPPORTED_NETWORKS = {
             "resnet18": resnet18,
             "resnet50": resnet50,
@@ -46,6 +48,7 @@ SUPPORTED_NETWORKS = {
             "poolformer_s36": poolformer_s36,
             "poolformer_m36": poolformer_m36,
             "poolformer_m48": poolformer_m48,
+            "resnet1d": ResNet1D,
         }
 
 def static_lr(

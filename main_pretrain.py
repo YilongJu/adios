@@ -10,6 +10,7 @@ from pytorch_lightning.plugins import DDPPlugin
 from src.args.setup import parse_args_pretrain
 from src.methods import METHODS
 from src.utils.auto_resumer import AutoResumer
+from src.utils.pretrain_dataloader import dataset_with_index
 
 try:
     from src.methods.dali import PretrainABC
@@ -36,87 +37,157 @@ from src.utils.pretrain_dataloader import (
     prepare_transform,
 )
 
+from src.utils.ECG_data_loading import *
+
 
 def main():
-    seed = np.random.randint(0, 2**32)
-    seed_everything(seed)
+    # seed = np.random.randint(0, 2**32)
+    # seed_everything(seed)
     args = parse_args_pretrain()
+    seed = args.seed
+    if seed >= 0:
+        seed_everything(seed)
+    else:
+        seed = np.random.randint(0, 2 ** 32)
+        seed_everything(seed)
+
+
     if sys.gettrace() is not None:
         args.num_workers = 0
 
     assert args.method in METHODS, f"Choose from {METHODS.keys()}"
 
     MethodClass = METHODS[args.method]
-    if args.dali:
-        assert (
-            _dali_avaliable
-        ), "Dali is not currently avaiable, please install it first with [dali]."
-        MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, PretrainABC), {})
-    model = MethodClass(**args.__dict__)
+    if args.dataset in ["ecg_TCH_40_20220201"]:
+        feature_with_ecg_df_train, feature_with_ecg_df_test, save_folder = Data_preprocessing(args)
+        channel_ID = args.channel_ID
+        """ Get dataloader """
+        feature_with_ecg_df_train_single_lead = feature_with_ecg_df_train.query(f"channel_ID == {channel_ID}")
+        feature_with_ecg_df_test_single_lead = feature_with_ecg_df_test.query(f"channel_ID == {channel_ID}")
 
-    # add img size to transform kwargs
-    args.transform_kwargs.update({"size": args.img_size})
+        train_dataset = dataset_with_index(ECG_classification_dataset_with_peak_features)(feature_with_ecg_df_train_single_lead)
+        test_dataset = dataset_with_index(ECG_classification_dataset_with_peak_features)(feature_with_ecg_df_test_single_lead)
 
-    # contrastive dataloader
-    if not args.dali:
-        # asymmetric augmentations
-        if args.unique_augs > 1:
-            transform = [
-                prepare_transform(args.dataset, multicrop=args.multicrop, **kwargs)
-                for kwargs in args.transform_kwargs
-            ]
-        else:
-            transform = prepare_transform(
-                args.dataset, multicrop=args.multicrop, **args.transform_kwargs
-            )
+        train_loader = prepare_dataloader(
+            train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=True
+        )
+        val_loader = prepare_dataloader(
+            test_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, drop_last=False
+        )
+    else:
+        if args.dali:
+            print("\n======== Using dali... ========")
+            assert (
+                _dali_avaliable
+            ), "Dali is not currently avaiable, please install it first with [dali]."
+            MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, PretrainABC), {})
+        model = MethodClass(**args.__dict__)
 
-        if args.debug_augmentations:
-            print("Transforms:")
-            pprint(transform)
+        # add img size to transform kwargs
+        args.transform_kwargs.update({"size": args.img_size})
 
-        if args.multicrop:
-            assert not args.unique_augs == 1
-
-            if args.dataset in ["cifar10", "cifar100"]:
-                size_crops = [32, 24]
-            elif args.dataset == "stl10":
-                size_crops = [96, 58]
-            # imagenet or custom dataset
+        # contrastive dataloader
+        if not args.dali:
+            print("\n======== Not using dali... ========")
+            # asymmetric augmentations
+            if args.unique_augs > 1:
+                print("----- args.unique_augs > 1 -----")
+                transform = [
+                    prepare_transform(args.dataset, multicrop=args.multicrop, **kwargs)
+                    for kwargs in args.transform_kwargs
+                ]
             else:
-                size_crops = [224, 96]
+                print("----- not args.unique_augs > 1 -----")
+                transform = prepare_transform(
+                    args.dataset, multicrop=args.multicrop, **args.transform_kwargs
+                )
 
-            transform = prepare_multicrop_transform(
-                transform, size_crops=size_crops, n_crops=[args.n_crops, args.n_small_crops]
+            if args.debug_augmentations:
+                print("----- args.debug_augmentations -----")
+                print("Transforms:")
+                pprint(transform)
+
+            if args.multicrop:
+                print("----- args.multicrop -----")
+                assert not args.unique_augs == 1
+
+                if args.dataset in ["cifar10", "cifar100"]:
+                    size_crops = [32, 24]
+                elif args.dataset == "stl10":
+                    size_crops = [96, 58]
+                # imagenet or custom dataset
+                else:
+                    size_crops = [224, 96]
+
+                transform = prepare_multicrop_transform(
+                    transform, size_crops=size_crops, n_crops=[args.n_crops, args.n_small_crops]
+                )
+            else:
+                print("----- not args.multicrop -----")
+                if args.n_crops != 2:
+                    assert args.method == "wmse"
+                transform = prepare_n_crop_transform(transform, n_crops=args.n_crops)
+
+            train_dataset = prepare_datasets(
+                args.dataset,
+                transform,
+                data_dir=args.data_dir,
+                train_dir=args.train_dir,
+                morphology=args.morph,
+                load_masks=args.load_masks,
             )
-        else:
-            if args.n_crops != 2:
-                assert args.method == "wmse"
+            print(f"train_dataset size = {len(train_dataset)}")
+            train_loader = prepare_dataloader(
+                train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
+            )
+            print(f"train_loader size = # batches {len(train_loader)} * batch_size {args.batch_size} = {len(train_loader) * args.batch_size}")
 
-            transform = prepare_n_crop_transform(transform, n_crops=args.n_crops)
-
-        train_dataset = prepare_datasets(
+        # normal dataloader for when it is available
+        _, val_loader = prepare_data_classification(
             args.dataset,
-            transform,
             data_dir=args.data_dir,
             train_dir=args.train_dir,
-            morphology=args.morph,
+            val_dir=args.val_dir,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            size=args.img_size,
             load_masks=args.load_masks,
         )
-        train_loader = prepare_dataloader(
-            train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
-        )
 
-    # normal dataloader for when it is available
-    _, val_loader = prepare_data_classification(
-        args.dataset,
-        data_dir=args.data_dir,
-        train_dir=args.train_dir,
-        val_dir=args.val_dir,
-        batch_size=args.batch_size,
-        num_workers=args.num_workers,
-        size=args.img_size,
-        load_masks = args.load_masks,
-    )
+        # print(f"args = {args}") # args = Namespace(N=6, accelerator=None, accumulate_grad_batches=1, alpha_entropy=0.0, alpha_sparsity=0.0, amp_backend='native', amp_level='O2', auto_lr_find=False, auto_mask=True, auto_mask_dir='auto_mask', auto_mask_frequency=1, auto_resume=False, auto_scale_batch_size=False, auto_select_gpus=False, auto_umap=False, batch_size=256, benchmark=False, brightness=[0.8], check_val_every_n_epoch=1, checkpoint_callback=True, checkpoint_dir='/Users/yj31/Dropbox/My Mac (C02FR2BBMD6T)/Documents/GitHub/adios/trained_models', checkpoint_frequency=1, cifar=False, classifier_lr=0.1, contrast=[0.8], dali=False, dali_device='gpu', data_dir='/Users/yj31/Dropbox/My Mac (C02FR2BBMD6T)/Documents/GitHub/adios/data', dataset='stl10', debug_augmentations=None, default_root_dir=None, deterministic=False, devices=None, disable_knn_eval=True, distributed_backend=None, encoder='resnet18', entity='yilongju', eta_lars=0.02, exclude_bias_n_norm=True, extra_optimizer_args={'momentum': 0.9}, fast_dev_run=False, flush_logs_every_n_steps=100, gaussian_prob=[0.5], gpus=None, grad_clip_lars=True, gradient_clip_algorithm='norm', gradient_clip_val=0.0, hue=[0.2], img_size=96, ipus=None, knn_k=20, lars=True, limit_predict_batches=1.0, limit_test_batches=1.0, limit_train_batches=1.0, limit_val_batches=1.0, load_masks=True, log_every_n_steps=50, log_gpu_memory=None, logger=True, lr=0.13234838295784523, lr_decay_steps=None, mask_fbase=128, mask_lr=0.01946841419435407, max_epochs=400, max_steps=None, max_time=None, mean=[0.485, 0.456, 0.406], method='simclr_adios', min_epochs=None, min_lr=0.0, min_scale=[0.08], min_steps=None, morph='none', move_metrics_to_cpu=False, multicrop=None, multiple_trainloader_mode='max_size_cycle', n_classes=10, n_crops=2, n_small_crops=0, name='simclr_adios_resnet18_stl10_debug', nice=False, no_labels=True, num_nodes=1, num_processes=1, num_sanity_val_steps=2, num_workers=5, offline=False, optimizer='sgd', output_dim=256, overfit_batches=0.0, plugins=None, precision=32, prepare_data_per_node=True, pretrained_dir=None, process_position=0, profiler=None, progress_bar_refresh_rate=None, proj_hidden_dim=2048, project='adios_debug', ptl_accelerator='cpu', reload_dataloaders_every_epoch=False, reload_dataloaders_every_n_epochs=0, replace_sampler_ddp=True, resume_from_checkpoint=None, saturation=[0.8], scheduler='warmup_cosine', seed=-1, size=[224], solarization_prob=[0.0], std=[0.228, 0.224, 0.225], stochastic_weight_avg=False, sync_batchnorm=False, target_type='single', temperature=0.2, terminate_on_nan=False, tpu_cores=None, track_grad_norm=-1, train_dir=None, train_mask_epoch=0, transform_kwargs={'brightness': 0.8, 'contrast': 0.8, 'saturation': 0.8, 'hue': 0.2, 'gaussian_prob': 0.5, 'solarization_prob': 0.0, 'min_scale': 0.08, 'size': 96}, truncated_bptt_steps=None, unet_norm='gn', unique_augs=1, val_check_interval=1.0, val_dir=None, validation_frequency=1, wandb=True, wandb_dir='/Users/yj31/Dropbox/My Mac (C02FR2BBMD6T)/Documents/GitHub/adios', warmup_epochs=10, warmup_start_lr=0.003, weight_decay=8.504658547335148e-05, weights_save_path=None, weights_summary='top', zero_init_residual=None)
+
+    """ Dataloader debug """
+    print("Train dataloader")
+    for i, batch in enumerate(train_loader):
+        print(i, len(batch))
+        for ele in batch:
+            try:
+                print(f"ele.shape: {ele.shape}")
+                # print(f"{ele[:5, ...]}")
+            except:
+                print(f"ele.len: {len(ele)}")
+                for ele2 in ele:
+                    print(f"ele.shape: {ele2.shape}")
+                    # print(f"{ele2[:5, ...]}")
+        if i >= 1:
+            break
+
+    print("Val dataloader")
+    for i, batch in enumerate(val_loader):
+        print(i, len(batch))
+        for ele in batch:
+            try:
+                print(f"ele.shape: {ele.shape}")
+                # print(f"{ele[:5, ...]}")
+            except:
+                print(f"ele.len: {len(ele)}")
+                for ele2 in ele:
+                    print(f"ele.shape: {ele2.shape}")
+                    # print(f"{ele2[:5, ...]}")
+        if i >= 1:
+            break
+
+
 
     callbacks = []
 
@@ -181,10 +252,11 @@ def main():
         args,
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
-        plugins=DDPPlugin(find_unused_parameters=False),
+        plugins=None if args.ptl_accelerator in ["cpu"] else DDPPlugin(find_unused_parameters=False),
         checkpoint_callback=False,
         terminate_on_nan=True,
-        accelerator="ddp",
+        accelerator=args.ptl_accelerator,
+        devices=1 if args.ptl_accelerator in ["cpu"] else None,
         check_val_every_n_epoch=args.validation_frequency,
     )
 
