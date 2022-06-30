@@ -192,7 +192,8 @@ class BaseModel(pl.LightningModule):
         if "resnet" in encoder:
             self.features_size = self.encoder.inplanes
             if "1d" in encoder:
-                self.features_size *= 128
+                # self.features_size *= 128 # For the original (unofficial) ResNet 1D
+                pass
             # remove fc layer
             self.encoder.fc = nn.Identity()
             if cifar:
