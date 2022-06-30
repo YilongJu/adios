@@ -135,7 +135,7 @@ class ResNet1D(nn.Module):
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
-        super(ResNet_1D, self).__init__()
+        super(ResNet1D, self).__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm1d
         self._norm_layer = norm_layer
