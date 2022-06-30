@@ -122,7 +122,7 @@ class Bottleneck_1D(nn.Module):
 
 
 
-class ResNet_1D(nn.Module):
+class ResNet1D(nn.Module):
 
     def __init__(
         self,
