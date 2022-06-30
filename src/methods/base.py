@@ -161,6 +161,7 @@ class BaseModel(pl.LightningModule):
         self.disable_knn_eval = disable_knn_eval
         self.knn_k = knn_k
 
+
         # sanity checks on multicrop
         if self.multicrop:
             assert n_small_crops > 0
@@ -183,10 +184,15 @@ class BaseModel(pl.LightningModule):
         # initialize encoder
         self.encoder_kwargs = {"zero_init_residual": zero_init_residual} \
             if 'resnet' in encoder else {"img_size": img_size}
-        self.encoder = self.base_model(**self.encoder_kwargs)
+        self.encoder = self.base_model(**self.encoder_kwargs).to(torch.float)
+
+        print(f"self.n_crops = {self.n_crops}")
+        print(f"self.n_small_crops = {self.n_small_crops}")
 
         if "resnet" in encoder:
             self.features_size = self.encoder.inplanes
+            if "1d" in encoder:
+                self.features_size *= 128
             # remove fc layer
             self.encoder.fc = nn.Identity()
             if cifar:
@@ -211,6 +217,9 @@ class BaseModel(pl.LightningModule):
             self.loss_fn = F.cross_entropy
             self.metric_fn = accuracy_at_k
             self.loss_args, self.metric_args = {"ignore_index": -1}, {"top_k": (1, min(5, n_classes))}
+            if "1d" in encoder:
+                self.metric_keys = ['acc1']
+                self.metric_args = {"top_k": (1,)}
 
         if not self.disable_knn_eval:
             self.knn = WeightedKNNClassifier(k=self.knn_k, distance_fx="euclidean")
@@ -431,6 +440,9 @@ class BaseModel(pl.LightningModule):
         X = [X] if isinstance(X, torch.Tensor) else X
 
         # check that we received the desired number of crops
+        # print(f"len(X) = {len(X)}")
+        # print(f"self.n_crops = {self.n_crops}")
+        # print(f"self.n_small_crops = {self.n_small_crops}")
         assert len(X) == self.n_crops + self.n_small_crops
 
         outs = [self._shared_step(x, targets) for x in X[: self.n_crops]]

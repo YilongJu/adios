@@ -54,3 +54,27 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
+
+class ConvReLU_1D(nn.Sequential):
+    def __init__(self, nin, nout, kernel, stride=1, padding=0):
+        super(ConvReLU_1D, self).__init__(
+            nn.Conv1d(nin, nout, kernel, stride, padding),
+            nn.ReLU(inplace=True)
+        )
+
+class ConvINReLU_1D(nn.Sequential):
+    def __init__(self, nin, nout, kernel, stride=1, padding=0):
+        super(ConvINReLU_1D, self).__init__(
+            nn.Conv1d(nin, nout, kernel, stride, padding, bias=False),
+            nn.InstanceNorm1d(nout, affine=True),
+            nn.ReLU(inplace=True)
+        )
+
+class ConvGNReLU_1D(nn.Sequential):
+    def __init__(self, nin, nout, kernel, stride=1, padding=0, groups=8):
+        super(ConvGNReLU_1D, self).__init__(
+            nn.Conv1d(nin, nout, kernel, stride, padding, bias=False),
+            nn.GroupNorm(groups, nout),
+            nn.ReLU(inplace=True)
+        )

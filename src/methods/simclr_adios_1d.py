@@ -7,6 +7,7 @@ import torch.nn as nn
 from src.losses.simclr import simclr_loss_func
 from src.methods.base_adios import BaseADIOSModel
 from src.utils.unet import UNet
+from src.utils.unet_1d import UNet_1D
 from src.utils.metrics import Entropy
 
 class SimCLR_ADIOS_1D(BaseADIOSModel):
@@ -61,17 +62,17 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
 
         # masking model
         self.mask_head = nn.Sequential(
-            nn.Conv2d(mask_fbase, N, 1, 1, 0),
+            nn.Conv1d(mask_fbase, N, 1, 1, 0),
             nn.Softmax(dim=1)
         )
 
-        self.mask_encoder = UNet(
+        self.mask_encoder = UNet_1D(
             num_blocks=int(np.log2(self.img_size)-1),
             img_size=self.img_size,
             filter_start=mask_fbase,
-            in_chnls=3,
+            in_chnls=1,
             out_chnls=-1,
-            norm=unet_norm)
+            norm=unet_norm).to(torch.float)
 
         # Activates manual optimization
         self.automatic_optimization = False
@@ -203,7 +204,11 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
                 [X] is a list of size self.n_crops containing batches of images.
         """
-        indexes, [x_orig, x_transformed], target = batch
+        # TODO: Add transformation for ECG """
+        # indexes, [x_orig, x_transformed], target = batch
+        # Untransformed pair for now (20220629)
+        indexes, x_orig, target = batch
+        x_transformed = x_orig
         enc_feat = self.mask_encoder(x_transformed)
         masks = self.mask_head(enc_feat)
 
@@ -229,7 +234,11 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
                 [X] is a list of size self.n_crops containing batches of images.
         """
-        indexes, [x_orig, x_transformed], target = batch
+        # TODO: Add transformation for ECG """
+        # indexes, [x_orig, x_transformed], target = batch
+        # Untransformed pair for now (20220630)
+        indexes, x_orig, target = batch
+        x_transformed = x_orig
         enc_feat = self.mask_encoder(x_transformed)
         masks = self.mask_head(enc_feat)
 
@@ -244,14 +253,25 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
             loss = simclr_loss_func(z1, z2, **loss_func_kwargs)
 
             # compute mask penalty
-            sm = mask.sum([-1, -2, -3]) / self.img_size**2
+            mask_n_ele = torch.prod(torch.tensor(mask.shape)) / mask.shape[0]
+            # print(f"mask.shape = {mask.shape}")
+            # print(f"mask = {mask}")
+            # print(f"self.img_size = {self.img_size}")
+            # print(f"mask_n_ele = {mask_n_ele}")
+            sm = mask.sum([-1, -2]) / mask_n_ele
             summed_mask.append(sm)
             loss -= self.alpha1 * (1 / (torch.sin(sm * np.pi) + 1e-10)).mean(0).sum(0)
 
             similarities.append(loss)
 
         similarity = torch.stack(similarities).sum()
-        all_summed_masks = torch.stack(summed_mask, dim=1)
+        # print(f"summed_mask[-1].shape = {summed_mask[-1].shape}")
+        # print(f"summed_mask[-1] = {summed_mask[-1]}")
+        # print(f"summed_mask = {summed_mask}")
+        all_summed_masks = torch.stack(summed_mask, dim=0)
+        # print(f"all_summed_masks.shape = {all_summed_masks.shape}")
+        # print(f"all_summed_masks = {all_summed_masks}")
+
         similarity += self.alpha2 * self.entropy(all_summed_masks)
         minval, _ = torch.stack(summed_mask).min(dim=0)
         maxval, _ = torch.stack(summed_mask).max(dim=0)

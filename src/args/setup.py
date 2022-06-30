@@ -76,6 +76,8 @@ def parse_args_pretrain() -> argparse.Namespace:
     parser.add_argument("--validation_frequency", type=int, default=1)
     parser.add_argument("--pretrained_dir", type=str, default=None)
     # parser.add_argument("--checkpoint_dir", type=str, default=None)
+    parser.add_argument("--cluster_name", type=str, default="b4")
+
     # optionally add checkpointer and AutoUMAP args
     temp_args, _ = parser.parse_known_args()
     if temp_args.wandb:

@@ -207,5 +207,6 @@ class Entropy(nn.Module):
         super(Entropy, self).__init__()
 
     def forward(self, x):
+
         b = F.softmax(x, dim=1) * F.log_softmax(x, dim=1)
         return b.sum()

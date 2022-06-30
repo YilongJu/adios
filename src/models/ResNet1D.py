@@ -189,7 +189,7 @@ class ResNet1D(nn.Module):
 
     Pararmetes:
         in_channels: dim of input, the same as n_channel
-        base_filters: number of filters in the first several Conv layer, it will double at every 4 layers
+        base_filters / inplanes: number of filters in the first several Conv layer, it will double at every 4 layers
         kernel_size: width of kernel
         stride: stride of kernel moving
         groups: set larget to 1 as ResNeXt
@@ -198,26 +198,29 @@ class ResNet1D(nn.Module):
 
     """
 
-    def __init__(self, in_channels, base_filters, kernel_size, stride, groups, n_block, n_classes, downsample_gap=2, increasefilter_gap=4, use_bn=True,
-                 use_do=True, verbose=False):
+    def __init__(self, in_channels=1, inplanes=64, kernel_size=16, stride=2, groups=32, n_block=32, n_classes=2, downsample_gap=2, increasefilter_gap=4, use_bn=True,
+                 use_do=True, verbose=False, zero_init_residual=False):
         super(ResNet1D, self).__init__()
 
         self.verbose = verbose
+        self.base_filters = inplanes
+        self.inplanes = inplanes
         self.n_block = n_block
         self.kernel_size = kernel_size
         self.stride = stride
         self.groups = groups
         self.use_bn = use_bn
         self.use_do = use_do
+        self.zero_init_residual = zero_init_residual
 
         self.downsample_gap = downsample_gap  # 2 for base model
         self.increasefilter_gap = increasefilter_gap  # 4 for base model
 
         # first block
-        self.first_block_conv = MyConv1dPadSame(in_channels=in_channels, out_channels=base_filters, kernel_size=self.kernel_size, stride=1)
-        self.first_block_bn = nn.BatchNorm1d(base_filters)
+        self.first_block_conv = MyConv1dPadSame(in_channels=in_channels, out_channels=self.base_filters, kernel_size=self.kernel_size, stride=1)
+        self.first_block_bn = nn.BatchNorm1d(self.base_filters)
         self.first_block_relu = nn.ReLU()
-        out_channels = base_filters
+        out_channels = self.base_filters
 
         # residual blocks
         self.basicblock_list = nn.ModuleList()
@@ -234,11 +237,11 @@ class ResNet1D(nn.Module):
                 downsample = False
             # in_channels and out_channels
             if is_first_block:
-                in_channels = base_filters
+                in_channels = self.base_filters
                 out_channels = in_channels
             else:
                 # increase filters at every self.increasefilter_gap blocks
-                in_channels = int(base_filters * 2 ** ((i_block - 1) // self.increasefilter_gap))
+                in_channels = int(self.base_filters * 2 ** ((i_block - 1) // self.increasefilter_gap))
                 if (i_block % self.increasefilter_gap == 0) and (i_block != 0):
                     out_channels = in_channels * 2
                 else:
@@ -260,12 +263,30 @@ class ResNet1D(nn.Module):
         self.final_bn = nn.BatchNorm1d(out_channels)
         self.final_relu = nn.ReLU(inplace=True)
         # self.do = nn.Dropout(p=0.5)
-        self.dense = nn.Linear(out_channels, n_classes)
+        self.fc = nn.Linear(out_channels, n_classes)
         # self.softmax = nn.Softmax(dim=1)
+
+        """ Copied from officient ResNet implementation (pytorch package file 'resnet.py') """
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+        # Zero-initialize the last BN in each residual branch,
+        # so that the residual branch starts with zeros, and each residual block behaves like an identity.
+        # This improves the model by 0.2~0.3% according to https://arxiv.org/abs/1706.02677
+        if self.zero_init_residual:
+            for m in self.modules():
+                if isinstance(m, BasicBlock):
+                    nn.init.constant_(m.bn2.weight, 0)  # type: ignore[arg-type]
+
 
     def forward(self, x):
         st = time.time()
-        out = x
+        # print(f"x.type: {type(x)}, is float? {x.is_floating_point()}")
+        out = x.float()
 
         # first conv
         if self.verbose:
@@ -294,9 +315,9 @@ class ResNet1D(nn.Module):
         if self.verbose:
             print('final pooling', out.shape)
         # out = self.do(out)
-        out = self.dense(out)
+        out = self.fc(out)
         if self.verbose:
-            print('dense', out.shape)
+            print('fc', out.shape)
         # out = self.softmax(out)
         if self.verbose:
             print('softmax', out.shape)
@@ -389,7 +410,7 @@ class ResNet1D_with_hand_designed_features(nn.Module):
         self.final_bn = nn.BatchNorm1d(out_channels)
         self.final_relu = nn.ReLU(inplace=True)
         # self.do = nn.Dropout(p=0.5)
-        self.dense = nn.Linear(out_channels + num_hand_designed_features, n_classes)
+        self.fc = nn.Linear(out_channels + num_hand_designed_features, n_classes)
         # self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
@@ -427,9 +448,9 @@ class ResNet1D_with_hand_designed_features(nn.Module):
         out = torch.cat([out, hand_designed_features], dim=1)
         if self.verbose:
             print('concatenated features', out.shape)
-        out = self.dense(out)
+        out = self.fc(out)
         if self.verbose:
-            print('dense', out.shape)
+            print('fc', out.shape)
         # out = self.softmax(out)
         if self.verbose:
             print('softmax', out.shape)
@@ -519,10 +540,10 @@ class MyPeakDetectionCNN(nn.Module):
             self.basicblock_list.append(tmp_block)
 
         # final prediction
-        self.dense1 = nn.Linear(128, 50)
+        self.fc1 = nn.Linear(128, 50)
         self.final_relu = nn.ReLU(inplace=True)
         # # self.do = nn.Dropout(p=0.5)
-        self.dense2 = nn.Linear(128, 1)
+        self.fc2 = nn.Linear(128, 1)
 
     def forward(self, x):
 
@@ -549,13 +570,13 @@ class MyPeakDetectionCNN(nn.Module):
         # final prediction
         out = out.squeeze(2)
         if self.verbose:
-            print('dense1', out.shape)
-        out = self.dense1(out)
+            print('fc1', out.shape)
+        out = self.fc1(out)
         out = self.final_relu(out)
         out = out.mean(-1)
         if self.verbose:
             print('returning', out.shape)
-        # out = self.dense2(out)
+        # out = self.fc2(out)
 
         return out
 

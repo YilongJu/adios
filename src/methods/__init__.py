@@ -6,6 +6,7 @@ from src.methods.supervised import SupervisedModel
 # simclr
 from src.methods.simclr import SimCLR
 from src.methods.simclr_adios import SimCLR_ADIOS
+from src.methods.simclr_adios_1d import SimCLR_ADIOS_1D
 from src.methods.simclr_adios_s import SimCLR_ADIOS_S
 from src.methods.simclr_gt import SimCLR_GT
 from src.methods.simclr_rand_mask import SimCLR_RM
@@ -31,6 +32,7 @@ METHODS = {
     "simsiam": SimSiam,
     # SSL + ADIOS
     "simclr_adios": SimCLR_ADIOS,
+    "simclr_adios_1d": SimCLR_ADIOS_1D,
     "simsiam_adios": SimSiam_ADIOS,
     'byol_adios': BYOL_ADIOS,
     # SSL + ADIOS-s models (single mask)

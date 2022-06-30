@@ -8,6 +8,7 @@ N_CLASSES_PER_DATASET = {
     "imagenet100": 100,
     "imagenet100s": 100,
     "clevr": 24,
+    "ecg-TCH-40_patient-20220201": 2,
 }
 
 IMG_SIZE_DATASET = {
@@ -18,6 +19,7 @@ IMG_SIZE_DATASET = {
     "imagenet100": 224,
     "imagenet100s": 96,
     "clevr": 64,
+    "ecg-TCH-40_patient-20220201": 300,
 }
 
 
@@ -29,6 +31,7 @@ TARGET_DATASET = {
     "imagenet100": "single",
     "imagenet100s": "single",
     "clevr": "multi",
+    "ecg-TCH-40_patient-20220201": "single",
 }
 
 def additional_setup_pretrain(args: Namespace):

@@ -223,6 +223,7 @@ class LinearModel(pl.LightningModule):
 
         loss = F.cross_entropy(out, target)
 
+        # TODO: remove top5 for ECG predictions
         results = accuracy_at_k(out, target, top_k=(1, 5))
         return batch_size, loss, results['acc1'], results['acc5']
 

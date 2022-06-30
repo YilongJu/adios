@@ -46,10 +46,10 @@ def main():
     args = parse_args_pretrain()
     seed = args.seed
     if seed >= 0:
-        seed_everything(seed)
+        seed_everything(seed, workers=True)
     else:
         seed = np.random.randint(0, 2 ** 32)
-        seed_everything(seed)
+        seed_everything(seed, workers=True)
 
 
     if sys.gettrace() is not None:
@@ -58,7 +58,15 @@ def main():
     assert args.method in METHODS, f"Choose from {METHODS.keys()}"
 
     MethodClass = METHODS[args.method]
-    if args.dataset in ["ecg_TCH_40_20220201"]:
+    if args.dali:
+        print("\n======== Using dali... ========")
+        assert (
+            _dali_avaliable
+        ), "Dali is not currently avaiable, please install it first with [dali]."
+        MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, PretrainABC), {})
+    model = MethodClass(**args.__dict__)
+
+    if args.dataset in ["ecg-TCH-40_patient-20220201"]:
         feature_with_ecg_df_train, feature_with_ecg_df_test, save_folder = Data_preprocessing(args)
         channel_ID = args.channel_ID
         """ Get dataloader """
@@ -66,7 +74,7 @@ def main():
         feature_with_ecg_df_test_single_lead = feature_with_ecg_df_test.query(f"channel_ID == {channel_ID}")
 
         train_dataset = dataset_with_index(ECG_classification_dataset_with_peak_features)(feature_with_ecg_df_train_single_lead)
-        test_dataset = dataset_with_index(ECG_classification_dataset_with_peak_features)(feature_with_ecg_df_test_single_lead)
+        test_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_test_single_lead)
 
         train_loader = prepare_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=True
@@ -75,14 +83,6 @@ def main():
             test_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, drop_last=False
         )
     else:
-        if args.dali:
-            print("\n======== Using dali... ========")
-            assert (
-                _dali_avaliable
-            ), "Dali is not currently avaiable, please install it first with [dali]."
-            MethodClass = type(f"Dali{MethodClass.__name__}", (MethodClass, PretrainABC), {})
-        model = MethodClass(**args.__dict__)
-
         # add img size to transform kwargs
         args.transform_kwargs.update({"size": args.img_size})
 
@@ -258,6 +258,7 @@ def main():
         accelerator=args.ptl_accelerator,
         devices=1 if args.ptl_accelerator in ["cpu"] else None,
         check_val_every_n_epoch=args.validation_frequency,
+        deterministic=False if args.ptl_accelerator in ["cpu"] else True
     )
 
     if args.dali:
