@@ -2,9 +2,12 @@ torch==1.9.1
 torchvision==0.10.1
 einops
 pytorch-lightning==1.4.7
-torchmetrics>=0.5.1
+torchmetrics==0.6.0
 lightning-bolts>=0.4.0
 tqdm
 wandb
 scipy
 timm
+setuptools==59.5.0
+sklearn
+pandas
