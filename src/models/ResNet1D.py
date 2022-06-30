@@ -126,8 +126,8 @@ class ResNet1D(nn.Module):
 
     def __init__(
         self,
-        block: Type[Union[BasicBlock_1D, Bottleneck_1D]],
-        layers: List[int],
+        block: Type[Union[BasicBlock_1D, Bottleneck_1D]] = None,
+        layers: List[int] = None,
         num_classes: int = 1000,
         zero_init_residual: bool = False,
         groups: int = 1,
