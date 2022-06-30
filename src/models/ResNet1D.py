@@ -233,4 +233,5 @@ class ResNet1D(nn.Module):
         return x
 
     def forward(self, x: Tensor) -> Tensor:
+        x = x.float()
         return self._forward_impl(x)
