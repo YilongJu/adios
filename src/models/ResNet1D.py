@@ -135,7 +135,13 @@ class ResNet1D(nn.Module):
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
+        if layers is None:
+            layers = [2, 2, 2, 2]
+        if block is None:
+            block = BasicBlock_1D
+
         super(ResNet1D, self).__init__()
+
         if norm_layer is None:
             norm_layer = nn.BatchNorm1d
         self._norm_layer = norm_layer
