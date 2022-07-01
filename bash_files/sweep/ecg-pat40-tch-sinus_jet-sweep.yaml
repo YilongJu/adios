@@ -78,7 +78,7 @@ parameters:
     value: "/home/yilong/Github/adios"
   dataset:
     value: "ecg-TCH-40_patient-20220201"
-  accelerator:
+  ptl_accelerator:
     value: "ddp"
   sync_batchnorm:
     value: True
