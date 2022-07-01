@@ -26,6 +26,8 @@ parameters:
     value: 50
   precision:
     value: 16
+  temperature:
+    value: 0.2
   lars:
     value: True
   grad_clip_lars:
@@ -39,7 +41,7 @@ parameters:
   classifier_lr:
     value: 0.1
   batch_size:
-    value: 128
+    value: 256
   num_workers:
     value: 4
   brightness:
@@ -58,6 +60,10 @@ parameters:
     value: True
   gpus:
     value: 1
+  n_crops:
+    value: 1
+  n_small_crops:
+    value: 0
   auto_mask:
     value: True
   method:
