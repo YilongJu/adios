@@ -52,8 +52,6 @@ parameters:
     values: [0.2]
   proj_hidden_dim:
     value: 2048
-  pred_hidden_dim:
-    value: 2048
   output_dim:
     value: 256
   wandb:
@@ -84,8 +82,6 @@ parameters:
     value: "ddp"
   sync_batchnorm:
     value: True
-  base_tau_momentum:
-    value: 0.99
   accumulate_grad_batches:
     value: 1
 
