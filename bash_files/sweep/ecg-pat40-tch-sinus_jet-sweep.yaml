@@ -8,6 +8,8 @@ description: sweep for ECG data from TCH 40 patients with Sinus and JET
 project: adios_ecg_sweep
 entity: yilongju # replace with your own wandb entity (username)
 parameters:
+  seed:
+    value: 0
   alpha_sparsity:
     values: [0.25, 0.5, 0.75, 1.]
   mask_lr:
