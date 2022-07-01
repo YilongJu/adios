@@ -57,7 +57,7 @@ parameters:
   wandb:
     value: True
   gpus:
-    value: 0
+    value: 1
   auto_mask:
     value: True
   method:
