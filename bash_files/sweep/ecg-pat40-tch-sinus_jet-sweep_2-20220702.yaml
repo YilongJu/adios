@@ -9,7 +9,7 @@ project: adios_ecg_sweep_2_grid
 entity: yilongju # replace with your own wandb entity (username)
 parameters:
   seed:
-    value: [0, 1, 2, 3, 4]
+    values: [0, 1, 2, 3, 4]
   alpha_sparsity:
     values: [0.25, 0.5, 1., 2., 4.]
   mask_lr:
@@ -27,7 +27,7 @@ parameters:
   precision:
     value: 16
   temperature:
-    value: [0.1, 0.2, 0.4]
+    values: [0.1, 0.2, 0.4]
   lars:
     value: True
   grad_clip_lars:
@@ -55,7 +55,7 @@ parameters:
   proj_hidden_dim:
     values: [128, 512, 2048]
   output_dim:
-    value: [128, 256, 512]
+    values: [128, 256, 512]
   wandb:
     value: True
   gpus:
