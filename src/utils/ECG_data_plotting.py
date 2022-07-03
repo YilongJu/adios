@@ -12,7 +12,7 @@ import matplotlib.cm as cm
 import seaborn as sns
 
 def Save_time_series_as_img_torch_array(signal, label=None):
-    plt.rcParams["figure.figsize"] = [7.50, 3.50]
+    plt.rcParams["figure.figsize"] = [3.50, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.rcParams["backend"] = "agg"
     sns.set(style="ticks", font_scale=1.33)

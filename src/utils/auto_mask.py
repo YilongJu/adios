@@ -113,13 +113,15 @@ class AutoMASK(Callback):
                     if len(x.shape) == 4:
                         input_img = x.cpu()
                     elif len(x.shape) == 3: # Time series
-                        # TODO: Save ECG plots to buffer and convert to data matrix for plotting
+                        # TODO: Save ECG plots to buffer and convert to data matrix for plotting [Done]
                         """
                         References: 
                         - https://www.tutorialspoint.com/how-to-convert-matplotlib-figure-to-pil-image-object
                         - https://stackoverflow.com/questions/384759/how-to-convert-a-pil-image-into-a-numpy-array
                         """
-                        input_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu())
+                        input_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu(), y)
+                    else:
+                        raise NotImplementedError("Unknown data shape.")
                     print(f"input_img.shape = {input_img.shape}")
                     save_tensor = [input_img]
 
@@ -130,8 +132,8 @@ class AutoMASK(Callback):
                             save_tensor.extend([mask.repeat(1,3,1,1), input_img * (1 - mask)])
                         elif len(mask.shape) == 3:
                             # 'mask' is a time seris
-                            mask_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(mask.repeat(1, 1, 1))
-                            masked_input_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu() * (1 - mask))
+                            mask_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(mask.repeat(1, 1, 1), "mask", add_ind_to_legend=True)
+                            masked_input_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu() * (1 - mask), y)
                             save_tensor.extend([mask_img, masked_input_img])
                         else:
                             raise NotImplementedError("Unknown mask shape.")
@@ -140,7 +142,14 @@ class AutoMASK(Callback):
                         # print(f"save_tensor[-1].shape = {save_tensor[-1].shape}")
 
                     path = os.path.join(self.path, self.umap_placeholder.format(trainer.current_epoch, n))
-                    save_image(torch.cat(save_tensor), path)
+                    if len(x.shape) == 4:
+                        save_tensor_cat = torch.cat(save_tensor).float()
+                    elif len(x.shape) == 3: # Time series
+                        save_tensor_cat = torch.cat(save_tensor).float() / 255.
+                    else:
+                        raise NotImplementedError("Unknown data shape.")
+
+                    save_image(save_tensor_cat, path)
             module.train()
 
     def on_validation_end(self, trainer: pl.Trainer, module: pl.LightningModule):
