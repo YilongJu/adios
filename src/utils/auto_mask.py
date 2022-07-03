@@ -6,6 +6,11 @@ from torchvision.utils import save_image
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning.callbacks import Callback
+import matplotlib.pyplot as plt
+
+
+import io
+from PIL import Image
 
 class AutoMASK(Callback):
     def __init__(
@@ -101,13 +106,26 @@ class AutoMASK(Callback):
             # set module to eval model and collect all feature representations
             module.eval()
             with torch.no_grad():
-                for n, (x, _) in enumerate(trainer.val_dataloaders[0]):
+                for n, (x, y) in enumerate(trainer.val_dataloaders[0]):
                     x = x.to(device, non_blocking=True)[:8]
+                    y = y.to(device, non_blocking=True)[:8].int()
                     feats = module.mask_encoder(x)
                     soft_masks = module.mask_head(feats)
                     a = soft_masks.argmax(dim=1).cpu()
                     hard_masks = torch.zeros(soft_masks.shape).scatter(1, a.unsqueeze(1), 1.0)
-                    save_tensor = [x.cpu()]
+                    if len(mask.shape) == 4:
+                        save_tensor = [x.cpu()]
+                    elif len(mask.shape) == 3:
+                        # TODO: Save ECG plots to buffer and convert to data matrix for plotting
+                        plt.rcParams["figure.figsize"] = [7.50, 3.50]
+                        plt.rcParams["figure.autolayout"] = True
+                        plt.figure()
+                        plt.plot([1, 2])
+
+                        img_buf = io.BytesIO()
+                        plt.savefig(img_buf, format='png')
+
+                        save_tensor = []
                     # print(f"x.shape = {x.shape}")
                     for mask in torch.chunk(hard_masks, self.args.N, dim=1):
                         # print(f"mask.shape = {mask.shape}")

@@ -92,3 +92,5 @@ parameters:
     value: 1
   cluster_name:
     value: "b2"
+  auto_umap:
+    value: False
