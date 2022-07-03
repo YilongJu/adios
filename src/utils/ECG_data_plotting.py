@@ -41,7 +41,7 @@ def Save_time_series_as_img_torch_array(signal, label=None):
     plt.savefig(img_buf, format='png')
     im = Image.open(img_buf)
     im_array_torch = torch.tensor(np.array(im))
-    return im_array_torch.transpose(2, 0).transpose(2, 1).unsqueeze(0)[:, :3, ...]
+    return im_array_torch.transpose(2, 0).transpose(2, 1).unsqueeze(0)[:, :3, ...].float()
 
 
 def Convert_batch_of_time_series_to_batch_of_img_torch_array(signals, labels=None, add_ind_to_legend=False):
@@ -63,4 +63,4 @@ def Convert_batch_of_time_series_to_batch_of_img_torch_array(signals, labels=Non
         # print(img_array_torch_reshaped.shape)
         img_array_batch_list.append(img_array_torch_reshaped)
 
-    return torch.cat(img_array_batch_list, dim=0)
+    return torch.cat(img_array_batch_list, dim=0).float()
