@@ -108,13 +108,20 @@ class AutoMASK(Callback):
                     a = soft_masks.argmax(dim=1).cpu()
                     hard_masks = torch.zeros(soft_masks.shape).scatter(1, a.unsqueeze(1), 1.0)
                     save_tensor = [x.cpu()]
+                    # print(f"x.shape = {x.shape}")
                     for mask in torch.chunk(hard_masks, self.args.N, dim=1):
+                        # print(f"mask.shape = {mask.shape}")
+
                         if len(mask.shape) == 4:
                             save_tensor.extend([mask.repeat(1,3,1,1), x.cpu() * (1 - mask)])
                         elif len(mask.shape) == 3:
-                            save_tensor.extend([mask.repeat(1, 3, 1), x.cpu() * (1 - mask)])
+                            save_tensor.extend([mask.repeat(1, 1, 1), x.cpu() * (1 - mask)])
                         else:
                             raise NotImplementedError("Unknown mask shape.")
+
+                        # print(f"save_tensor[-2].shape = {save_tensor[-2].shape}")
+                        # print(f"save_tensor[-1].shape = {save_tensor[-1].shape}")
+
 
                     path = os.path.join(self.path, self.umap_placeholder.format(trainer.current_epoch, n))
                     save_image(torch.cat(save_tensor), path)
