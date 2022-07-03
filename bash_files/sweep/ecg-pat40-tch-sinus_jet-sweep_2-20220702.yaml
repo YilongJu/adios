@@ -64,8 +64,6 @@ parameters:
     value: 1
   n_small_crops:
     value: 0
-  auto_mask:
-    value: True
   method:
     value: "simclr_adios_1d"
   encoder:
@@ -94,3 +92,5 @@ parameters:
     value: "b2"
   auto_umap:
     value: False
+  auto_mask:
+    value: True
