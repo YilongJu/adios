@@ -38,8 +38,8 @@ def Data_preprocessing(args):
         data_folder_2 = os.path.normpath("D:\\Backup\\JET-Detection\\")
         large_data_folder = os.path.normpath("D:\\Backup\\JET-Detection\\Heartbeats_dict_20220201\\")
 
-    feature_df_all_selected_with_ecg = pd.read_csv(os.path.join(data_folder_2, "feature_df_all_selected_with_ecg_20220210_rtfixed_sample10000.csv"))
-    # feature_df_all_selected_with_ecg = pd.read_csv(os.path.join(data_folder_2, "feature_df_all_selected_with_ecg_20220210_rtfixed.csv"))
+    # feature_df_all_selected_with_ecg = pd.read_csv(os.path.join(data_folder_2, "feature_df_all_selected_with_ecg_20220210_rtfixed_sample10000.csv"))
+    feature_df_all_selected_with_ecg = pd.read_csv(os.path.join(data_folder_2, "feature_df_all_selected_with_ecg_20220210_rtfixed.csv"))
     feature_with_ecg_df_train = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_train}")
     feature_with_ecg_df_test = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_test}")
     feature_with_ecg_df_dev = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_dev}")
