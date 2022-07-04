@@ -122,7 +122,7 @@ class AutoMASK(Callback):
                         input_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu(), y)
                     else:
                         raise NotImplementedError("Unknown data shape.")
-                    print(f"input_img.shape = {input_img.shape}")
+                    # print(f"input_img.shape = {input_img.shape}")
                     save_tensor = [input_img]
 
                     for mask in torch.chunk(hard_masks, self.args.N, dim=1):
