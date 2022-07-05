@@ -64,19 +64,17 @@ def parse_args_pretrain() -> argparse.Namespace:
 
 
     # add auto umap, auto mask args
-    parser.add_argument("--auto_umap", type=str2bool, nargs='?',
-                            const=True, default=False)
-    parser.add_argument("--auto_mask", type=str2bool, nargs='?',
-                            const=True, default=True)
-    parser.add_argument("--load_masks", type=str2bool, nargs='?',
-                            const=True, default=True)
-    parser.add_argument("--auto_resume", type=str2bool, nargs='?',
-                            const=False, default=False)
+    parser.add_argument("--auto_umap", type=str2bool, nargs='?', const=True, default=False)
+    parser.add_argument("--auto_mask", type=str2bool, nargs='?', const=True, default=True)
+    parser.add_argument("--load_masks", type=str2bool, nargs='?', const=True, default=True)
+    parser.add_argument("--auto_resume", type=str2bool, nargs='?', const=False, default=False)
     parser.add_argument("--wandb_dir", type=str)
     parser.add_argument("--validation_frequency", type=int, default=1)
     parser.add_argument("--pretrained_dir", type=str, default=None)
     # parser.add_argument("--checkpoint_dir", type=str, default=None)
     parser.add_argument("--cluster_name", type=str, default="b4")
+    parser.add_argument("--read_data_by_chunk", type=str2bool, nargs='?', const=True, default=True)
+    parser.add_argument("--data_chunk_folder", type=str, default="ecg-pat40-tch-sinus_jet")
 
     # optionally add checkpointer and AutoUMAP args
     temp_args, _ = parser.parse_known_args()

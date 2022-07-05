@@ -94,3 +94,7 @@ parameters:
     value: False
   auto_mask:
     value: True
+  read_data_by_chunk:
+    value: True
+  data_chunk_folder:
+    value: "ecg-pat40-tch-sinus_jet"
