@@ -1,6 +1,7 @@
 import pandas as pd
 import argparse
 import os
+import time
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -12,8 +13,11 @@ if __name__ == '__main__':
 
     os.makedirs(args.save_folder, exist_ok=True)
     chunk_id = 0
+    st = time.time()
     for chunk in pd.read_csv(os.path.join(args.load_folder, args.dataset_name), chunksize=args.chunk_size):
+        print(f"[Time {time.time() - st:.2f}] Saving chunk {chunk_id}...")
         chunk.to_csv(os.path.join(args.save_folder, f'{args.dataset_name}_chunk{chunk_id}.csv'), index=False)
+        print(f"[Time {time.time() - st:.2f}] Chunk {chunk_id} saved.")
         chunk_id += 1
 
     # python Divide_large_dataset.py --dataset_name "feature_df_all_selected_with_ecg_20220210_rtfixed.csv" --load_folder "/mnt/group1/yilong/JET-Detection-Data" --save_folder "/mnt/group1/yilong/JET-Detection-Data/ecg-pat40-tch-sinus_jet"
