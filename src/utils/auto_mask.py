@@ -56,6 +56,7 @@ class AutoMASK(Callback):
         parser = parent_parser.add_argument_group("auto_mask")
         parser.add_argument("--auto_mask_dir", default="auto_mask", type=str)
         parser.add_argument("--auto_mask_frequency", default=1, type=int)
+        parser.add_argument("--mask_plot_type", default="soft", type=str)
         return parent_parser
 
     def initial_setup(self, trainer: pl.Trainer):
@@ -108,8 +109,14 @@ class AutoMASK(Callback):
                     y = y.to(device, non_blocking=True)[:8].int() # B
                     feats = module.mask_encoder(x)
                     soft_masks = module.mask_head(feats)
-                    a = soft_masks.argmax(dim=1).cpu()
-                    hard_masks = torch.zeros(soft_masks.shape).scatter(1, a.unsqueeze(1), 1.0)
+
+                    if self.args.mask_plot_type == "soft":
+                        masks_plot = soft_masks
+                    elif self.args.mask_plot_type == "hard":
+                        a = soft_masks.argmax(dim=1).cpu()
+                        hard_masks = torch.zeros(soft_masks.shape).scatter(1, a.unsqueeze(1), 1.0)
+                        masks_plot = hard_masks
+
                     if len(x.shape) == 4:
                         input_img = x.cpu()
                     elif len(x.shape) == 3: # Time series
@@ -125,14 +132,14 @@ class AutoMASK(Callback):
                     # print(f"input_img.shape = {input_img.shape}")
                     save_tensor = [input_img]
 
-                    for mask in torch.chunk(hard_masks, self.args.N, dim=1):
+                    for i, mask in enumerate(torch.chunk(masks_plot, self.args.N, dim=1)):
                         # print(f"mask.shape = {mask.shape}")
 
                         if len(mask.shape) == 4:
                             save_tensor.extend([mask.repeat(1,3,1,1), input_img * (1 - mask)])
                         elif len(mask.shape) == 3:
                             # 'mask' is a time seris
-                            mask_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(mask.repeat(1, 1, 1), "mask", add_ind_to_legend=True)
+                            mask_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(mask.repeat(1, 1, 1), f"mask_{i}")
                             masked_input_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu() * (1 - mask), y)
                             save_tensor.extend([mask_img, masked_input_img])
                         else:
@@ -141,7 +148,8 @@ class AutoMASK(Callback):
                         # print(f"save_tensor[-2].shape = {save_tensor[-2].shape}")
                         # print(f"save_tensor[-1].shape = {save_tensor[-1].shape}")
 
-                    path = os.path.join(self.path, self.umap_placeholder.format(trainer.current_epoch, n))
+                    # path = os.path.join(self.path, self.umap_placeholder.format(trainer.current_epoch, n))
+                    path = os.path.join(self.path, f"ep{trainer.current_epoch}-ba{str(n).zfill(5)}")
                     if len(x.shape) == 4:
                         save_tensor_cat = torch.cat(save_tensor).float()
                     elif len(x.shape) == 3: # Time series

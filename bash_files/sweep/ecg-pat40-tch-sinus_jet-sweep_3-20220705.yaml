@@ -98,3 +98,5 @@ parameters:
     value: True
   data_chunk_folder:
     value: "ecg-pat40-tch-sinus_jet"
+  mask_plot_type:
+    value: "soft"

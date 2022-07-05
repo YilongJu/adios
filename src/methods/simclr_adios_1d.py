@@ -254,11 +254,11 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
 
             # compute mask penalty
             mask_n_ele = torch.prod(torch.tensor(mask.shape)) / mask.shape[0]
-            # print(f"mask.shape = {mask.shape}")
+            # print(f"mask.shape = {mask.shape}") # B x 1 x 300
             # print(f"mask = {mask}")
-            # print(f"self.img_size = {self.img_size}")
+            # print(f"self.img_size = {self.img_size}") # B x 1 x 300
             # print(f"mask_n_ele = {mask_n_ele}")
-            sm = mask.sum([-1, -2]) / mask_n_ele
+            sm = mask.sum([-1, -2]) / mask_n_ele # (B,)
             summed_mask.append(sm)
             loss -= self.alpha1 * (1 / (torch.sin(sm * np.pi) + 1e-10)).mean(0).sum(0)
 
