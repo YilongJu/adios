@@ -41,6 +41,7 @@ def Save_time_series_as_img_torch_array(signal, label=None):
     plt.savefig(img_buf, format='png')
     im = Image.open(img_buf)
     im_array_torch = torch.tensor(np.array(im))
+    plt.close()
     return im_array_torch.transpose(2, 0).transpose(2, 1).unsqueeze(0)[:, :3, ...].float()
 
 
