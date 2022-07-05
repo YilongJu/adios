@@ -11,6 +11,11 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import seaborn as sns
 
+legend_label_dict = {
+    0: "Sinus",
+    1: "JET"
+}
+
 def Save_time_series_as_img_torch_array(signal, label=None):
     plt.rcParams["figure.figsize"] = [3.50, 3.50]
     plt.rcParams["figure.autolayout"] = True

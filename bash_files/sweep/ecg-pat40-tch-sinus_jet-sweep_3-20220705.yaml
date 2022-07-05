@@ -5,7 +5,7 @@ method: grid
 #  goal: maximize
 name: simclr_adios_resnet18-1D_ECG_20220705
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
-project: adios_ecg_sweep_3_grid_20220705_1
+project: adios_ecg_sweep_3_grid_20220705_2
 entity: yilongju # replace with your own wandb entity (username)
 parameters:
   seed:

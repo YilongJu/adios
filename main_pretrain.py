@@ -80,7 +80,7 @@ def main():
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=True
         )
         val_loader = prepare_dataloader(
-            test_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, drop_last=False
+            test_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=False
         )
     else:
         # add img size to transform kwargs
