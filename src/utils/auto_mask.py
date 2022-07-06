@@ -116,7 +116,7 @@ class AutoMASK(Callback):
                     soft_masks = module.mask_head(feats)
 
                     if self.args.mask_plot_type == "soft":
-                        masks_plot = soft_masks
+                        masks_plot = soft_masks.cpu()
                     elif self.args.mask_plot_type == "hard":
                         a = soft_masks.argmax(dim=1).cpu()
                         hard_masks = torch.zeros(soft_masks.shape).scatter(1, a.unsqueeze(1), 1.0)
