@@ -137,7 +137,7 @@ class AutoMASK(Callback):
                     # print(f"input_img.shape = {input_img.shape}")
                     save_tensor = [input_img]
 
-                    for i, mask in enumerate(torch.chunk(masks_plot, self.args.N, dim=1)):
+                    for i, mask in enumerate(torch.chunk(masks_plot, self.args.N, dim=1)): # Split B * C mask tensor into separate B * 1 masks
                         # print(f"mask.shape = {mask.shape}")
 
                         if len(mask.shape) == 4:
@@ -154,7 +154,7 @@ class AutoMASK(Callback):
                         # print(f"save_tensor[-1].shape = {save_tensor[-1].shape}")
 
                     # path = os.path.join(self.path, self.umap_placeholder.format(trainer.current_epoch, n))
-                    path = os.path.join(self.path, f"ep{trainer.current_epoch}-ba{str(n).zfill(5)}")
+                    path = os.path.join(self.path, f"ep_{trainer.current_epoch}-batch_{str(n).zfill(5)}.png")
                     if len(x.shape) == 4:
                         save_tensor_cat = torch.cat(save_tensor).float()
                     elif len(x.shape) == 3: # Time series
