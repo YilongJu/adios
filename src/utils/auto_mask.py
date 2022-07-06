@@ -44,7 +44,7 @@ class AutoMASK(Callback):
         self.colors.extend([(c[0] // 2, c[1] // 2, c[2] // 2) for c in self.colors])
         self.colors.extend([(c[0] // 4, c[1] // 4, c[2] // 4) for c in self.colors])
         self.colors = [torch.tensor(c) for c in self.colors]
-        self.img_per_row = 10
+        self.img_per_row = 8
 
     @staticmethod
     def add_auto_mask_args(parent_parser: ArgumentParser):
@@ -173,6 +173,15 @@ class AutoMASK(Callback):
             trainer (pl.Trainer): pytorch lightning trainer object.
         """
 
+        """ https://github.com/Lightning-AI/lightning/issues/11054 
+        Solves issues that val_dataloader is not shuffled when using 'ddp'
+        """
+
         epoch = trainer.current_epoch  # type: ignore
         if epoch % self.frequency == 0 and not trainer.sanity_checking:
+            if self.args.ptl_accelerator in ["ddp"]:
+                for v in trainer.val_dataloaders:
+                    v.sampler.shuffle = True
+                    v.sampler.set_epoch(epoch)
+
             self.plot(trainer, module)
