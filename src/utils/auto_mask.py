@@ -44,6 +44,7 @@ class AutoMASK(Callback):
         self.colors.extend([(c[0] // 2, c[1] // 2, c[2] // 2) for c in self.colors])
         self.colors.extend([(c[0] // 4, c[1] // 4, c[2] // 4) for c in self.colors])
         self.colors = [torch.tensor(c) for c in self.colors]
+        self.img_per_row = 10
 
     @staticmethod
     def add_auto_mask_args(parent_parser: ArgumentParser):
@@ -56,6 +57,7 @@ class AutoMASK(Callback):
         parser = parent_parser.add_argument_group("auto_mask")
         parser.add_argument("--auto_mask_dir", default="auto_mask", type=str)
         parser.add_argument("--auto_mask_frequency", default=1, type=int)
+        parser.add_argument("--auto_mask_n_batches", default=3000, type=int)
         parser.add_argument("--mask_plot_type", default="soft", type=str)
         return parent_parser
 
@@ -105,8 +107,11 @@ class AutoMASK(Callback):
             module.eval()
             with torch.no_grad():
                 for n, (x, y) in enumerate(trainer.val_dataloaders[0]):
-                    x = x.to(device, non_blocking=True)[:8] # B * C * W * H / B * 1 * W
-                    y = y.to(device, non_blocking=True)[:8].int() # B
+                    if n == self.args.auto_mask_n_batches:
+                        break
+
+                    x = x.to(device, non_blocking=True)[:self.img_per_row] # B * C * W * H / B * 1 * W
+                    y = y.to(device, non_blocking=True)[:self.img_per_row].int() # B
                     feats = module.mask_encoder(x)
                     soft_masks = module.mask_head(feats)
 

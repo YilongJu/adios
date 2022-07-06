@@ -1,0 +1,104 @@
+program: main_pretrain.py
+method: grid
+#metric:
+#  name: val_acc1
+#  goal: maximize
+name: simclr_adios_resnet18-1D_ECG_20220705
+description: sweep for ECG data from TCH 40 patients with Sinus and JET
+project: adios_ecg_sweep_3_grid_20220705_2
+entity: yilongju # replace with your own wandb entity (username)
+parameters:
+  seed:
+    value: 0
+  alpha_sparsity:
+    values: [0.25, 0.5, 1., 2., 4.]
+  mask_lr:
+    values: [0.01, 0.1, 1., 10., 100.]
+  lr:
+    values: [0.0001, 0.001, 0.01, 0.1, 1.]
+  optimizer:
+    values: ["sgd", "adam"]
+  weight_decay:
+    values: [0, 0.00001, 0.0001, 0.001, 0.01]
+  data_dir:
+    value: "/mnt/group1/yilong/JET-Detection-Data"
+  max_epochs:
+    value: 25
+  precision:
+    value: 16
+  temperature:
+    values: [0.1, 0.2, 0.4]
+  lars:
+    value: True
+  grad_clip_lars:
+    value: True
+  eta_lars:
+    value: 0.02
+  exclude_bias_n_norm:
+    value: True
+  scheduler:
+    value: warmup_cosine
+  classifier_lr:
+    values: [0.001, 0.01, 0.1, 1]
+  batch_size:
+    value: 256
+  num_workers:
+    value: 4
+  brightness:
+    values: [0.2]
+  contrast:
+    values: [0.2]
+  saturation:
+    values: [0.2]
+  hue:
+    values: [0.2]
+  proj_hidden_dim:
+    values: [128, 512, 2048]
+  output_dim:
+    values: [128, 256, 512]
+  wandb:
+    value: True
+  gpus:
+    value: 1
+  n_crops:
+    value: 1
+  n_small_crops:
+    value: 0
+  method:
+    value: "simclr_adios_1d"
+  encoder:
+    value: "resnet1d"
+  mask_fbase:
+    values: [8, 32, 128]
+  unet_norm:
+    value: 'gn'
+  N:
+    values: [2, 4, 6]
+  checkpoint_dir:
+    value: "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
+  auto_mask_dir:
+    value: "/mnt/group1/yilong/JET-Detection-Data/adios/auto_mask"
+  wandb_dir:
+    value: "/mnt/group1/yilong/JET-Detection-Data/adios/"
+  dataset:
+    value: "ecg-TCH-40_patient-20220201"
+  ptl_accelerator:
+    value: "ddp"
+  sync_batchnorm:
+    value: True
+  accumulate_grad_batches:
+    value: 1
+  cluster_name:
+    value: "b2"
+  auto_umap:
+    value: False
+  auto_mask:
+    value: True
+  read_data_by_chunk:
+    value: True
+  data_chunk_folder:
+    value: "ecg-pat40-tch-sinus_jet"
+  mask_plot_type:
+    value: "soft"
+  auto_mask_n_batches:
+    value: 30
