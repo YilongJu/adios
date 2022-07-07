@@ -92,7 +92,7 @@ parameters:
   accumulate_grad_batches:
     value: 1
   cluster_name:
-    value: "b2"
+    value: "b4"
   auto_umap:
     value: False
   auto_mask:
