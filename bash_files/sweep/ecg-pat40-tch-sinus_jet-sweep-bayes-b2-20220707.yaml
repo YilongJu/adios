@@ -1,27 +1,28 @@
 program: main_pretrain.py
-method: grid
-#metric:
-#  name: val_acc1
-#  goal: maximize
+method: bayes
+metric:
+  name: val_auroc
+  goal: maximize
 name: simclr_adios_resnet18-1D_ECG_20220705
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
-project: adios_ecg_sweep_4_grid_20220705_2
+project: adios_ecg_sweep_5_bayes_20220707
 entity: yilongju # replace with your own wandb entity (username)
 parameters:
   seed:
-    value: 0
+    value: 1
   alpha_sparsity:
-    values: [0.25, 0.5, 1., 2., 4.]
+    values: [0.25, 0.5, 1., 2.]
   mask_lr:
-    values: [0.01, 0.1, 1., 10., 100.]
+    min: 0.01
+    max: 1.0
   lr:
-    values: [0.0001, 0.001, 0.01, 0.1, 1.]
+    min: 0.01
+    max: 1.0
   optimizer:
-    values: ["sgd", "adam"]
+    value: "adam"
   weight_decay:
-    values: [0, 0.00001, 0.0001, 0.001, 0.01]
-  data_dir:
-    value: "/mnt/group1/yilong/JET-Detection-Data"
+    min: 0.
+    max: 1.0
   max_epochs:
     value: 25
   precision:
@@ -39,7 +40,7 @@ parameters:
   scheduler:
     value: warmup_cosine
   classifier_lr:
-    values: [0.001, 0.01, 0.1, 1]
+    values: [0.01, 0.1]
   batch_size:
     value: 256
   num_workers:
@@ -53,9 +54,9 @@ parameters:
   hue:
     values: [0.2]
   proj_hidden_dim:
-    value: [128, 512, 2048]
+    value: 2048
   output_dim:
-    values: [128, 256, 512]
+    value: 128
   wandb:
     value: True
   gpus:
@@ -73,7 +74,9 @@ parameters:
   unet_norm:
     value: 'gn'
   N:
-    values: [2, 4, 6]
+    value: 1
+  data_dir:
+    value: "/mnt/group1/yilong/JET-Detection-Data"
   checkpoint_dir:
     value: "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
   auto_mask_dir:

@@ -6,7 +6,8 @@ from torch import nn
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-from sklearn.metrics import adjusted_rand_score, f1_score, average_precision_score
+from sklearn.metrics import adjusted_rand_score, f1_score, average_precision_score, roc_auc_score
+from torchmetrics import AUROC
 
 def accuracy_at_k(
     outputs: torch.Tensor, targets: torch.Tensor, top_k: Sequence[int] = (1, 5)
@@ -42,6 +43,10 @@ def accuracy_at_k(
 
     return results
 
+
+
+
+
 def multiclass_accuracy(outputs: torch.Tensor, targets: torch.Tensor) -> Dict:
     with torch.no_grad():
         # targets = targets["exists"]
@@ -57,6 +62,29 @@ def multiclass_accuracy(outputs: torch.Tensor, targets: torch.Tensor) -> Dict:
         }) for metric in metrics]
 
     return results
+
+# def auroc(outputs: torch.Tensor, targets: torch.Tensor) -> float:
+#     scores = softmax(outputs)
+#     y_score_list.extend(scores[:, 1].detach().cpu().numpy().tolist())
+#     y_label_list.extend(targets.tolist())
+#     if verbose: print(f"<Bookkeeping> Time = {time.time() - st_debug:.4f}, input_size = {X.shape}")
+#     try:
+#         auroc = roc_auc_score(y_label_list, y_score_list)
+#     except:
+#         auroc = np.nan
+
+def compute_auroc(outputs: List[Dict]) -> float:
+    y_score_list = []
+    y_label_list = []
+    for out in outputs:
+        y_score_list.append(out["scores"])
+        y_label_list.append(out["labels"])
+
+    y_scores = torch.cat(y_score_list)
+    y_labels = torch.cat(y_label_list)
+    auroc_func = AUROC(pos_label=1)
+    auroc = auroc_func(y_scores, y_labels)
+    return auroc
 
 
 def weighted_mean(outputs: List[Dict], key: str, batch_size_key: str) -> float:

@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from src.utils.lars import LARSWrapper
-from src.utils.metrics import accuracy_at_k, weighted_mean, multiclass_accuracy
+from src.utils.metrics import accuracy_at_k, weighted_mean, multiclass_accuracy, compute_auroc
 from src.utils.momentum import MomentumUpdater, initialize_momentum_params
 from src.utils.knn import WeightedKNNClassifier
 from src.utils.blocks import str2bool
@@ -31,6 +31,7 @@ from src.utils.backbones import (
 )
 
 from src.models.ResNet1D import ResNet1D
+import numpy as np
 
 SUPPORTED_NETWORKS = {
             "resnet18": resnet18,
@@ -59,6 +60,7 @@ def static_lr(
         lrs[idx] = lr
     return lrs
 
+softmax = torch.nn.Softmax(dim=1)
 
 class BaseModel(pl.LightningModule):
     def __init__(
@@ -160,6 +162,8 @@ class BaseModel(pl.LightningModule):
         self.img_size = img_size
         self.disable_knn_eval = disable_knn_eval
         self.knn_k = knn_k
+
+        """ member for auroc calculation """
 
 
         # sanity checks on multicrop
@@ -470,7 +474,20 @@ class BaseModel(pl.LightningModule):
                 train_targets=targets.repeat(self.num_crops).detach(),
             )
 
-        return {"loss": loss, "feats": feats, "logits": logits}
+        scores = softmax(torch.cat(logits[self.n_crops :], dim=0))[:, 1].detach()
+        out_dict = {
+            "loss": loss,
+            "feats": feats,
+            "logits": logits,
+            "scores": scores.detach(), # for auroc calculation
+            "labels": targets.detach()
+        }
+        return out_dict
+
+    def training_epoch_end(self, outs: List[Dict[str, Any]]):
+        auroc = compute_auroc(outs)
+        log = {"train_auroc": auroc}
+        self.log_dict(log, sync_dist=True)
 
     def validation_step(self, batch: List[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         """Validation step for pytorch lightning. It does all the shared operations, such as
@@ -497,7 +514,9 @@ class BaseModel(pl.LightningModule):
 
         metrics = {
             "batch_size": batch_size,
-            "val_loss": out["loss"]
+            "val_loss": out["loss"],
+            "scores": softmax(out["logits"])[:, 1].detach(), # for auroc calculation
+            "labels": targets.detach() # for auroc calculation
         }
         for key in self.metric_keys:
             metrics.update({f"val_{key}": out[key]})
@@ -514,7 +533,8 @@ class BaseModel(pl.LightningModule):
         """
 
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
-        log = {"val_loss": val_loss}
+        auroc = compute_auroc(outs)
+        log = {"val_loss": val_loss, "val_auroc": auroc}
         for key in self.metric_keys:
             log.update({f"val_{key}": weighted_mean(outs, f"val_{key}", "batch_size")})
 
