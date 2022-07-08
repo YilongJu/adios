@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from src.utils.lars import LARSWrapper
-from src.utils.metrics import accuracy_at_k, weighted_mean, multiclass_accuracy, compute_auroc
+from src.utils.metrics import accuracy_at_k, weighted_mean, multiclass_accuracy, compute_auroc, AUROC
 from src.utils.momentum import MomentumUpdater, initialize_momentum_params
 from src.utils.knn import WeightedKNNClassifier
 from src.utils.blocks import str2bool
@@ -164,7 +164,7 @@ class BaseModel(pl.LightningModule):
         self.knn_k = knn_k
 
         """ member for auroc calculation """
-
+        self.train_auroc = AUROC(pos_label=1)
 
         # sanity checks on multicrop
         if self.multicrop:
@@ -476,22 +476,31 @@ class BaseModel(pl.LightningModule):
 
         logit_cat = torch.cat(logits[:self.n_crops], dim=0)
         # print(f"logit_cat.shape = {logit_cat.shape}")
-        scores = softmax(logit_cat)[:, 1].detach()
+        scores = softmax(logit_cat)[:, 1]
+
+        self.train_auroc.update(scores.detach(), targets.detach())
+
         out_dict = {
             "loss": loss,
             "feats": feats,
             "logits": logits,
-            "scores": scores.detach(), # for auroc calculation
-            "labels": targets.detach()
+            # "scores": scores.detach(), # for auroc calculation
+            # "labels": targets.detach()
         }
         return out_dict
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
-        print(f"training epoch out: {outs}")
-        auroc = compute_auroc(outs)
+        auroc = self.train_auroc.compute()
         print(f"training auroc = {auroc:.4f}")
+        # log metrics
+        # self.log("epoch_train_accuracy", train_accuracy)
+        # self.log("epoch_train_f1", train_f1)
+        # reset all metrics
         log = {"train_auroc": auroc}
         self.log_dict(log, sync_dist=True)
+        self.train_acc.reset()
+    #     print(f"training epoch out: {outs}")
+    #     auroc = compute_auroc(outs)
 
     def validation_step(self, batch: List[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         """Validation step for pytorch lightning. It does all the shared operations, such as
