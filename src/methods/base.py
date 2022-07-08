@@ -498,7 +498,7 @@ class BaseModel(pl.LightningModule):
         # reset all metrics
         log = {"train_auroc": auroc}
         self.log_dict(log, sync_dist=True)
-        self.train_acc.reset()
+        self.train_auroc.reset()
     #     print(f"training epoch out: {outs}")
     #     auroc = compute_auroc(outs)
 
