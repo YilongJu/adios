@@ -176,7 +176,13 @@ class BaseADIOSModel(BaseModel):
             outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
-        log = {"val_loss": val_loss}
+        # print(f"validation loss = {val_loss:.4f}")
+        # auroc = compute_auroc(outs)
+        auroc = self.val_auroc.compute()
+        self.val_auroc.reset()
+        print(f"validation auroc = {auroc:.4f}")
+        log = {"val_loss": val_loss, "val_auroc": auroc}
+        # log = {"val_loss": val_loss}
 
         all_keys = [*self.extra_metric_keys, *self.metric_keys]
         if self.use_mask:

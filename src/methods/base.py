@@ -165,6 +165,7 @@ class BaseModel(pl.LightningModule):
 
         """ member for auroc calculation """
         self.train_auroc = AUROC(pos_label=1)
+        self.val_auroc = AUROC(pos_label=1)
 
         # sanity checks on multicrop
         if self.multicrop:
@@ -528,11 +529,14 @@ class BaseModel(pl.LightningModule):
         metrics = {
             "batch_size": batch_size,
             "val_loss": out["loss"],
-            "scores": softmax(out["logits"])[:, 1].detach(), # for auroc calculation
-            "labels": targets.detach() # for auroc calculation
+            # "scores": .detach(), # for auroc calculation
+            # "labels": targets.detach() # for auroc calculation
         }
         for key in self.metric_keys:
             metrics.update({f"val_{key}": out[key]})
+
+        scores = softmax(out["logits"])[:, 1]
+        self.val_auroc.update(scores.detach(), targets.detach())
 
         return metrics
 
@@ -545,9 +549,12 @@ class BaseModel(pl.LightningModule):
             outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
 
+
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
-        auroc = compute_auroc(outs)
-        print(f"validation loss = {val_loss:.4f}")
+        # print(f"validation loss = {val_loss:.4f}")
+        # auroc = compute_auroc(outs)
+        auroc = self.val_auroc.compute()
+        self.val_auroc.reset()
         print(f"validation auroc = {auroc:.4f}")
         log = {"val_loss": val_loss, "val_auroc": auroc}
         for key in self.metric_keys:
