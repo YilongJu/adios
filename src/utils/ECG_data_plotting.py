@@ -16,7 +16,8 @@ legend_label_dict = {
     1: "JET"
 }
 
-def Save_time_series_as_img_torch_array(signal, label=None):
+
+def Save_time_series_as_img_torch_array(signal, label=None, mask=None):
     plt.rcParams["figure.figsize"] = [3.50, 3.50]
     plt.rcParams["figure.autolayout"] = True
     plt.rcParams["backend"] = "agg"
@@ -39,9 +40,21 @@ def Save_time_series_as_img_torch_array(signal, label=None):
     else:
         color = cm.tab10(label + 1)
 
-    plt.plot(signal, color=color, label=legend_label)
-    if legend_label is not None:
-        plt.legend(loc="upper right")
+    if mask is not None:
+        plt.plot(signal, color=color, label=legend_label, alpha=0.3)
+        ax = plt.gca()
+        ax_twinx = ax.twinx()
+        signal_masked = signal * (1. - mask)
+        ax.plot(signal_masked, color=color, label=None, linestyle="-.")
+        ax_twinx.plot(mask, color=cm.tab10(0), label=None)
+        ax_twinx.set_yticklabels([])
+        if legend_label is not None:
+            ax.legend(loc="upper left")
+    else:
+        plt.plot(signal, color=color, label=legend_label, alpha=1)
+        if legend_label is not None:
+            plt.legend(loc="upper right")
+
     img_buf = io.BytesIO()
     plt.savefig(img_buf, format='png')
     im = Image.open(img_buf)
@@ -50,23 +63,26 @@ def Save_time_series_as_img_torch_array(signal, label=None):
     return im_array_torch.transpose(2, 0).transpose(2, 1).unsqueeze(0)[:, :3, ...].float()
 
 
-def Convert_batch_of_time_series_to_batch_of_img_torch_array(signals, labels=None, add_ind_to_legend=False):
+def Convert_batch_of_time_series_to_batch_of_img_torch_array(signals, labels=None, add_ind_to_legend=False, masks=None):
     if labels is None:
         labels = [None] * len(signals)
+    if masks is None:
+        masks = [None] * len(signals)
 
     if isinstance(labels, str):
         labels = [labels] * len(signals)
 
     img_array_batch_list = []
     for i, (signal, label) in enumerate(zip(signals, labels)):
-        # print(i, signal.shape)
+        mask = masks[i]
         signal_reshaped = signal.squeeze(0)
+        mask_reshaped = mask.squeeze(0) if mask is not None else mask
+
         if isinstance(label, str):
             label_processed = f"{label}_{i}" if add_ind_to_legend else label
         else:
             label_processed = label
-        img_array_torch_reshaped = Save_time_series_as_img_torch_array(signal_reshaped, label_processed)
-        # print(img_array_torch_reshaped.shape)
+        img_array_torch_reshaped = Save_time_series_as_img_torch_array(signal_reshaped, label_processed, mask_reshaped)
         img_array_batch_list.append(img_array_torch_reshaped)
 
     return torch.cat(img_array_batch_list, dim=0).float()

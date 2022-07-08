@@ -154,7 +154,7 @@ class AutoMASK(Callback):
                         # print(f"save_tensor[-1].shape = {save_tensor[-1].shape}")
 
                     # path = os.path.join(self.path, self.umap_placeholder.format(trainer.current_epoch, n))
-                    path = os.path.join(self.path, f"ep_{trainer.current_epoch}-batch_{str(n).zfill(5)}.png")
+                    path = os.path.join(self.path, f"ep_{str(trainer.current_epoch).zfill(3)}-batch_{str(n).zfill(5)}.png")
                     if len(x.shape) == 4:
                         save_tensor_cat = torch.cat(save_tensor).float()
                     elif len(x.shape) == 3: # Time series
