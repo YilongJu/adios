@@ -44,7 +44,6 @@ class AutoMASK(Callback):
         self.colors.extend([(c[0] // 2, c[1] // 2, c[2] // 2) for c in self.colors])
         self.colors.extend([(c[0] // 4, c[1] // 4, c[2] // 4) for c in self.colors])
         self.colors = [torch.tensor(c) for c in self.colors]
-        self.img_per_row = 8
 
     @staticmethod
     def add_auto_mask_args(parent_parser: ArgumentParser):
@@ -57,6 +56,7 @@ class AutoMASK(Callback):
         parser = parent_parser.add_argument_group("auto_mask")
         parser.add_argument("--auto_mask_dir", default="auto_mask", type=str)
         parser.add_argument("--auto_mask_frequency", default=1, type=int)
+        parser.add_argument("--img_per_row", default=8, type=int)
         parser.add_argument("--auto_mask_n_batches", default=3000, type=int)
         parser.add_argument("--mask_plot_type", default="soft", type=str)
         return parent_parser
@@ -110,8 +110,8 @@ class AutoMASK(Callback):
                     if n == self.args.auto_mask_n_batches:
                         break
 
-                    x = x.to(device, non_blocking=True)[:self.img_per_row] # B * C * W * H / B * 1 * W
-                    y = y.to(device, non_blocking=True)[:self.img_per_row].int() # B
+                    x = x.to(device, non_blocking=True)[:self.args.img_per_row] # B * C * W * H / B * 1 * W
+                    y = y.to(device, non_blocking=True)[:self.args.img_per_row].int() # B
                     feats = module.mask_encoder(x)
                     soft_masks = module.mask_head(feats)
 
@@ -122,8 +122,10 @@ class AutoMASK(Callback):
                         hard_masks = torch.zeros(soft_masks.shape).scatter(1, a.unsqueeze(1), 1.0)
                         masks_plot = hard_masks
 
+                    save_tensor = []
                     if len(x.shape) == 4:
                         input_img = x.cpu()
+                        save_tensor.append(input_img)
                     elif len(x.shape) == 3: # Time series
                         # TODO: Save ECG plots to buffer and convert to data matrix for plotting [Done]
                         """
@@ -131,11 +133,11 @@ class AutoMASK(Callback):
                         - https://www.tutorialspoint.com/how-to-convert-matplotlib-figure-to-pil-image-object
                         - https://stackoverflow.com/questions/384759/how-to-convert-a-pil-image-into-a-numpy-array
                         """
-                        input_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu(), y)
+                        # input_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu(), y)
+                        pass
                     else:
                         raise NotImplementedError("Unknown data shape.")
                     # print(f"input_img.shape = {input_img.shape}")
-                    save_tensor = [input_img]
 
                     for i, mask in enumerate(torch.chunk(masks_plot, self.args.N, dim=1)): # Split B * C mask tensor into separate B * 1 masks
                         # print(f"mask.shape = {mask.shape}")
@@ -144,9 +146,10 @@ class AutoMASK(Callback):
                             save_tensor.extend([mask.repeat(1,3,1,1), input_img * (1 - mask)])
                         elif len(mask.shape) == 3:
                             # 'mask' is a time seris
-                            mask_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(mask.repeat(1, 1, 1), f"mask_{i}")
-                            masked_input_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu() * (1 - mask), y)
-                            save_tensor.extend([mask_img, masked_input_img])
+                            # mask_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(mask.repeat(1, 1, 1), f"mask_{i}")
+                            # masked_input_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu() * (1 - mask), y)
+                            # save_tensor.extend([mask_img, masked_input_img])
+                            save_tensor.append(Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu(), y, masks=mask.repeat(1, 1, 1)))
                         else:
                             raise NotImplementedError("Unknown mask shape.")
 

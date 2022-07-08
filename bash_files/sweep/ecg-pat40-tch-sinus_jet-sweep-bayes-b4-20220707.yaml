@@ -105,3 +105,5 @@ parameters:
     value: "soft"
   auto_mask_n_batches:
     value: 40
+  img_per_row:
+    value: 24

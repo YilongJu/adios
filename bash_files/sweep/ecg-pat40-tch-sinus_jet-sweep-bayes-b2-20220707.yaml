@@ -9,7 +9,7 @@ project: adios_ecg_sweep_5_bayes_20220707
 entity: yilongju # replace with your own wandb entity (username)
 parameters:
   seed:
-    value: 1
+    value: 0
   alpha_sparsity:
     values: [0.25, 0.5, 1., 2.]
   mask_lr:
@@ -105,3 +105,5 @@ parameters:
     value: "soft"
   auto_mask_n_batches:
     value: 40
+  img_per_row:
+    value: 24
