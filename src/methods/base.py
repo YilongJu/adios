@@ -485,23 +485,14 @@ class BaseModel(pl.LightningModule):
             "loss": loss,
             "feats": feats,
             "logits": logits,
-            # "scores": scores.detach(), # for auroc calculation
-            # "labels": targets.detach()
         }
         return out_dict
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
         auroc = self.train_auroc.compute()
-        print(f"training auroc = {auroc:.4f}")
-        # log metrics
-        # self.log("epoch_train_accuracy", train_accuracy)
-        # self.log("epoch_train_f1", train_f1)
-        # reset all metrics
         log = {"train_auroc": auroc}
         self.log_dict(log, sync_dist=True)
         self.train_auroc.reset()
-    #     print(f"training epoch out: {outs}")
-    #     auroc = compute_auroc(outs)
 
     def validation_step(self, batch: List[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         """Validation step for pytorch lightning. It does all the shared operations, such as
@@ -529,8 +520,6 @@ class BaseModel(pl.LightningModule):
         metrics = {
             "batch_size": batch_size,
             "val_loss": out["loss"],
-            # "scores": .detach(), # for auroc calculation
-            # "labels": targets.detach() # for auroc calculation
         }
         for key in self.metric_keys:
             metrics.update({f"val_{key}": out[key]})
@@ -548,14 +537,9 @@ class BaseModel(pl.LightningModule):
         Args:
             outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
-
-
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
-        # print(f"validation loss = {val_loss:.4f}")
-        # auroc = compute_auroc(outs)
         auroc = self.val_auroc.compute()
         self.val_auroc.reset()
-        print(f"validation auroc = {auroc:.4f}")
         log = {"val_loss": val_loss, "val_auroc": auroc}
         for key in self.metric_keys:
             log.update({f"val_{key}": weighted_mean(outs, f"val_{key}", "batch_size")})
