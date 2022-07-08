@@ -474,7 +474,9 @@ class BaseModel(pl.LightningModule):
                 train_targets=targets.repeat(self.num_crops).detach(),
             )
 
-        scores = softmax(torch.cat(logits[:self.n_crops], dim=0))[:, 1].detach()
+        logit_cat = torch.cat(logits[:self.n_crops], dim=0)
+        print(f"logit_cat.shape = {logit_cat.shape}")
+        scores = softmax(logit_cat)[:, 1].detach()
         out_dict = {
             "loss": loss,
             "feats": feats,
