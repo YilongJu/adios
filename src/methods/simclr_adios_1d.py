@@ -61,10 +61,16 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
         )
 
         # masking model
-        self.mask_head = nn.Sequential(
-            nn.Conv1d(mask_fbase, N, 1, 1, 0),
-            nn.Softmax(dim=1)
-        )
+        if N > 1:
+            self.mask_head = nn.Sequential(
+                nn.Conv1d(mask_fbase, N, 1, 1, 0),
+                nn.Softmax(dim=1)
+            )
+        else:
+            self.mask_head = nn.Sequential(
+                nn.Conv1d(mask_fbase, N, 1, 1, 0),
+                nn.Sigmoid()
+            )
 
         self.mask_encoder = UNet_1D(
             num_blocks=int(np.log2(self.img_size)-1),
@@ -131,7 +137,7 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
                 and the projected and predicted features.
         """
 
-        out = super().forward(X, *args, **kwargs)
+        out = super().forward(X, *args, **kwargs) # base.forward (ResNet1D.forward): out = {"logits": logits, "feats": feats}
         z = self.projector(out["feats"])
         return {**out, "z": z}
 

@@ -486,6 +486,7 @@ class BaseModel(pl.LightningModule):
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
         auroc = compute_auroc(outs)
+        print(f"training auroc = {auroc:.4f}")
         log = {"train_auroc": auroc}
         self.log_dict(log, sync_dist=True)
 
@@ -534,6 +535,8 @@ class BaseModel(pl.LightningModule):
 
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
         auroc = compute_auroc(outs)
+        print(f"validation loss = {val_loss:.4f}")
+        print(f"validation auroc = {auroc:.4f}")
         log = {"val_loss": val_loss, "val_auroc": auroc}
         for key in self.metric_keys:
             log.update({f"val_{key}": weighted_mean(outs, f"val_{key}", "batch_size")})
