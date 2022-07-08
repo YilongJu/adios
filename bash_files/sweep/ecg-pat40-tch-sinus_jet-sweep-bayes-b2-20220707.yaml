@@ -3,9 +3,13 @@ method: bayes
 metric:
   name: val_auroc
   goal: maximize
-name: simclr_adios_resnet18-1D_ECG_20220705
+early_terminate:
+  type: hyperband
+  min_iter: 3
+  s: 3
+name: simclr_adios_resnet18-1D_ECG_20220708
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
-project: adios_ecg_sweep_5_bayes_20220707
+project: adios_ecg_sweep_5_bayes_20220708
 entity: yilongju # replace with your own wandb entity (username)
 parameters:
   seed:
@@ -24,7 +28,7 @@ parameters:
     min: 0.
     max: 1.0
   max_epochs:
-    value: 25
+    value: 30
   precision:
     value: 16
   temperature:
