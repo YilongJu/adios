@@ -470,11 +470,11 @@ class BaseModel(pl.LightningModule):
 
         if not self.disable_knn_eval:
             self.knn(
-                train_features=torch.cat(outs["feats"][: self.num_crops]).detach(),
+                train_features=torch.cat(outs["feats"][:self.num_crops]).detach(),
                 train_targets=targets.repeat(self.num_crops).detach(),
             )
 
-        scores = softmax(torch.cat(logits[self.n_crops :], dim=0))[:, 1].detach()
+        scores = softmax(torch.cat(logits[:self.n_crops], dim=0))[:, 1].detach()
         out_dict = {
             "loss": loss,
             "feats": feats,
