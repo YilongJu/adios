@@ -487,6 +487,7 @@ class BaseModel(pl.LightningModule):
         return out_dict
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
+        print(f"training epoch out: {outs}")
         auroc = compute_auroc(outs)
         print(f"training auroc = {auroc:.4f}")
         log = {"train_auroc": auroc}
