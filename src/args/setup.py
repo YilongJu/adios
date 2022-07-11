@@ -60,6 +60,9 @@ def parse_args_pretrain() -> argparse.Namespace:
 
     # Config for ECG data
     parser.add_argument("--channel_ID", type=int, default=2)
+    ## Preprocessing for ECG data
+    parser.add_argument("--shift_signal", type=str2bool, nargs='?', const=True, default=False)
+    parser.add_argument("--ecg_resampling_length", type=int, default=300)
 
 
 

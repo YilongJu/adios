@@ -108,7 +108,7 @@ def Get_exp_name(args):
 
 class ECG_classification_dataset_with_peak_features(Dataset):
     def __init__(self, feature_df_all_selected_p_ind_with_ecg, ecg_resampling_length=300, peak_loc_name="p_ind_resampled", label_name="label",
-                 short_identifier_list=None, peak_feature_name_list=None):
+                 short_identifier_list=None, peak_feature_name_list=None, shift_signal=False, shift_amount=None):
         if short_identifier_list is None:
             short_identifier_list = ['patient_ID', 'interval_ID', 'block_ID', 'channel_ID', 'r_ID_abs', 'label', 'r_ID_abs_ref']
         if peak_feature_name_list is None:
@@ -127,6 +127,13 @@ class ECG_classification_dataset_with_peak_features(Dataset):
         self.label_list = self.feature_df_all_selected_p_ind_with_ecg[self.label_name].values
         self.short_identifier_mat = self.feature_df_all_selected_p_ind_with_ecg[self.short_identifier_list].values
         self.peak_feature_mat = self.feature_df_all_selected_p_ind_with_ecg[self.peak_feature_name_list].values
+
+        self.shift_signal = shift_signal
+        self.shift_amount = shift_amount
+        if self.shift_signal:
+            if self.shift_amount is None:
+                self.shift_amount = 0
+            self.ecg_mat -= self.shift_amount # Shift ECG to 0 baseline
 
     def __len__(self):
         return len(self.feature_df_all_selected_p_ind_with_ecg)

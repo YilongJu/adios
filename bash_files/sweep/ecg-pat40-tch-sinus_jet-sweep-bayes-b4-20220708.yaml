@@ -49,14 +49,6 @@ parameters:
     value: 256
   num_workers:
     value: 4
-  brightness:
-    values: [0.2]
-  contrast:
-    values: [0.2]
-  saturation:
-    values: [0.2]
-  hue:
-    values: [0.2]
   proj_hidden_dim:
     value: 2048
   output_dim:

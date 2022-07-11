@@ -73,8 +73,13 @@ def main():
         feature_with_ecg_df_train_single_lead = feature_with_ecg_df_train.query(f"channel_ID == {channel_ID}")
         feature_with_ecg_df_test_single_lead = feature_with_ecg_df_test.query(f"channel_ID == {channel_ID}")
 
-        train_dataset = dataset_with_index(ECG_classification_dataset_with_peak_features)(feature_with_ecg_df_train_single_lead)
-        test_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_test_single_lead)
+        ecg_resampling_length = args.ecg_resampling_length
+        ecg_colnames = [f"ecg{i + 1}" for i in range(ecg_resampling_length)]
+        ecg_mat = feature_with_ecg_df_train_single_lead[ecg_colnames].values
+        signal_min_train = np.min(ecg_mat.ravel())
+
+        train_dataset = dataset_with_index(ECG_classification_dataset_with_peak_features)(feature_with_ecg_df_train_single_lead, shift_signal=args.shift_signal, shift_amount=signal_min_train)
+        test_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_test_single_lead, shift_signal=args.shift_signal, shift_amount=signal_min_train)
 
         train_loader = prepare_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=True
