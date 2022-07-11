@@ -108,7 +108,10 @@ def Get_exp_name(args):
 
 class ECG_classification_dataset_with_peak_features(Dataset):
     def __init__(self, feature_df_all_selected_p_ind_with_ecg, ecg_resampling_length=300, peak_loc_name="p_ind_resampled", label_name="label",
-                 short_identifier_list=None, peak_feature_name_list=None, shift_signal=False, shift_amount=None):
+                 short_identifier_list=None, peak_feature_name_list=None, shift_signal=False, shift_amount=None, normalize_signal=False):
+        """
+        normalize_signal: Normalize each individual signal to 0 - 1 range
+        """
         if short_identifier_list is None:
             short_identifier_list = ['patient_ID', 'interval_ID', 'block_ID', 'channel_ID', 'r_ID_abs', 'label', 'r_ID_abs_ref']
         if peak_feature_name_list is None:
@@ -130,10 +133,16 @@ class ECG_classification_dataset_with_peak_features(Dataset):
 
         self.shift_signal = shift_signal
         self.shift_amount = shift_amount
+        self.normalize_signal = normalize_signal
         if self.shift_signal:
             if self.shift_amount is None:
                 self.shift_amount = 0
             self.ecg_mat -= self.shift_amount # Shift ECG to 0 baseline
+
+        if self.normalize_signal:
+            ecg_min = np.min(self.ecg_mat, axis=1)[:, np.newaxis]
+            ecg_max = np.max(self.ecg_mat, axis=1)[:, np.newaxis]
+            self.ecg_mat = (self.ecg_mat - ecg_min) / (ecg_max - ecg_min)
 
     def __len__(self):
         return len(self.feature_df_all_selected_p_ind_with_ecg)

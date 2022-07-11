@@ -7,9 +7,9 @@ early_terminate:
   type: hyperband
   min_iter: 3
   s: 3
-name: simclr_adios_resnet18-1D_ECG-20220711
+name: simclr_adios_resnet18-1D_ECG_normalized-20220711
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
-project: adios_ecg_sweep_6_bayes_20220711
+project: adios_ecg_normalized_sweep_7_bayes_20220711
 entity: yilongju # replace with your own wandb entity (username)
 parameters:
   seed:
@@ -104,4 +104,6 @@ parameters:
   img_per_row:
     value: 24
   shift_signal:
+    value: False
+  normalize_signal:
     value: True
