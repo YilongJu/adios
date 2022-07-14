@@ -48,6 +48,7 @@ def Save_time_series_as_img_torch_array(signal, label=None, mask=None):
         ax.plot(signal_masked, color=color, label=None, linestyle="-.")
         ax_twinx.plot(mask, color=cm.tab10(0), label=None)
         ax_twinx.set_yticklabels([])
+        ax_twinx.set_ylim(-0.05, 1.05)
         if legend_label is not None:
             ax.legend(loc="upper left")
     else:

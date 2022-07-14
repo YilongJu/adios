@@ -249,6 +249,7 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
         masks = self.mask_head(enc_feat)
 
         similarities, summed_mask = [], []
+        mask_var_list = []
         for k, mask in enumerate(torch.chunk(masks, self.N, dim=1)):
             feats1, feats2 = self.encoder(x_orig), self.encoder(x_transformed*(1-mask))
             z1 = self.projector(feats1)
@@ -259,6 +260,7 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
             loss = simclr_loss_func(z1, z2, **loss_func_kwargs)
 
             # compute mask penalty
+            mask_var_list.append(torch.var(mask, dim=2).squeeze())
             mask_n_ele = torch.prod(torch.tensor(mask.shape)) / mask.shape[0]
             # print(f"mask.shape = {mask.shape}") # B x 1 x 300
             # print(f"mask = {mask}")
@@ -277,13 +279,15 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
         all_summed_masks = torch.stack(summed_mask, dim=0)
         # print(f"all_summed_masks.shape = {all_summed_masks.shape}")
         # print(f"all_summed_masks = {all_summed_masks}")
+        all_masks_vars = torch.cat(mask_var_list)
 
         similarity += self.alpha2 * self.entropy(all_summed_masks)
         minval, _ = torch.stack(summed_mask).min(dim=0)
         maxval, _ = torch.stack(summed_mask).max(dim=0)
         self.log_dict({"train_mask_loss": similarity,
                        "mask_summed_min": minval.mean(),
-                       "mask_summed_max": maxval.mean()},
+                       "mask_summed_max": maxval.mean(),
+                       "mask_var_mean": all_masks_vars.mean()},
                       on_epoch=True, sync_dist=True)
 
         return similarity

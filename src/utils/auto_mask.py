@@ -133,28 +133,18 @@ class AutoMASK(Callback):
                         - https://www.tutorialspoint.com/how-to-convert-matplotlib-figure-to-pil-image-object
                         - https://stackoverflow.com/questions/384759/how-to-convert-a-pil-image-into-a-numpy-array
                         """
-                        # input_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu(), y)
                         pass
                     else:
                         raise NotImplementedError("Unknown data shape.")
-                    # print(f"input_img.shape = {input_img.shape}")
 
                     for i, mask in enumerate(torch.chunk(masks_plot, self.args.N, dim=1)): # Split B * C mask tensor into separate B * 1 masks
-                        # print(f"mask.shape = {mask.shape}")
-
                         if len(mask.shape) == 4:
                             save_tensor.extend([mask.repeat(1,3,1,1), input_img * (1 - mask)])
                         elif len(mask.shape) == 3:
                             # 'mask' is a time seris
-                            # mask_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(mask.repeat(1, 1, 1), f"mask_{i}")
-                            # masked_input_img = Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu() * (1 - mask), y)
-                            # save_tensor.extend([mask_img, masked_input_img])
                             save_tensor.append(Convert_batch_of_time_series_to_batch_of_img_torch_array(x.cpu(), y, masks=mask.repeat(1, 1, 1)))
                         else:
                             raise NotImplementedError("Unknown mask shape.")
-
-                        # print(f"save_tensor[-2].shape = {save_tensor[-2].shape}")
-                        # print(f"save_tensor[-1].shape = {save_tensor[-1].shape}")
 
                     # path = os.path.join(self.path, self.umap_placeholder.format(trainer.current_epoch, n))
                     path = os.path.join(self.path, f"ep_{str(trainer.current_epoch).zfill(3)}-batch_{str(n).zfill(5)}.png")
@@ -185,6 +175,6 @@ class AutoMASK(Callback):
             if self.args.ptl_accelerator in ["ddp"]:
                 for v in trainer.val_dataloaders:
                     v.sampler.shuffle = True
-                    v.sampler.set_epoch(epoch)
+                    v.sampler.set_epoch(0)
 
             self.plot(trainer, module)
