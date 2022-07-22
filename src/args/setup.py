@@ -19,8 +19,8 @@ except ImportError:
 else:
     _umap_available = True
 
-NEED_AUTO_MASK = ["simclr_adios", "simclr_adios_s", "simsiam_adios", "simsiam_adios_s",
-                  'byol_adios', "byol_adios_s", ]
+NEED_AUTO_MASK = ["simclr_adios", "simclr_adios_1d", "simclr_adios_s", "simsiam_adios", "simsiam_adios_s",
+                  'byol_adios', 'byol_adios_1d', "byol_adios_s", ]
 NEED_LOAD_MASK = ["simclr_gt", "simclr_rand_mask", *NEED_AUTO_MASK]
 
 def parse_args_pretrain() -> argparse.Namespace:

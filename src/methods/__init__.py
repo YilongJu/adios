@@ -17,6 +17,7 @@ from src.methods.simsiam_adios_s import SimSiam_ADIOS_S
 # byol
 from src.methods.byol import BYOL
 from src.methods.byol_adios import BYOL_ADIOS
+from src.methods.byol_adios_1d import BYOL_ADIOS_1D
 from src.methods.byol_adios_s import BYOL_ADIOS_S
 
 
@@ -35,6 +36,7 @@ METHODS = {
     "simclr_adios_1d": SimCLR_ADIOS_1D,
     "simsiam_adios": SimSiam_ADIOS,
     'byol_adios': BYOL_ADIOS,
+    'byol_adios_1d': BYOL_ADIOS_1D,
     # SSL + ADIOS-s models (single mask)
     "simclr_adios_s": SimCLR_ADIOS_S,
     "simsiam_adios_s": SimSiam_ADIOS_S,
@@ -52,8 +54,10 @@ __all__ = [
     "SimCLR",
     "SimSiam",
     "SimCLR_ADIOS",
+    "SimCLR_ADIOS_1D",
     "SimSiam_ADIOS",
     "BYOL_ADIOS",
+    "BYOL_ADIOS_1D",
     "SimCLR_ADIOS_S",
     "SimSiam_ADIOS_S",
     "BYOL_ADIOS_S",
