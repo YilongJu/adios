@@ -42,6 +42,7 @@ def parse_args_pretrain() -> argparse.Namespace:
 
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)
+    parser.add_argument("--debug", type=str2bool, nargs='?', const=True, default=False)
 
     # add method-specific arguments
     parser.add_argument("--method", type=str)

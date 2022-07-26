@@ -39,8 +39,9 @@ def Data_preprocessing(args):
         large_data_folder = os.path.normpath("D:\\Backup\\JET-Detection\\Heartbeats_dict_20220201\\")
 
     # TODO: modify this step to make it use less memory at once
-    debug = True
-    debug = False
+    # debug = True
+    # debug = False
+    debug = args.debug
     if debug:
         feature_df_all_selected_with_ecg = pd.read_csv(os.path.join(data_folder_2, "feature_df_all_selected_with_ecg_20220210_rtfixed_sample10000.csv"))
     else:
