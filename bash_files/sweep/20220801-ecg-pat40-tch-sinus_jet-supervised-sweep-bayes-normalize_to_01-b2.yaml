@@ -16,7 +16,7 @@ parameters:
     value: 0
   lr:
     min: 0.0001
-    max: 1
+    max: 1.0
   optimizer:
     values: ["sgd"]
   weight_decay:
