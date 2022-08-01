@@ -243,6 +243,8 @@ class SupervisedModel_1D(pl.LightningModule):
         print(f"scores.shape = {scores.shape}")
         print(f"targets.shape = {targets.shape}")
         self.auroc.update(scores.detach(), targets.detach())
+        auroc = self.auroc.compute()
+        print(f"auroc = {auroc:.4f}")
 
         results = accuracy_at_k(out, targets, top_k=(1,))
         # return batch_size, loss, results['acc1'], results['acc5']
