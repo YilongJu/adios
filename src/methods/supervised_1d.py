@@ -79,9 +79,6 @@ class SupervisedModel_1D(pl.LightningModule):
         self.extra_args = kwargs
 
         """ member for auroc calculation """
-        self.train_auroc = AUROC(pos_label=1)
-        self.val_auroc = AUROC(pos_label=1)
-
         self.auroc = AUROC(pos_label=1)
 
 
@@ -243,6 +240,8 @@ class SupervisedModel_1D(pl.LightningModule):
         #     self.val_auroc.update(scores.detach(), targets.detach())
         # else:
         #     raise NotImplementedError("Unknown mode.")
+        print(f"scores.shape = {scores.shape}")
+        print(f"targets.shape = {targets.shape}")
         self.auroc.update(scores.detach(), targets.detach())
 
         results = accuracy_at_k(out, targets, top_k=(1,))

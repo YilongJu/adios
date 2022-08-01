@@ -64,3 +64,5 @@ parameters:
     value: False
   normalize_signal:
     value: True
+  debug:
+    value: False
