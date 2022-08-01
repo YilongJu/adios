@@ -265,7 +265,7 @@ class SupervisedModel_1D(pl.LightningModule):
 
         _, loss, acc1, _ = self.shared_step(batch, batch_idx)
 
-        log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": None}
+        log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": float('nan')}
         self.log_dict(log, on_epoch=True, sync_dist=True)
         return loss
 
@@ -294,7 +294,7 @@ class SupervisedModel_1D(pl.LightningModule):
             "batch_size": batch_size,
             "val_loss": loss,
             "val_acc1": acc1,
-            "val_acc5": None,
+            "val_acc5": float('nan'),
         }
         return results
 
@@ -313,5 +313,5 @@ class SupervisedModel_1D(pl.LightningModule):
         val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
         # val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
 
-        log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": None, "val_auroc": auroc}
+        log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": float('nan'), "val_auroc": auroc}
         self.log_dict(log, sync_dist=True)

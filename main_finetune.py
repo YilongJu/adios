@@ -18,6 +18,7 @@ except ImportError:
 else:
     _dali_avaliable = True
 from src.methods.supervised import SupervisedModel
+from src.methods.supervised_1d import SupervisedModel_1D
 from src.utils.classification_dataloader import prepare_data
 from src.utils.checkpointer import Checkpointer
 from src.methods import METHODS
@@ -51,9 +52,11 @@ def main():
         # remove fc layer
         model.fc = nn.Identity()
 
-    model = SupervisedModel(model, **args.__dict__)
+    # model = SupervisedModel(model, **args.__dict__)
 
     if args.dataset in ["ecg-TCH-40_patient-20220201"]:
+        model = SupervisedModel_1D(model, **args.__dict__)
+
         feature_with_ecg_df_train, feature_with_ecg_df_test, save_folder = Data_preprocessing(args)
         channel_ID = args.channel_ID
         """ Get dataloader """
@@ -75,6 +78,8 @@ def main():
             test_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=False
         )
     else:
+        model = SupervisedModel(model, **args.__dict__)
+
         train_loader, val_loader = prepare_data(
             dataset=args.dataset,
             size=IMG_SIZE_DATASET[args.dataset],
@@ -105,15 +110,20 @@ def main():
         )
         callbacks.append(ckpt)
 
+    print(args) # Namespace(accelerator=None, accumulate_grad_batches=1, amp_backend='native', amp_level='O2', auto_lr_find=False, auto_scale_batch_size=False, auto_select_gpus=False, batch_size=256, benchmark=False, channel_ID=2, check_val_every_n_epoch=1, checkpoint_callback=True, checkpoint_dir='/Users/yj31/Dropbox/My Mac (C02FR2BBMD6T)/Documents/GitHub/adios/trained_models', checkpoint_frequency=1, cifar=False, classifier_lr=0.3, cluster_name='b4', dali=False, dali_device='gpu', data_chunk_folder='ecg-pat40-tch-sinus_jet', data_dir='/Users/yj31/Dropbox/My Mac (C02FR2BBMD6T)/Documents/GitHub/adios/data', dataset='ecg-TCH-40_patient-20220201', debug=True, default_root_dir=None, deterministic=False, devices=None, distributed_backend=None, ecg_resampling_length=300, encoder='resnet18', entity='yilongju', exclude_bias_n_norm=True, extra_optimizer_args={'momentum': 0.9}, fast_dev_run=False, flush_logs_every_n_steps=100, gpus=[0], gradient_clip_algorithm='norm', gradient_clip_val=0.0, ipus=None, lars=True, limit_predict_batches=1.0, limit_test_batches=1.0, limit_train_batches=1.0, limit_val_batches=1.0, log_every_n_steps=50, log_gpu_memory=None, logger=True, lr=0.5, lr_decay_steps=None, max_epochs=2, max_steps=None, max_time=None, min_epochs=None, min_steps=None, move_metrics_to_cpu=False, multiple_trainloader_mode='max_size_cycle', n_classes=2, name='finetune_resnet18_ECG_debug', no_labels=True, normalize_signal=False, num_nodes=1, num_processes=1, num_sanity_val_steps=2, num_workers=4, offline=False, optimizer='sgd', overfit_batches=0.0, plugins=None, precision=16, prepare_data_per_node=True, pretrained_feature_extractor=None, process_position=0, profiler=None, progress_bar_refresh_rate=None, project='adios_ecg_debug', ptl_accelerator='cpu', read_data_by_chunk=True, reload_dataloaders_every_epoch=False, reload_dataloaders_every_n_epochs=0, replace_sampler_ddp=True, resume_from_checkpoint=None, scheduler='warmup_cosine', seed=-1, shift_signal=False, stochastic_weight_avg=False, sync_batchnorm=False, target_type='single', terminate_on_nan=False, tpu_cores=None, track_grad_norm=-1, train_dir=None, truncated_bptt_steps=None, use_mask=False, val_check_interval=1.0, val_dir=None, validation_frequency=1, wandb=True, weight_decay=0.0005, weights_save_path=None, weights_summary='top', zero_init_residual=None)
+
+
     trainer = Trainer.from_argparse_args(
         args,
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
-        plugins=DDPPlugin(find_unused_parameters=False),
+        plugins=None if args.ptl_accelerator in ["cpu"] else DDPPlugin(find_unused_parameters=False),
         checkpoint_callback=False,
         terminate_on_nan=True,
-        accelerator="ddp",
+        accelerator=args.ptl_accelerator,
+        devices=1 if args.ptl_accelerator in ["cpu"] else None,
         check_val_every_n_epoch=args.validation_frequency,
+        deterministic=False if args.ptl_accelerator in ["cpu"] else True
     )
     if args.dali:
         trainer.fit(model, val_dataloaders=val_loader)
