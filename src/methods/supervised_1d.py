@@ -265,12 +265,16 @@ class SupervisedModel_1D(pl.LightningModule):
         self.backbone.eval()
 
         _, loss, acc1, _ = self.shared_step(batch, batch_idx)
+        auroc = self.auroc.compute()
+        print(f"step auroc = {auroc:.4f}")
 
         log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": float('nan')}
         self.log_dict(log, on_epoch=True, sync_dist=True)
         return loss
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
+        auroc = self.auroc.compute()
+        print(f"end auroc = {auroc:.4f}")
         auroc = self.auroc.compute()
         log = {"train_auroc": auroc}
         self.log_dict(log, sync_dist=True)
