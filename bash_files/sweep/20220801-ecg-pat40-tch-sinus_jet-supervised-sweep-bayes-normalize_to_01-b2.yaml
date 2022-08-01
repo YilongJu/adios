@@ -1,4 +1,4 @@
-program: main_pretrain.py
+program: main_finetune.py
 method: bayes
 metric:
   name: val_auroc
