@@ -39,7 +39,7 @@ parameters:
   wandb:
     value: True
   gpus:
-    value: 1
+    value: [0]
   encoder:
     value: "resnet1d"
   data_dir:
