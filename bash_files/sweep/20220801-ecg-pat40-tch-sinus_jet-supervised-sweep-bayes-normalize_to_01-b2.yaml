@@ -46,8 +46,6 @@ parameters:
     value: "/mnt/group1/yilong/JET-Detection-Data"
   checkpoint_dir:
     value: "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
-  wandb_dir:
-    value: "/mnt/group1/yilong/JET-Detection-Data/adios/"
   cluster_name:
     value: "b2"
   dataset:
