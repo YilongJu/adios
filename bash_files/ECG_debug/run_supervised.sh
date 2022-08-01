@@ -1,0 +1,1 @@
+python main_finetune.py --dataset "ecg-TCH-40_patient-20220201" --data_dir "D:\\Dropbox\\Study\\GitHub\\adios\\data" --max_epochs 2 --gpus 1 --precision 16 --optimizer sgd --scheduler warmup_cosine --lr 0.5 --weight_decay 5e-4 --batch_size 256 --num_workers 4 --name "finetune_resnet18_ECG_debug" --project "adios_ecg_debug" --entity "yilongju" --wandb True --debug True

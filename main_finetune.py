@@ -23,6 +23,9 @@ from src.utils.checkpointer import Checkpointer
 from src.methods import METHODS
 from src.methods.base import SUPPORTED_NETWORKS
 
+from src.utils.ECG_data_loading import *
+from src.utils.pretrain_dataloader import prepare_dataloader
+
 def main():
     args = parse_args_finetune()
 
@@ -50,13 +53,35 @@ def main():
 
     model = SupervisedModel(model, **args.__dict__)
 
-    train_loader, val_loader = prepare_data(
-        dataset=args.dataset,
-        size=IMG_SIZE_DATASET[args.dataset],
-        data_dir=args.data_dir,
-        batch_size=args.batch_size,
-        num_workers=args.num_workers,
-    )
+    if args.dataset in ["ecg-TCH-40_patient-20220201"]:
+        feature_with_ecg_df_train, feature_with_ecg_df_test, save_folder = Data_preprocessing(args)
+        channel_ID = args.channel_ID
+        """ Get dataloader """
+        feature_with_ecg_df_train_single_lead = feature_with_ecg_df_train.query(f"channel_ID == {channel_ID}")
+        feature_with_ecg_df_test_single_lead = feature_with_ecg_df_test.query(f"channel_ID == {channel_ID}")
+
+        ecg_resampling_length = args.ecg_resampling_length
+        ecg_colnames = [f"ecg{i + 1}" for i in range(ecg_resampling_length)]
+        ecg_mat = feature_with_ecg_df_train_single_lead[ecg_colnames].values
+        signal_min_train = np.min(ecg_mat.ravel())
+
+        train_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_train_single_lead, shift_signal=args.shift_signal, shift_amount=signal_min_train, normalize_signal=args.normalize_signal)
+        test_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_test_single_lead, shift_signal=args.shift_signal, shift_amount=signal_min_train, normalize_signal=args.normalize_signal)
+
+        train_loader = prepare_dataloader(
+            train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=True
+        )
+        val_loader = prepare_dataloader(
+            test_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=False
+        )
+    else:
+        train_loader, val_loader = prepare_data(
+            dataset=args.dataset,
+            size=IMG_SIZE_DATASET[args.dataset],
+            data_dir=args.data_dir,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+        )
 
     callbacks = []
 

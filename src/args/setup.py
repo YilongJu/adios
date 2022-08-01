@@ -205,6 +205,19 @@ def parse_args_finetune() -> argparse.Namespace:
     # add shared arguments
     dataset_args(parser)
 
+    parser.add_argument("--debug", type=str2bool, nargs='?', const=True, default=False)
+    parser.add_argument("--seed", type=int, default=-1)
+    parser.add_argument("--ptl_accelerator", type=str, default="ddp", help='pytorch lightning accelerator')
+    parser.add_argument("--cluster_name", type=str, default="b4")
+    parser.add_argument("--read_data_by_chunk", type=str2bool, nargs='?', const=True, default=True)
+    parser.add_argument("--data_chunk_folder", type=str, default="ecg-pat40-tch-sinus_jet")
+    # Config for ECG data
+    parser.add_argument("--channel_ID", type=int, default=2)
+    ## Preprocessing for ECG data
+    parser.add_argument("--shift_signal", type=str2bool, nargs='?', const=True, default=False)
+    parser.add_argument("--normalize_signal", type=str2bool, nargs='?', const=True, default=False)
+    parser.add_argument("--ecg_resampling_length", type=int, default=300)
+
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)
 

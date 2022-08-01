@@ -34,8 +34,9 @@ def Data_preprocessing(args):
         print("Using Linux.")
     else:
         print("Using Windows.")
-        data_folder = os.path.normpath("")
-        data_folder_2 = os.path.normpath("D:\\Backup\\JET-Detection\\")
+        data_folder = os.path.normpath("D:\\Dropbox\\Study\\GitHub\\JET-Detection")
+        # data_folder_2 = os.path.normpath("D:\\Backup\\JET-Detection\\")
+        data_folder_2 = data_folder
         large_data_folder = os.path.normpath("D:\\Backup\\JET-Detection\\Heartbeats_dict_20220201\\")
 
     # TODO: modify this step to make it use less memory at once
@@ -108,8 +109,7 @@ def Get_exp_name(args):
 
 
 class ECG_classification_dataset_with_peak_features(Dataset):
-    def __init__(self, feature_df_all_selected_p_ind_with_ecg, ecg_resampling_length=300, peak_loc_name="p_ind_resampled", label_name="label",
-                 short_identifier_list=None, peak_feature_name_list=None, shift_signal=False, shift_amount=None, normalize_signal=False):
+    def __init__(self, feature_df_all_selected_p_ind_with_ecg, ecg_resampling_length=300, peak_loc_name="p_ind_resampled", label_name="label", short_identifier_list=None, peak_feature_name_list=None, shift_signal=False, shift_amount=None, normalize_signal=False):
         """
         normalize_signal: Normalize each individual signal to 0 - 1 range
         """
