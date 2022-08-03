@@ -34,6 +34,7 @@ class SupervisedModel_1D(pl.LightningModule):
         extra_optimizer_args: dict,
         scheduler: str,
         dataset: str,
+        train_backbone: bool,
         lr_decay_steps: Optional[Sequence[int]] = None,
         **kwargs,
     ):
@@ -74,6 +75,7 @@ class SupervisedModel_1D(pl.LightningModule):
         self.extra_optimizer_args = extra_optimizer_args
         self.scheduler = scheduler
         self.lr_decay_steps = lr_decay_steps
+        self.train_backbone = train_backbone
 
         # all the other parameters
         self.extra_args = kwargs
@@ -105,8 +107,7 @@ class SupervisedModel_1D(pl.LightningModule):
 
         # encoder args
         parser.add_argument("--encoder", choices=SUPPORTED_NETWORKS.keys(), type=str, default='resnet18')
-        parser.add_argument("--zero_init_residual", type=str2bool, nargs='?',
-                            const=True)
+        parser.add_argument("--zero_init_residual", type=str2bool, nargs='?', const=True)
 
         # general train
         parser.add_argument("--batch_size", type=int, default=128)
@@ -258,7 +259,10 @@ class SupervisedModel_1D(pl.LightningModule):
         """
 
         # set encoder to eval mode
-        self.backbone.eval()
+        if self.train_backbone:
+            self.backbone.train()
+        else:
+            self.backbone.eval()
 
         _, loss, acc1, _ = self.shared_step(batch, batch_idx, mode="train")
 

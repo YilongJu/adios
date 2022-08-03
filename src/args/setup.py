@@ -224,6 +224,9 @@ def parse_args_finetune() -> argparse.Namespace:
     # linear model
     parser = METHODS["supervised"].add_model_specific_args(parser)
 
+    # Training backbone
+    parser.add_argument("--train_backbone", type=str2bool, nargs='?', const=True, default=False)
+
     # THIS LINE IS KEY TO PULL WANDB
     temp_args, _ = parser.parse_known_args()
 

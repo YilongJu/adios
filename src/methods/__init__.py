@@ -3,6 +3,7 @@ from src.methods.base import BaseModel
 from src.methods.base_adios import BaseADIOSModel
 from src.methods.linear import LinearModel
 from src.methods.supervised import SupervisedModel
+from src.methods.supervised_1d import SupervisedModel_1D
 # simclr
 from src.methods.simclr import SimCLR
 from src.methods.simclr_adios import SimCLR_ADIOS
@@ -27,6 +28,7 @@ METHODS = {
     "base_adios": BaseADIOSModel,
     "linear": LinearModel,
     "supervised": SupervisedModel,
+    "supervised_1d": SupervisedModel_1D,
     # SSL baseline
     "byol": BYOL,
     "simclr": SimCLR,
