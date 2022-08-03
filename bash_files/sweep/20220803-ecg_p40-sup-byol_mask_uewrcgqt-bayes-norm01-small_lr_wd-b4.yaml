@@ -27,7 +27,7 @@ parameters:
   exclude_bias_n_norm:
     value: True
   scheduler:
-    values: ["warmup_cosine", "cosine", "reduce", "step", "exponential"]
+    values: ["warmup_cosine"]
   batch_size:
     value: 128
   num_workers:
