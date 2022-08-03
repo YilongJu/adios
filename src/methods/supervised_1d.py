@@ -79,7 +79,8 @@ class SupervisedModel_1D(pl.LightningModule):
         self.extra_args = kwargs
 
         """ member for auroc calculation """
-        self.auroc = AUROC(pos_label=1)
+        self.train_auroc = AUROC(pos_label=1)
+        self.val_auroc = AUROC(pos_label=1)
 
 
         if "cifar" in dataset:
@@ -234,17 +235,12 @@ class SupervisedModel_1D(pl.LightningModule):
         loss = F.cross_entropy(out, targets)
 
         scores = softmax(out)[:, 1]
-        # if mode in ["train"]:
-        #     self.train_auroc.update(scores.detach(), targets.detach())
-        # elif mode in ["val"]:
-        #     self.val_auroc.update(scores.detach(), targets.detach())
-        # else:
-        #     raise NotImplementedError("Unknown mode.")
-        print(f"scores.shape = {scores.shape}")
-        print(f"targets.shape = {targets.shape}")
-        self.auroc.update(scores.detach(), targets.detach())
-        auroc = self.auroc.compute()
-        print(f"auroc = {auroc:.4f}")
+        if mode in ["train"]:
+            self.train_auroc.update(scores.detach(), targets.detach())
+        elif mode in ["val"]:
+            self.val_auroc.update(scores.detach(), targets.detach())
+        else:
+            raise NotImplementedError("Unkown training mode.")
 
         results = accuracy_at_k(out, targets, top_k=(1,))
         # return batch_size, loss, results['acc1'], results['acc5']
@@ -264,21 +260,14 @@ class SupervisedModel_1D(pl.LightningModule):
         # set encoder to eval mode
         self.backbone.eval()
 
-        _, loss, acc1, _ = self.shared_step(batch, batch_idx)
-        auroc = self.auroc.compute()
-        print(f"step auroc = {auroc:.4f}")
+        _, loss, acc1, _ = self.shared_step(batch, batch_idx, mode="train")
 
         log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": float('nan')}
         self.log_dict(log, on_epoch=True, sync_dist=True)
         return loss
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
-        auroc = self.auroc.compute()
-        print(f"end auroc = {auroc:.4f}")
-        auroc = self.auroc.compute()
-        log = {"train_auroc": auroc}
-        self.log_dict(log, sync_dist=True)
-        self.auroc.reset()
+        self.log("train_auroc", self.train_auroc, on_epoch=True, sync_dist=True)
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
         """Performs the validation step for the linear eval.
@@ -293,7 +282,7 @@ class SupervisedModel_1D(pl.LightningModule):
                 the classification loss and accuracies.
         """
 
-        batch_size, loss, acc1, _ = self.shared_step(batch, batch_idx)
+        batch_size, loss, acc1, _ = self.shared_step(batch, batch_idx, mode="val")
 
         results = {
             "batch_size": batch_size,
@@ -311,12 +300,10 @@ class SupervisedModel_1D(pl.LightningModule):
         Args:
             outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
-        auroc = self.auroc.compute()
-        self.auroc.reset()
+        self.log("val_auroc", self.val_auroc, on_epoch=True, sync_dist=True)
 
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
         val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
         # val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
-
-        log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": float('nan'), "val_auroc": auroc}
+        log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": float('nan')}
         self.log_dict(log, sync_dist=True)
