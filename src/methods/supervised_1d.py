@@ -161,7 +161,6 @@ class SupervisedModel_1D(pl.LightningModule):
         """
 
         feats = self.backbone(X)
-
         logits = self.classifier(feats)
         return {"logits": logits, "feats": feats}
 
