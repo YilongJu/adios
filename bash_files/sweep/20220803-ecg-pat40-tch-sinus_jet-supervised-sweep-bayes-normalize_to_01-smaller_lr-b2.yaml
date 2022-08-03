@@ -1,0 +1,68 @@
+program: main_finetune.py
+method: bayes
+metric:
+  name: val_auroc
+  goal: maximize
+early_terminate:
+  type: hyperband
+  min_iter: 3
+  s: 3
+name: supervised_resnet18-1D_ECG_normalized-20220801
+description: sweep for ECG data from TCH 40 patients with Sinus and JET
+project: adios_ecg_normalized_sweep_supervised-01_bayes_20220801
+entity: yilongju # replace with your own wandb entity (username)
+parameters:
+  seed:
+    value: 0
+  lr:
+    min: 0.00005
+    max: 0.005
+  optimizer:
+    values: ["sgd"]
+  weight_decay:
+    min: 0.
+    max: 1.0
+  max_epochs:
+    value: 30
+  precision:
+    value: 16
+  lars:
+    value: True
+  exclude_bias_n_norm:
+    value: True
+  scheduler:
+    value: warmup_cosine
+  batch_size:
+    value: 128
+  num_workers:
+    value: 4
+  wandb:
+    value: True
+  gpus:
+    value: 0
+  encoder:
+    value: "resnet1d"
+  data_dir:
+    value: "/mnt/group1/yilong/JET-Detection-Data"
+  checkpoint_dir:
+    value: "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
+  cluster_name:
+    value: "b2"
+  dataset:
+    value: "ecg-TCH-40_patient-20220201"
+  ptl_accelerator:
+    value: "ddp"
+  sync_batchnorm:
+    value: True
+  accumulate_grad_batches:
+    value: 1
+  read_data_by_chunk:
+    value: True
+  data_chunk_folder:
+    value: "ecg-pat40-tch-sinus_jet"
+  shift_signal:
+    value: False
+  normalize_signal:
+    value: True
+  debug:
+    value: False
