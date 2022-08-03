@@ -3,9 +3,9 @@ method: bayes
 metric:
   name: val_auroc
   goal: maximize
-name: supervised_resnet18-1D_ECG_normalized-20220803
+name: supervised_simclr-mask-6zuid1xh_resnet18-1D_ECG_normalized-20220803
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
-project: adios_ecg_normalized_sweep_supervised-02_bayes_20220803
+project: adios_ecg_normalized_sweep_supervised-04_simclr-mask-6zuid1xh_bayes_20220803
 entity: yilongju # replace with your own wandb entity (username)
 parameters:
   seed:
@@ -39,11 +39,11 @@ parameters:
   encoder:
     value: "resnet1d"
   data_dir:
-    value: "/mnt/group1/yilong/JET-Detection-Data"
+    value: "/mnt/scratch07/yilong/"
   checkpoint_dir:
-    value: "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
+    value: "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
   cluster_name:
-    value: "b2"
+    value: "b4"
   dataset:
     value: "ecg-TCH-40_patient-20220201"
   ptl_accelerator:
@@ -64,3 +64,7 @@ parameters:
     value: False
   train_backbone:
     value: True
+  mask_feature_extractor:
+    value: "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models/byol_adios_1d/uewrcgqt"
+  ckpt_epoch:
+    value: 0

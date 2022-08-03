@@ -29,6 +29,27 @@ from src.utils.pretrain_dataloader import prepare_dataloader
 
 def main():
     args = parse_args_finetune()
+    if args.mask_feature_extractor is not None:
+        # build paths
+        ckpt_dir = Path(args.mask_feature_extractor)
+        args_path = ckpt_dir / "args.json"
+        ckpt_path_list = [ckpt_dir / ckpt for ckpt in os.listdir(ckpt_dir) if ckpt.endswith(".ckpt")]
+        if args.ckpt_epoch >= 0:
+            ckpt_path_list = [ele for ele in ckpt_path_list if f"ep={args.ckpt_epoch}.ckpt" in str(ele)]
+        print(f"[Filtered] ckpt_path_list: {ckpt_path_list}")
+        ckpt_path = ckpt_path_list[0]
+
+        # load arguments
+        with open(args_path) as f:
+            method_args = json.load(f)
+
+        # build the model
+        model_base = METHODS[method_args["method"]].load_from_checkpoint(
+            ckpt_path, strict=False, **method_args
+        )
+        pretrained_occlusion_model_dict = {"mask_encoder": model_base.mask_encoder, "mask_head": model_base.mask_head}
+    else:
+        pretrained_occlusion_model_dict = None
 
     if args.pretrained_feature_extractor is not None:
         # build paths
@@ -45,7 +66,6 @@ def main():
             ckpt_path, strict=False, **method_args
         )
         model = model_base.encoder
-
     else:
         base_model = SUPPORTED_NETWORKS[args.encoder]
         model = base_model(zero_init_residual=args.zero_init_residual)
@@ -87,6 +107,10 @@ def main():
             batch_size=args.batch_size,
             num_workers=args.num_workers,
         )
+
+    # TODO: Implement this for supervised_2D
+    model.pretrained_occlusion_model_dict = pretrained_occlusion_model_dict
+    model.flip_occlusion_model_grad(False)
 
     callbacks = []
 

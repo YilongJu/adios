@@ -84,6 +84,7 @@ class SupervisedModel_1D(pl.LightningModule):
         self.train_auroc = AUROC(pos_label=1)
         self.val_auroc = AUROC(pos_label=1)
 
+        self.pretrained_occlusion_model_dict = None
 
         if "cifar" in dataset:
             self.backbone.conv1 = nn.Conv2d(
@@ -150,6 +151,18 @@ class SupervisedModel_1D(pl.LightningModule):
         parser.add_argument("--use_mask", type=str2bool, nargs='?', default=False)
         return parent_parser
 
+    def flip_occlusion_model_grad(self, status: bool):
+        """Sets requires_grad of inpainter (inference) model as True or False.
+
+        Args:
+            status (bool): determines whether requires_grad is True or False.
+        """
+        if self.pretrained_occlusion_model_dict is not None:
+            for param in self.pretrained_occlusion_model_dict["mask_encoder"].parameters():
+                param.requires_grad = status
+            for param in self.pretrained_occlusion_model_dict["mask_head"].parameters():
+                param.requires_grad = status
+
     def forward(self, X: torch.tensor) -> Dict[str, Any]:
         """Performs forward pass of the frozen backbone and the linear layer for evaluation.
 
@@ -159,9 +172,18 @@ class SupervisedModel_1D(pl.LightningModule):
         Returns:
             Dict[str, Any]: a dict containing features and logits.
         """
+        # print(f"[ecg] X.shape = {X.shape}")
+
+        if self.pretrained_occlusion_model_dict is not None:
+            X = self.pretrained_occlusion_model_dict["mask_head"](
+                self.pretrained_occlusion_model_dict["mask_encoder"](X)
+            )
+            # print(f"[masks] X.shape = {X.shape}")
 
         feats = self.backbone(X)
+        # print(f"feats.shape = {feats.shape}")
         logits = self.classifier(feats)
+        # print(f"logits.shape = {logits.shape}")
         return {"logits": logits, "feats": feats}
 
     def configure_optimizers(self) -> Tuple[List, List]:
