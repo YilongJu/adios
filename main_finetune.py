@@ -47,7 +47,7 @@ def main():
         model_base = METHODS[method_args["method"]].load_from_checkpoint(
             ckpt_path, strict=False, **method_args
         )
-        pretrained_occlusion_model_dict = {"mask_encoder": model_base.mask_encoder, "mask_head": model_base.mask_head}
+        pretrained_occlusion_model_dict = {"mask_encoder": model_base.mask_encoder.float(), "mask_head": model_base.mask_head.float()}
     else:
         pretrained_occlusion_model_dict = None
 
