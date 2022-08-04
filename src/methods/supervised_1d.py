@@ -157,6 +157,10 @@ class SupervisedModel_1D(pl.LightningModule):
         Args:
             status (bool): determines whether requires_grad is True or False.
         """
+        print(f"device = {self.device}"
+        self.pretrained_occlusion_model_dict["mask_encoder"] = self.pretrained_occlusion_model_dict["mask_encoder"].to(self.device)
+        self.pretrained_occlusion_model_dict["mask_head"] = self.pretrained_occlusion_model_dict["mask_head"].to(self.device)
+
         if self.pretrained_occlusion_model_dict is not None:
             for param in self.pretrained_occlusion_model_dict["mask_encoder"].parameters():
                 param.requires_grad = status

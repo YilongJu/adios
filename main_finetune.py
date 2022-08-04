@@ -74,11 +74,14 @@ def main():
             ckpt_path, strict=False, **method_args
         )
         model = model_base.encoder
+
     else:
         base_model = SUPPORTED_NETWORKS[args.encoder]
         model = base_model(zero_init_residual=args.zero_init_residual)
         # remove fc layer
         model.fc = nn.Identity()
+
+    model.pretrained_occlusion_model_dict = pretrained_occlusion_model_dict
 
     # model = SupervisedModel(model, **args.__dict__)
 
@@ -117,8 +120,8 @@ def main():
         )
 
     # TODO: Implement this for supervised_2D
-    model.pretrained_occlusion_model_dict = pretrained_occlusion_model_dict
     model.flip_occlusion_model_grad(False)
+
 
     callbacks = []
 
