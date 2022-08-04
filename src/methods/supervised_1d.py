@@ -36,6 +36,7 @@ class SupervisedModel_1D(pl.LightningModule):
         dataset: str,
         train_backbone: bool,
         lr_decay_steps: Optional[Sequence[int]] = None,
+        pretrained_occlusion_model_dict: Optional[Dict[Any]] = None,
         **kwargs,
     ):
         """Implements linear evaluation.
@@ -83,8 +84,6 @@ class SupervisedModel_1D(pl.LightningModule):
         """ member for auroc calculation """
         self.train_auroc = AUROC(pos_label=1)
         self.val_auroc = AUROC(pos_label=1)
-
-        self.pretrained_occlusion_model_dict = None
 
         if "cifar" in dataset:
             self.backbone.conv1 = nn.Conv2d(
