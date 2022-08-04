@@ -65,6 +65,6 @@ parameters:
   train_backbone:
     value: True
   mask_feature_extractor:
-    value: "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models/simclr_adios_1d/6zuid1xh"
+    value: "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models/simclr_adios_1d/2aqie8zi"
   ckpt_epoch:
     value: 0
