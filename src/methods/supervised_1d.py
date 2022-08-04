@@ -160,9 +160,10 @@ class SupervisedModel_1D(pl.LightningModule):
         Args:
             status (bool): determines whether requires_grad is True or False.
         """
-        print(f"device = {self.device}")
-        self.pretrained_occlusion_model_dict["mask_encoder"] = self.pretrained_occlusion_model_dict["mask_encoder"].to(self.device)
-        self.pretrained_occlusion_model_dict["mask_head"] = self.pretrained_occlusion_model_dict["mask_head"].to(self.device)
+        device = torch.device("gpu:0" if torch.cuda.is_available() else "cpu")
+        print(f"device = {device}")
+        self.pretrained_occlusion_model_dict["mask_encoder"] = self.pretrained_occlusion_model_dict["mask_encoder"].to(device)
+        self.pretrained_occlusion_model_dict["mask_head"] = self.pretrained_occlusion_model_dict["mask_head"].to(device)
 
         if self.pretrained_occlusion_model_dict is not None:
             for param in self.pretrained_occlusion_model_dict["mask_encoder"].parameters():
