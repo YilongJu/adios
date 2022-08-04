@@ -3,9 +3,9 @@ method: bayes
 metric:
   name: val_auroc
   goal: maximize
-name: supervised_simclr-mask-6zuid1xh_resnet18-1D_ECG_normalized-20220803
+name: supervised_byol-mask-34y5pvtk_resnet18-1D_ECG_normalized-20220803
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
-project: adios_ecg_normalized_sweep_supervised-04_simclr-mask-6zuid1xh_bayes_20220803
+project: adios_ecg_normalized_sweep_supervised-04_byol-mask-34y5pvtk_bayes_20220803
 entity: yilongju # replace with your own wandb entity (username)
 parameters:
   seed:
