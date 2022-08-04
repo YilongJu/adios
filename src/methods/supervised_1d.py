@@ -36,7 +36,7 @@ class SupervisedModel_1D(pl.LightningModule):
         dataset: str,
         train_backbone: bool,
         lr_decay_steps: Optional[Sequence[int]] = None,
-        pretrained_occlusion_model_dict: Optional[Dict[Any]] = None,
+        pretrained_occlusion_model_dict=None,
         **kwargs,
     ):
         """Implements linear evaluation.
