@@ -119,9 +119,6 @@ def main():
             num_workers=args.num_workers,
         )
 
-    # TODO: Implement this for supervised_2D
-    model.flip_occlusion_model_grad(False)
-
 
     callbacks = []
 
