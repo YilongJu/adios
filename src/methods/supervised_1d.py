@@ -177,7 +177,7 @@ class SupervisedModel_1D(pl.LightningModule):
         if self.pretrained_occlusion_model_dict is not None:
             X = self.pretrained_occlusion_model_dict["mask_head"](
                 self.pretrained_occlusion_model_dict["mask_encoder"](X)
-            ).float()
+            )
             # print(f"[masks] X.shape = {X.shape}")
 
         feats = self.backbone(X)

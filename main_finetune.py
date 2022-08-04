@@ -47,7 +47,15 @@ def main():
         model_base = METHODS[method_args["method"]].load_from_checkpoint(
             ckpt_path, strict=False, **method_args
         )
-        pretrained_occlusion_model_dict = {"mask_encoder": model_base.mask_encoder.float(), "mask_head": model_base.mask_head.float()}
+        if args.precision == 32:
+            pretrained_occlusion_model_dict = {"mask_encoder": model_base.mask_encoder.float(), "mask_head": model_base.mask_head.float()}
+        elif args.precision == 16:
+            pretrained_occlusion_model_dict = {"mask_encoder": model_base.mask_encoder.half(), "mask_head": model_base.mask_head.half()}
+        elif args.precision == 64:
+            pretrained_occlusion_model_dict = {"mask_encoder": model_base.mask_encoder.double(), "mask_head": model_base.mask_head.double()}
+        else:
+            raise NotImplementedError("Unknown precision.")
+
     else:
         pretrained_occlusion_model_dict = None
 
