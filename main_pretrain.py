@@ -211,11 +211,12 @@ def main():
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
         callbacks.append(lr_monitor)
 
-        # save checkpoint on last epoch only
+        # save checkpoint on last epoch only [all / epochs]
         ckpt = Checkpointer(
             args,
             logdir=os.path.join(args.checkpoint_dir, args.method),
             frequency=args.checkpoint_frequency,
+            keep_previous_checkpoints=True
         )
         callbacks.append(ckpt)
 

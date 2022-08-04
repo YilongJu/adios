@@ -67,4 +67,4 @@ parameters:
   mask_feature_extractor:
     value: "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models/byol_adios_1d/uewrcgqt"
   ckpt_epoch:
-    value: 0
+    value: 6
