@@ -229,6 +229,7 @@ def parse_args_finetune() -> argparse.Namespace:
     # Training backbone
     parser.add_argument("--train_backbone", type=str2bool, nargs='?', const=True, default=False)
     parser.add_argument("--mask_feature_extractor", type=str)
+    parser.add_argument("--embedding_dim", type=int, default=256)
     parser.add_argument("--ckpt_epoch", type=int, default=-1)
 
     # THIS LINE IS KEY TO PULL WANDB
