@@ -59,8 +59,7 @@ class cnn_network_contrastive(nn.Module):
         self.selu = nn.SELU()
         self.maxpool = nn.MaxPool1d(2)
         self.trial = trial
-        self.device = device
-
+        # self.device = device
         self.view_modules = nn.ModuleList()
         self.view_linear_modules = nn.ModuleList()
         for n in range(nencoders):

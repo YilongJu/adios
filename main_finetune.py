@@ -77,7 +77,7 @@ def main():
 
     else:
         base_model = SUPPORTED_NETWORKS[args.encoder]
-        model = base_model(zero_init_residual=args.zero_init_residual)
+        model = base_model(zero_init_residual=args.zero_init_residual, embedding_dim=args.embedding_dim)
         # remove fc layer
         model.fc = nn.Identity()
 
