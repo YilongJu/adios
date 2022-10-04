@@ -9,11 +9,11 @@ project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221004-debug
 entity: yilongju # replace with your own wandb entity (username)
 parameters:
   seed:
-    value: 0
+    values: [0, 1, 2, 3, 4]
   lr:
     value: 0.001
   classifier_lr:
-    values: [0.1, 0.01, 0.001]
+    values: [0.1, 0.01, 0.001, 0.0001]
   optimizer:
     value: "adam"
   weight_decay:
@@ -38,6 +38,10 @@ parameters:
     value: 0
   encoder:
     value: "clocs_cnn1d"
+  ecg_resampling_length_target:
+    value: 2500
+  embedding_dim:
+    values: [64, 128, 256, 512, 1024]
   checkpoint_dir:
     value: "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
   dataset:
