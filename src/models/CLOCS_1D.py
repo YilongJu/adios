@@ -42,7 +42,7 @@ class cnn_network_contrastive(nn.Module):
         print(p1, p2, p3, nencoders, embedding_dim, trial, device)
 
         super(cnn_network_contrastive, self).__init__()
-
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.embedding_dim = embedding_dim
         self.num_features = self.embedding_dim
 
@@ -97,8 +97,7 @@ class cnn_network_contrastive(nn.Module):
         # nsamples = x.shape[2]
         nviews = x.shape[3]
         # nviews = 1
-        # latent_embeddings = torch.empty(batch_size, self.embedding_dim, nviews, device=self.device)
-        latent_embeddings = torch.empty(batch_size, self.embedding_dim, nviews)
+        latent_embeddings = torch.empty(batch_size, self.embedding_dim, nviews, device=self.device)
         for n in range(nviews):
             """ Obtain Inputs From Each View """
             h = x[:, :, :, n]
