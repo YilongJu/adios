@@ -3,9 +3,9 @@ method: grid
 metric:
   name: val_auroc
   goal: maximize
-name: supervised-clocsCNN_1D-ECG_normalized-20221004
+name: supervised-clocsCNN_1D-ECG_normalized-20221004_v1
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
-project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221004
+project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221004_v1
 entity: yilongju # replace with your own wandb entity (username)
 parameters:
   seed:
