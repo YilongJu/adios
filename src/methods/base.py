@@ -31,6 +31,7 @@ from src.utils.backbones import (
 )
 
 from src.models.ResNet1D import ResNet1D
+from src.models.CLOCS_1D import cnn_network_contrastive
 import numpy as np
 
 SUPPORTED_NETWORKS = {
@@ -50,6 +51,7 @@ SUPPORTED_NETWORKS = {
             "poolformer_m36": poolformer_m36,
             "poolformer_m48": poolformer_m48,
             "resnet1d": ResNet1D,
+            "clocs_cnn1d": cnn_network_contrastive
         }
 
 def static_lr(
@@ -206,6 +208,8 @@ class BaseModel(pl.LightningModule):
                     3, 64, kernel_size=3, stride=1, padding=2, bias=False
                 )
                 self.encoder.maxpool = nn.Identity()
+        elif "clocs" in encoder:
+            self.features_size = self.encoder.embedding_dim
         else:
             self.features_size = self.encoder.num_features
 

@@ -8,6 +8,7 @@ import argparse
 import random
 import torch
 from torch.utils.data import Dataset
+from scipy.signal import resample_poly
 
 patient_ID_list_train = [398573, 462229, 637891, 667681, 537854, 628521, 642321, 662493,
                          387479, 624179, 417349, 551554, 631270, 655769, 678877] # 15
@@ -59,8 +60,8 @@ def Data_preprocessing(args):
     feature_with_ecg_df_val = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_val}")
     print(f"Data shape: {feature_df_all_selected_with_ecg.shape}, train: {feature_with_ecg_df_train.shape}, test: {feature_with_ecg_df_test.shape}")
 
-    # return feature_with_ecg_df_dev, feature_with_ecg_df_val, save_folder
-    return feature_with_ecg_df_train, feature_with_ecg_df_test, save_folder
+    return feature_with_ecg_df_train, feature_with_ecg_df_test, feature_with_ecg_df_dev, feature_with_ecg_df_val, save_folder
+    # return feature_with_ecg_df_train, feature_with_ecg_df_test, save_folder
 
 
 def Get_exp_name(args):
@@ -109,10 +110,11 @@ def Get_exp_name(args):
 
 
 class ECG_classification_dataset_with_peak_features(Dataset):
-    def __init__(self, feature_df_all_selected_p_ind_with_ecg, ecg_resampling_length=300, peak_loc_name="p_ind_resampled", label_name="label", short_identifier_list=None, peak_feature_name_list=None, shift_signal=False, shift_amount=None, normalize_signal=False):
+    def __init__(self, feature_df_all_selected_p_ind_with_ecg, ecg_resampling_length_target=300, peak_loc_name="p_ind_resampled", label_name="label", short_identifier_list=None, peak_feature_name_list=None, shift_signal=False, shift_amount=None, normalize_signal=False):
         """
         normalize_signal: Normalize each individual signal to 0 - 1 range
         """
+        print(f"ecg_resampling_length_target: {ecg_resampling_length_target}")
         if short_identifier_list is None:
             short_identifier_list = ['patient_ID', 'interval_ID', 'block_ID', 'channel_ID', 'r_ID_abs', 'label', 'r_ID_abs_ref']
         if peak_feature_name_list is None:
@@ -123,7 +125,8 @@ class ECG_classification_dataset_with_peak_features(Dataset):
         self.label_name = label_name
         self.device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
         self.feature_df_all_selected_p_ind_with_ecg = feature_df_all_selected_p_ind_with_ecg
-        self.ecg_resampling_length = ecg_resampling_length
+        self.ecg_resampling_length = 300
+        self.ecg_resampling_length_target = ecg_resampling_length_target
         self.ecg_colnames = [f"ecg{i + 1}" for i in range(self.ecg_resampling_length)]
         self.peak_loc_name = peak_loc_name
         self.ecg_mat = self.feature_df_all_selected_p_ind_with_ecg[self.ecg_colnames].values
@@ -150,6 +153,8 @@ class ECG_classification_dataset_with_peak_features(Dataset):
 
     def __getitem__(self, idx):
         X = self.ecg_mat[idx, :]
+        if self.ecg_resampling_length_target != self.ecg_resampling_length:
+            X = resample_poly(X, int(self.ecg_resampling_length_target / 100), int(self.ecg_resampling_length / 100), padtype="line")
         peak_idx = self.peak_label_list[idx]
         label = self.label_list[idx]
         id_vec = self.short_identifier_mat[idx, :]

@@ -1,0 +1,64 @@
+program: main_finetune.py
+method: grid
+metric:
+  name: val_auroc
+  goal: maximize
+name: supervised-clocsCNN_1D-ECG_normalized-20221004-debug
+description: sweep for ECG data from TCH 40 patients with Sinus and JET
+project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221004-debug
+entity: yilongju # replace with your own wandb entity (username)
+parameters:
+  seed:
+    value: 0
+  lr:
+    value: 0.001
+  classifier_lr:
+    values: [0.1, 0.01, 0.001]
+  optimizer:
+    value: "adam"
+  weight_decay:
+    values: [0, 1e-5, 1e-3]
+  max_epochs:
+    value: 10
+  precision:
+    value: 32
+  lars:
+    value: True
+  exclude_bias_n_norm:
+    value: True
+  scheduler:
+    values: ["warmup_cosine"]
+  batch_size:
+    value: 256
+  num_workers:
+    value: 4
+  wandb:
+    value: True
+  gpus:
+    value: 0
+  encoder:
+    value: "clocs_cnn1d"
+  checkpoint_dir:
+    value: "/home/yilong/Github/adios/trained_models"
+  dataset:
+    value: "ecg-TCH-40_patient-20220201"
+  ptl_accelerator:
+    value: "ddp"
+  sync_batchnorm:
+    value: True
+  accumulate_grad_batches:
+    value: 1
+  cluster_name:
+    value: "b2"
+  read_data_by_chunk:
+    value: True
+  data_chunk_folder:
+    value: "ecg-pat40-tch-sinus_jet"
+  shift_signal:
+    value: False
+  normalize_signal:
+    value: True
+  debug:
+    value: True
+  train_backbone:
+    value: True

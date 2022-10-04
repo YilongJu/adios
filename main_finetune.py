@@ -88,19 +88,19 @@ def main():
     if args.dataset in ["ecg-TCH-40_patient-20220201"]:
         model = SupervisedModel_1D(model, **args.__dict__)
 
-        feature_with_ecg_df_train, feature_with_ecg_df_test, save_folder = Data_preprocessing(args)
+        feature_with_ecg_df_train, feature_with_ecg_df_test, feature_with_ecg_df_dev, feature_with_ecg_df_val, save_folder = Data_preprocessing(args)
         channel_ID = args.channel_ID
         """ Get dataloader """
-        feature_with_ecg_df_train_single_lead = feature_with_ecg_df_train.query(f"channel_ID == {channel_ID}")
-        feature_with_ecg_df_test_single_lead = feature_with_ecg_df_test.query(f"channel_ID == {channel_ID}")
+        feature_with_ecg_df_train_single_lead = feature_with_ecg_df_dev.query(f"channel_ID == {channel_ID}")
+        feature_with_ecg_df_test_single_lead = feature_with_ecg_df_val.query(f"channel_ID == {channel_ID}")
 
         ecg_resampling_length = args.ecg_resampling_length
         ecg_colnames = [f"ecg{i + 1}" for i in range(ecg_resampling_length)]
         ecg_mat = feature_with_ecg_df_train_single_lead[ecg_colnames].values
         signal_min_train = np.min(ecg_mat.ravel())
 
-        train_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_train_single_lead, shift_signal=args.shift_signal, shift_amount=signal_min_train, normalize_signal=args.normalize_signal)
-        test_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_test_single_lead, shift_signal=args.shift_signal, shift_amount=signal_min_train, normalize_signal=args.normalize_signal)
+        train_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_train_single_lead, shift_signal=args.shift_signal, shift_amount=signal_min_train, normalize_signal=args.normalize_signal, ecg_resampling_length_target=args.ecg_resampling_length_target)
+        test_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_test_single_lead, shift_signal=args.shift_signal, shift_amount=signal_min_train, normalize_signal=args.normalize_signal, ecg_resampling_length_target=args.ecg_resampling_length_target)
 
         train_loader = prepare_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=True

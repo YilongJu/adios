@@ -65,6 +65,7 @@ def parse_args_pretrain() -> argparse.Namespace:
     parser.add_argument("--shift_signal", type=str2bool, nargs='?', const=True, default=False)
     parser.add_argument("--normalize_signal", type=str2bool, nargs='?', const=True, default=False)
     parser.add_argument("--ecg_resampling_length", type=int, default=300)
+    parser.add_argument("--ecg_resampling_length_target", type=int, default=300)
 
 
 
@@ -217,6 +218,7 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--shift_signal", type=str2bool, nargs='?', const=True, default=False)
     parser.add_argument("--normalize_signal", type=str2bool, nargs='?', const=True, default=False)
     parser.add_argument("--ecg_resampling_length", type=int, default=300)
+    parser.add_argument("--ecg_resampling_length_target", type=int, default=300)
 
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)
