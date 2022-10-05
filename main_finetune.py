@@ -151,6 +151,7 @@ def main():
             args,
             logdir=os.path.join(args.checkpoint_dir, "linear"),
             frequency=args.checkpoint_frequency,
+            keep_previous_checkpoints=True
         )
         callbacks.append(ckpt)
 
