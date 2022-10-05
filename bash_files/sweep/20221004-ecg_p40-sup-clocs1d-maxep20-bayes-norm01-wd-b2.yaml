@@ -8,6 +8,10 @@ project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221004_v1
 name: supervised-clocsCNN_1D-ECG_normalized-20221004_v1-maxep20-more_lr
 entity: yilongju # replace with your own wandb entity (username)
 parameters:
+  checkpoint_dir:
+    value: "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
+  cluster_name:
+    value: "b2"
   seed:
     values: [0, 1, 2, 3, 4]
   lr:
@@ -42,8 +46,6 @@ parameters:
     value: 2500
   embedding_dim:
     values: [64, 128, 256, 512, 1024]
-  checkpoint_dir:
-    value: "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
   dataset:
     value: "ecg-TCH-40_patient-20220201"
   ptl_accelerator:
@@ -52,8 +54,6 @@ parameters:
     value: True
   accumulate_grad_batches:
     value: 1
-  cluster_name:
-    value: "b4"
   read_data_by_chunk:
     value: True
   data_chunk_folder:
