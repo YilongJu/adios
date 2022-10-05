@@ -43,7 +43,7 @@ parameters:
   embedding_dim:
     values: [64, 128, 256, 512, 1024]
   checkpoint_dir:
-    value: "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
+    value: "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
   dataset:
     value: "ecg-TCH-40_patient-20220201"
   ptl_accelerator:
