@@ -11,17 +11,19 @@ from torch.utils.data import Dataset
 from scipy.signal import resample_poly
 
 patient_ID_list_train = [398573, 462229, 637891, 667681, 537854, 628521, 642321, 662493,
-                         387479, 624179, 417349, 551554, 631270, 655769, 678877] # 15
-patient_ID_list_test = [756172,  424072, 748555, 748900, 759678, 741235, 595561, 678607,
+                         387479, 624179, 417349, 551554, 631270, 655769, 678877]  # 15
+patient_ID_list_test = [756172, 424072, 748555, 748900, 759678, 741235, 595561, 678607,
                         782501, 510915, 771495, 740475, 533362, 581650, 803389, 577874,
-                        681150, 536886, 477589, 844864, 824744, 515544, 771958, 725860, 609090] # 25
+                        681150, 536886, 477589, 844864, 824744, 515544, 771958, 725860, 609090]  # 25
 patient_ID_list_val = [462229, 642321, 387479]
 patient_ID_list_dev = [patient_ID for patient_ID in patient_ID_list_train if patient_ID not in patient_ID_list_val]
 
 
 def Data_preprocessing(args):
     """ Preprocessing """
-    data_folder = os.path.normpath("/mnt/scratch07/yilong") if args.cluster_name in ["b1", "b3", "b4"] else os.path.normpath("/mnt/group1/yilong/JET-Detection-Data")
+    data_folder = os.path.normpath("/mnt/scratch07/yilong") if args.cluster_name in ["b1", "b3",
+                                                                                     "b4"] else os.path.normpath(
+        "/mnt/group1/yilong/JET-Detection-Data")
     data_folder_2 = data_folder
     large_data_folder = data_folder
 
@@ -45,7 +47,8 @@ def Data_preprocessing(args):
     # debug = False
     debug = args.debug
     if debug:
-        feature_df_all_selected_with_ecg = pd.read_csv(os.path.join(data_folder_2, "feature_df_all_selected_with_ecg_20220210_rtfixed_sample10000.csv"))
+        feature_df_all_selected_with_ecg = pd.read_csv(
+            os.path.join(data_folder_2, "feature_df_all_selected_with_ecg_20220210_rtfixed_sample10000.csv"))
     else:
         if args.read_data_by_chunk:
             data_chunk_list = []
@@ -53,12 +56,14 @@ def Data_preprocessing(args):
                 data_chunk_list.append(pd.read_csv(os.path.join(data_folder, args.data_chunk_folder, data_filename)))
             feature_df_all_selected_with_ecg = pd.concat(data_chunk_list, axis=0)
         else:
-            feature_df_all_selected_with_ecg = pd.read_csv(os.path.join(data_folder_2, "feature_df_all_selected_with_ecg_20220210_rtfixed.csv"))
+            feature_df_all_selected_with_ecg = pd.read_csv(
+                os.path.join(data_folder_2, "feature_df_all_selected_with_ecg_20220210_rtfixed.csv"))
     feature_with_ecg_df_train = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_train}")
     feature_with_ecg_df_test = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_test}")
     feature_with_ecg_df_dev = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_dev}")
     feature_with_ecg_df_val = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_val}")
-    print(f"Data shape: {feature_df_all_selected_with_ecg.shape}, train: {feature_with_ecg_df_train.shape}, test: {feature_with_ecg_df_test.shape}")
+    print(
+        f"Data shape: {feature_df_all_selected_with_ecg.shape}, train: {feature_with_ecg_df_train.shape}, test: {feature_with_ecg_df_test.shape}")
 
     return feature_with_ecg_df_train, feature_with_ecg_df_test, feature_with_ecg_df_dev, feature_with_ecg_df_val, save_folder
     # return feature_with_ecg_df_train, feature_with_ecg_df_test, save_folder
@@ -110,13 +115,17 @@ def Get_exp_name(args):
 
 
 class ECG_classification_dataset_with_peak_features(Dataset):
-    def __init__(self, feature_df_all_selected_p_ind_with_ecg, ecg_resampling_length_target=300, peak_loc_name="p_ind_resampled", label_name="label", short_identifier_list=None, peak_feature_name_list=None, shift_signal=False, shift_amount=None, normalize_signal=False):
+    def __init__(self, feature_df_all_selected_p_ind_with_ecg, ecg_resampling_length_target=300,
+                 peak_loc_name="p_ind_resampled", label_name="label", short_identifier_list=None,
+                 peak_feature_name_list=None, shift_signal=False, shift_amount=None, normalize_signal=False,
+                 transforms=None):
         """
         normalize_signal: Normalize each individual signal to 0 - 1 range
         """
         print(f"ecg_resampling_length_target: {ecg_resampling_length_target}")
         if short_identifier_list is None:
-            short_identifier_list = ['patient_ID', 'interval_ID', 'block_ID', 'channel_ID', 'r_ID_abs', 'label', 'r_ID_abs_ref']
+            short_identifier_list = ['patient_ID', 'interval_ID', 'block_ID', 'channel_ID', 'r_ID_abs', 'label',
+                                     'r_ID_abs_ref']
         if peak_feature_name_list is None:
             peak_feature_name_list = ["p_prom_med", "pr_int_iqr"]
 
@@ -141,12 +150,14 @@ class ECG_classification_dataset_with_peak_features(Dataset):
         if self.shift_signal:
             if self.shift_amount is None:
                 self.shift_amount = 0
-            self.ecg_mat -= self.shift_amount # Shift ECG to 0 baseline
+            self.ecg_mat -= self.shift_amount  # Shift ECG to 0 baseline
 
         if self.normalize_signal:
             ecg_min = np.min(self.ecg_mat, axis=1)[:, np.newaxis]
             ecg_max = np.max(self.ecg_mat, axis=1)[:, np.newaxis]
             self.ecg_mat = (self.ecg_mat - ecg_min) / (ecg_max - ecg_min)
+
+        self.transforms = transforms
 
     def __len__(self):
         return len(self.feature_df_all_selected_p_ind_with_ecg)
@@ -154,7 +165,8 @@ class ECG_classification_dataset_with_peak_features(Dataset):
     def __getitem__(self, idx):
         X = self.ecg_mat[idx, :]
         if self.ecg_resampling_length_target != self.ecg_resampling_length:
-            X = resample_poly(X, int(self.ecg_resampling_length_target / 100), int(self.ecg_resampling_length / 100), padtype="line")
+            X = resample_poly(X, int(self.ecg_resampling_length_target / 100), int(self.ecg_resampling_length / 100),
+                              padtype="line")
         peak_idx = self.peak_label_list[idx]
         label = self.label_list[idx]
         id_vec = self.short_identifier_mat[idx, :]

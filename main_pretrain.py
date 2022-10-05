@@ -110,7 +110,7 @@ def main():
             if args.debug_augmentations:
                 print("----- args.debug_augmentations -----")
                 print("Transforms:")
-                pprint(transform)
+                print(transform)
 
             if args.multicrop:
                 print("----- args.multicrop -----")
