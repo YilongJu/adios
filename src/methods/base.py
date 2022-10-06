@@ -444,8 +444,8 @@ class BaseModel(pl.LightningModule):
         Returns:
             Dict[str, Any]: dict with the classification loss, features and logits
         """
-
         _, X, targets = batch
+
         targets = targets['labels'] if isinstance(targets, dict) else targets
         X = [X] if isinstance(X, torch.Tensor) else X
 

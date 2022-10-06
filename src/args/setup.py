@@ -102,6 +102,12 @@ def parse_args_pretrain() -> argparse.Namespace:
         args.load_masks = False
     if not hasattr(temp_args, "morph"):
         args.morph = 'none'
+    if args.cluster_name in ["b4"]:
+        args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
+    elif args.cluster_name in ["b2"]:
+        args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
+    else:
+        raise NotImplementedError("Cluster name not supported")
 
     # load pretrained model
     if args.pretrained_dir is not None:
@@ -219,6 +225,7 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--normalize_signal", type=str2bool, nargs='?', const=True, default=False)
     parser.add_argument("--ecg_resampling_length", type=int, default=300)
     parser.add_argument("--ecg_resampling_length_target", type=int, default=300)
+    parser.add_argument("--transforms", type=str, default=None)
 
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)

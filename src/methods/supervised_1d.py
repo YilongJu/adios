@@ -259,6 +259,9 @@ class SupervisedModel_1D(pl.LightningModule):
         """
 
         X, targets = batch
+        if isinstance(X, list):
+            X = torch.cat(X, dim=0)
+            targets = torch.cat([targets, targets], dim=0)
         batch_size = X.size(0)
 
         out = self(X)["logits"]

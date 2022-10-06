@@ -108,12 +108,14 @@ def main():
                                                                       shift_signal=args.shift_signal,
                                                                       shift_amount=signal_min_train,
                                                                       normalize_signal=args.normalize_signal,
-                                                                      ecg_resampling_length_target=args.ecg_resampling_length_target)
+                                                                      ecg_resampling_length_target=args.ecg_resampling_length_target,
+                                                                      transforms=args.transforms)
         test_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_test_single_lead,
                                                                      shift_signal=args.shift_signal,
                                                                      shift_amount=signal_min_train,
                                                                      normalize_signal=args.normalize_signal,
-                                                                     ecg_resampling_length_target=args.ecg_resampling_length_target)
+                                                                     ecg_resampling_length_target=args.ecg_resampling_length_target,
+                                                                     transforms=args.transforms)
 
         train_loader = prepare_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=True

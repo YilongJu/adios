@@ -113,12 +113,17 @@ def Get_exp_name(args):
     exp_name = f"WGAN_GP{use_simulator_text}-maxep{max_train_epoch}-c{channel_ID}-lr{learning_rate_init}-bs{batch_size}-sd{seed}"
     return exp_name
 
+def Normalize(vec, eps=1e-8):
+    """ Normalize a 1d vector to 0-1 range """
+    vec = vec - np.min(vec)
+    vec = vec / np.max(vec + eps)
+    return vec
 
 class ECG_classification_dataset_with_peak_features(Dataset):
     def __init__(self, feature_df_all_selected_p_ind_with_ecg, ecg_resampling_length_target=300,
                  peak_loc_name="p_ind_resampled", label_name="label", short_identifier_list=None,
                  peak_feature_name_list=None, shift_signal=False, shift_amount=None, normalize_signal=False,
-                 transforms=None):
+                 transforms=None, dataset_name="tch-ecg-jet-p40"):
         """
         normalize_signal: Normalize each individual signal to 0 - 1 range
         """
@@ -129,6 +134,14 @@ class ECG_classification_dataset_with_peak_features(Dataset):
         if peak_feature_name_list is None:
             peak_feature_name_list = ["p_prom_med", "pr_int_iqr"]
 
+        if transforms is None:
+            self.transforms = []
+        else:
+            if isinstance(transforms, str):
+                transforms = [transforms]
+            self.transforms = [Lower(ele) for ele in transforms]
+
+        self.dataset_name = dataset_name
         self.short_identifier_list = short_identifier_list
         self.peak_feature_name_list = peak_feature_name_list
         self.label_name = label_name
@@ -157,7 +170,40 @@ class ECG_classification_dataset_with_peak_features(Dataset):
             ecg_max = np.max(self.ecg_mat, axis=1)[:, np.newaxis]
             self.ecg_mat = (self.ecg_mat - ecg_min) / (ecg_max - ecg_min)
 
-        self.transforms = transforms
+    def obtain_perturbed_frame(self, frame):
+        # Adapted from https://github.com/danikiyasseh/CLOCS
+
+        """ Apply Sequence of Perturbations to Frame
+        Args:
+            frame (numpy array): frame containing ECG data
+        Outputs
+            frame (numpy array): perturbed frame based
+        """
+        if Lower('Gaussian') in self.transforms:
+            mult_factor = 1
+            if self.dataset_name in ['ptb', 'physionet2020']:
+                # The ECG frames were normalized in amplitude between the values of 0 and 1.
+                variance_factor = 0.01 * mult_factor
+            elif self.dataset_name in ['cardiology', 'chapman']:
+                variance_factor = 10 * mult_factor
+            elif self.dataset_name in ['physionet', 'physionet2017']:
+                variance_factor = 100 * mult_factor
+            elif self.dataset_name in ["tch-ecg-jet-p40"]:
+                variance_factor = 0.01 * mult_factor
+            else:
+                raise NotImplementedError("Dataset not implemented")
+            gauss_noise = np.random.normal(0, variance_factor, size=(self.ecg_resampling_length_target))
+            frame = frame + gauss_noise
+
+        if Lower('FlipAlongY') in self.transforms:
+            frame = np.flip(frame)
+
+        if Lower('FlipAlongX') in self.transforms:
+            frame = -frame
+
+        # Keep data in 0-1 range
+        frame = Normalize(frame)
+        return frame
 
     def __len__(self):
         return len(self.feature_df_all_selected_p_ind_with_ecg)
@@ -167,10 +213,19 @@ class ECG_classification_dataset_with_peak_features(Dataset):
         if self.ecg_resampling_length_target != self.ecg_resampling_length:
             X = resample_poly(X, int(self.ecg_resampling_length_target / 100), int(self.ecg_resampling_length / 100),
                               padtype="line")
+        X = Normalize(X)
+        X_aug = self.obtain_perturbed_frame(X)
         peak_idx = self.peak_label_list[idx]
         label = self.label_list[idx]
         id_vec = self.short_identifier_mat[idx, :]
         peak_features = self.peak_feature_mat[idx, :]
 
         # return X[np.newaxis, :], peak_idx, label, id_vec, peak_features[np.newaxis, :]
-        return X[np.newaxis, :], label
+        if len(self.transforms) == 0:
+            return (X[np.newaxis, :], X_aug[np.newaxis, :]), label
+        else:
+            return X[np.newaxis, :], label
+
+def Lower(word):
+    """ Convert word to lower case """
+    return word.lower()

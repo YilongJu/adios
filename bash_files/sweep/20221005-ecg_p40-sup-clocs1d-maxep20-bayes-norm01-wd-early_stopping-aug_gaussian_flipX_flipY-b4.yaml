@@ -5,11 +5,19 @@ metric:
   goal: maximize
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
 project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221004_v1
-name: supervised-clocsCNN_1D-ECG_normalized-20221004_v1-maxep20-more_lr
+name: supervised-clocsCNN_1D-ECG_normalized-20221004_v1-maxep20-more_lr-early_stopping
 entity: yilongju # replace with your own wandb entity (username)
+early_terminate:
+  type: hyperband
+  min_iter: 2
+  eta: 2
 parameters:
   cluster_name:
-    value: "b2"
+    value: "b4"
+  transforms:
+    values: ["Gaussian", "FlipAlongY", "FlipAlongX"]
+  batch_size:
+    value: 128 # Should be halfed when transforms are used
   seed:
     values: [0, 1, 2, 3, 4]
   lr:
@@ -30,8 +38,6 @@ parameters:
     value: True
   scheduler:
     values: ["warmup_cosine"]
-  batch_size:
-    value: 256
   num_workers:
     value: 4
   wandb:
