@@ -106,8 +106,13 @@ def parse_args_pretrain() -> argparse.Namespace:
         args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
     elif args.cluster_name in ["b2"]:
         args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
-    else:
-        raise NotImplementedError("Cluster name not supported")
+    else: # e.g., args.cluster_name == "auto"
+        if os.path.exists("/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"):
+            args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
+        elif os.path.exists("/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"):
+            args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
+        else:
+            raise ValueError("Cannot determine checkpoint_dir!")
 
     # load pretrained model
     if args.pretrained_dir is not None:

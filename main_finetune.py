@@ -117,6 +117,9 @@ def main():
                                                                      ecg_resampling_length_target=args.ecg_resampling_length_target,
                                                                      transforms=args.transforms)
 
+        if Lower(args.transforms) == Lower("Identity"):
+            args.batch_size = args.batch_size * 2
+
         train_loader = prepare_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=True
         )

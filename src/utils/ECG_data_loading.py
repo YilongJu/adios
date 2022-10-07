@@ -21,8 +21,7 @@ patient_ID_list_dev = [patient_ID for patient_ID in patient_ID_list_train if pat
 
 def Data_preprocessing(args):
     """ Preprocessing """
-    data_folder = os.path.normpath("/mnt/scratch07/yilong") if args.cluster_name in ["b1", "b3",
-                                                                                     "b4"] else os.path.normpath(
+    data_folder = os.path.normpath("/mnt/scratch07/yilong") if args.cluster_name in ["b1", "b3", "b4"] else os.path.normpath(
         "/mnt/group1/yilong/JET-Detection-Data")
     data_folder_2 = data_folder
     large_data_folder = data_folder
@@ -118,6 +117,10 @@ def Normalize(vec, eps=1e-8):
     vec = vec - np.min(vec)
     vec = vec / np.max(vec + eps)
     return vec
+
+def Lower(word):
+    """ Convert word to lower case """
+    return word.lower()
 
 class ECG_classification_dataset_with_peak_features(Dataset):
     def __init__(self, feature_df_all_selected_p_ind_with_ecg, ecg_resampling_length_target=300,
@@ -221,11 +224,8 @@ class ECG_classification_dataset_with_peak_features(Dataset):
         peak_features = self.peak_feature_mat[idx, :]
 
         # return X[np.newaxis, :], peak_idx, label, id_vec, peak_features[np.newaxis, :]
-        if len(self.transforms) == 0:
-            return (X[np.newaxis, :], X_aug[np.newaxis, :]), label
-        else:
+        if len(self.transforms) == 0 or (len(self.transforms) == 1 and Lower("Identity") in self.transforms):
             return X[np.newaxis, :], label
+        else:
+            return (X[np.newaxis, :], X_aug[np.newaxis, :]), label
 
-def Lower(word):
-    """ Convert word to lower case """
-    return word.lower()
