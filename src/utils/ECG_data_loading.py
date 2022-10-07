@@ -21,8 +21,18 @@ patient_ID_list_dev = [patient_ID for patient_ID in patient_ID_list_train if pat
 
 def Data_preprocessing(args):
     """ Preprocessing """
-    data_folder = os.path.normpath("/mnt/scratch07/yilong") if args.cluster_name in ["b1", "b3", "b4"] else os.path.normpath(
-        "/mnt/group1/yilong/JET-Detection-Data")
+    if args.cluster_name in ["b1", "b3", "b4"]:
+        data_folder = os.path.normpath("/mnt/scratch07/yilong")
+    elif args.cluster_name in ["b2"]:
+        data_folder = os.path.normpath("/mnt/group1/yilong/JET-Detection-Data")
+    else:
+        if os.path.exists("/mnt/scratch07/yilong"):
+            data_folder = "/mnt/scratch07/yilong"
+        elif os.path.exists("/mnt/group1/yilong/JET-Detection-Data"):
+            data_folder = "/mnt/group1/yilong/JET-Detection-Data"
+        else:
+            raise ValueError("Cannot determine data_folder!")
+
     data_folder_2 = data_folder
     large_data_folder = data_folder
 
