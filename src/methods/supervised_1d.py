@@ -339,7 +339,12 @@ class SupervisedModel_1D(pl.LightningModule):
         Args:
             outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
-        self.log("val_auroc", self.val_auroc, on_epoch=True, sync_dist=True)
+        val_auroc = self.val_auroc.compute()
+        print("val_auroc", val_auroc)
+        self.val_auroc.reset()
+        self.log("val_auroc", val_auroc, on_epoch=True, sync_dist=True)
+        # self.log("val_auroc", self.val_auroc, on_epoch=True, sync_dist=True)
+
 
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
         val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
