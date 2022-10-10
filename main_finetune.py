@@ -199,9 +199,9 @@ def main():
         trainer.fit(model, train_loader, val_loader)
 
     trainer.test(ckpt_path="best", dataloaders=test_loader)
-    print(f"tested_ckpt_path = {trainer.tested_ckpt_path}")
-    print(f"trainer.logger.version = {trainer.logger.version}")
-    print(f"wandb_logger.version = {wandb_logger.version}")
+    # print(f"tested_ckpt_path = {trainer.tested_ckpt_path}")
+    # print(f"trainer.logger.version = {trainer.logger.version}")
+    # print(f"wandb_logger.version = {wandb_logger.version}")
 
 
 if __name__ == "__main__":
