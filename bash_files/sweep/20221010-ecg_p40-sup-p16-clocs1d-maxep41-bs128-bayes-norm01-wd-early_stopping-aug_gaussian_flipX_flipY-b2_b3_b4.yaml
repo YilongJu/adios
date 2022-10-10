@@ -4,8 +4,8 @@ metric:
   name: val_auroc
   goal: maximize
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
-project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221009_v4
-name: supervised-clocsCNN_1D-ECG_normalized-20221010_v4-maxep41-early_stopping-aug_identity_gaussian_flipX_flipY
+project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221009_v5
+name: supervised-clocsCNN_1D-ECG_normalized-20221010_v5-maxep41-early_stopping-aug_identity_gaussian_flipX_flipY
 entity: yilongju # replace with your own wandb entity (username)
 early_terminate:
   type: hyperband
