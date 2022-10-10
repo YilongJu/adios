@@ -27,6 +27,8 @@ from src.methods.base import SUPPORTED_NETWORKS
 from src.utils.ECG_data_loading import *
 from src.utils.pretrain_dataloader import prepare_dataloader
 
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+
 
 def main():
     args = parse_args_finetune()
@@ -96,26 +98,32 @@ def main():
             args)
         channel_ID = args.channel_ID
         """ Get dataloader """
-        feature_with_ecg_df_train_single_lead = feature_with_ecg_df_dev.query(f"channel_ID == {channel_ID}")
-        feature_with_ecg_df_test_single_lead = feature_with_ecg_df_val.query(f"channel_ID == {channel_ID}")
+        feature_with_ecg_df_dev_single_lead = feature_with_ecg_df_dev.query(f"channel_ID == {channel_ID}")
+        feature_with_ecg_df_val_single_lead = feature_with_ecg_df_val.query(f"channel_ID == {channel_ID}")
+        feature_with_ecg_df_test_single_lead = feature_with_ecg_df_test.query(f"channel_ID == {channel_ID}")
 
         ecg_resampling_length = args.ecg_resampling_length
         ecg_colnames = [f"ecg{i + 1}" for i in range(ecg_resampling_length)]
-        ecg_mat = feature_with_ecg_df_train_single_lead[ecg_colnames].values
+        ecg_mat = feature_with_ecg_df_dev_single_lead[ecg_colnames].values
         signal_min_train = np.min(ecg_mat.ravel())
 
-        train_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_train_single_lead,
+        train_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_dev_single_lead,
                                                                       shift_signal=args.shift_signal,
                                                                       shift_amount=signal_min_train,
                                                                       normalize_signal=args.normalize_signal,
                                                                       ecg_resampling_length_target=args.ecg_resampling_length_target,
                                                                       transforms=args.transforms)
+        val_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_val_single_lead,
+                                                                     shift_signal=args.shift_signal,
+                                                                     shift_amount=signal_min_train,
+                                                                     normalize_signal=args.normalize_signal,
+                                                                     ecg_resampling_length_target=args.ecg_resampling_length_target)
         test_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_test_single_lead,
                                                                      shift_signal=args.shift_signal,
                                                                      shift_amount=signal_min_train,
                                                                      normalize_signal=args.normalize_signal,
-                                                                     ecg_resampling_length_target=args.ecg_resampling_length_target,
-                                                                     transforms=args.transforms)
+                                                                     ecg_resampling_length_target=args.ecg_resampling_length_target)
+        
 
         if Lower(args.transforms) == Lower("Identity"):
             args.batch_size = args.batch_size * 2
@@ -124,6 +132,9 @@ def main():
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=True
         )
         val_loader = prepare_dataloader(
+            val_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=False
+        )
+        test_loader = prepare_dataloader(
             test_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=False
         )
     else:
@@ -136,6 +147,7 @@ def main():
             batch_size=args.batch_size,
             num_workers=args.num_workers,
         )
+        test_loader = val_loader
 
     callbacks = []
 
@@ -168,7 +180,7 @@ def main():
         logger=wandb_logger if args.wandb else None,
         callbacks=callbacks,
         plugins=None if args.ptl_accelerator in ["cpu"] else DDPPlugin(find_unused_parameters=False),
-        checkpoint_callback=False,
+        checkpoint_callback=True,
         terminate_on_nan=True,
         accelerator=args.ptl_accelerator,
         devices=1 if args.ptl_accelerator in ["cpu"] else None,
@@ -179,6 +191,8 @@ def main():
         trainer.fit(model, val_dataloaders=val_loader)
     else:
         trainer.fit(model, train_loader, val_loader)
+
+    trainer.test(ckpt_path="best", dataloaders=test_loader)
 
 
 if __name__ == "__main__":

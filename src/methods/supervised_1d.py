@@ -88,6 +88,7 @@ class SupervisedModel_1D(pl.LightningModule):
         """ member for auroc calculation """
         self.train_auroc = AUROC(pos_label=1)
         self.val_auroc = AUROC(pos_label=1)
+        self.test_auroc = AUROC(pos_label=1)
 
         if "cifar" in dataset:
             self.backbone.conv1 = nn.Conv2d(
@@ -272,6 +273,8 @@ class SupervisedModel_1D(pl.LightningModule):
             self.train_auroc.update(scores.detach(), targets.detach())
         elif mode in ["val"]:
             self.val_auroc.update(scores.detach(), targets.detach())
+        elif mode in ["test"]:
+            self.test_auroc.update(scores.detach(), targets.detach())
         else:
             raise NotImplementedError("Unkown training mode.")
 
@@ -343,3 +346,45 @@ class SupervisedModel_1D(pl.LightningModule):
         # val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": float('nan')}
         self.log_dict(log, sync_dist=True)
+
+
+    def test_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
+        """Performs the test step for the linear eval.
+
+        Args:
+            batch (torch.Tensor): a batch of images in the tensor format.
+            batch_idx (int): the index of the batch.
+
+        Returns:
+            Dict[str, Any]:
+                dict with the batch_size (used for averaging),
+                the classification loss and accuracies.
+        """
+
+        batch_size, loss, acc1, _ = self.shared_step(batch, batch_idx, mode="test")
+
+        results = {
+            "batch_size": batch_size,
+            "test_loss": loss,
+            "test_acc1": acc1,
+            "test_acc5": float('nan'),
+        }
+        return results
+
+
+    def test_epoch_end(self, outs: List[Dict[str, Any]]):
+        """Averages the losses and accuracies of all the test batches.
+        This is needed because the last batch can be smaller than the others,
+        slightly skewing the metrics.
+
+        Args:
+            outs (List[Dict[str, Any]]): list of outputs of the validation step.
+        """
+        self.log("test_auroc", self.test_auroc, on_epoch=True, sync_dist=True)
+
+        test_loss = weighted_mean(outs, "test_loss", "batch_size")
+        test_acc1 = weighted_mean(outs, "test_acc1", "batch_size")
+        # test_acc5 = weighted_mean(outs, "test_acc5", "batch_size")
+        log = {"test_loss": test_loss, "test_acc1": test_acc1, "test_acc5": float('nan')}
+        self.log_dict(log, sync_dist=True)
+

@@ -140,7 +140,7 @@ class ECG_classification_dataset_with_peak_features(Dataset):
         """
         normalize_signal: Normalize each individual signal to 0 - 1 range
         """
-        print(f"ecg_resampling_length_target: {ecg_resampling_length_target}")
+        # print(f"ecg_resampling_length_target: {ecg_resampling_length_target}")
         if short_identifier_list is None:
             short_identifier_list = ['patient_ID', 'interval_ID', 'block_ID', 'channel_ID', 'r_ID_abs', 'label',
                                      'r_ID_abs_ref']
