@@ -71,8 +71,7 @@ def Data_preprocessing(args):
     feature_with_ecg_df_test = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_test}")
     feature_with_ecg_df_dev = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_dev}")
     feature_with_ecg_df_val = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_val}")
-    print(
-        f"Data shape: {feature_df_all_selected_with_ecg.shape}, train: {feature_with_ecg_df_train.shape}, test: {feature_with_ecg_df_test.shape}")
+    print(f"Data shape: {feature_df_all_selected_with_ecg.shape}, train: {feature_with_ecg_df_train.shape}, dev: {feature_with_ecg_df_dev.shape}, val: {feature_with_ecg_df_val.shape}, test: {feature_with_ecg_df_test.shape}")
 
     return feature_with_ecg_df_train, feature_with_ecg_df_test, feature_with_ecg_df_dev, feature_with_ecg_df_val, save_folder
     # return feature_with_ecg_df_train, feature_with_ecg_df_test, save_folder
