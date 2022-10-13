@@ -264,7 +264,7 @@ class SupervisedModel_1D(pl.LightningModule):
             X = torch.cat(X, dim=0)
             targets = torch.cat([targets, targets], dim=0)
         batch_size = X.size(0)
-
+        print(f"batch_size = {batch_size}")
         out = self(X)["logits"]
         loss = F.cross_entropy(out, targets)
 
