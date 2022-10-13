@@ -17,9 +17,7 @@ from torch.optim.lr_scheduler import (
     ReduceLROnPlateau,
 )
 from pynvml import *
-nvmlInit()
-h = nvmlDeviceGetHandleByIndex(0)
-info = nvmlDeviceGetMemoryInfo(h)
+
 softmax = torch.nn.Softmax(dim=1)
 
 class SupervisedModel_1D(pl.LightningModule):
@@ -268,9 +266,13 @@ class SupervisedModel_1D(pl.LightningModule):
             targets = torch.cat([targets, targets], dim=0)
         batch_size = X.size(0)
         print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
-        print(f'total    : {info.total / 1024 / 1024:.2f} MB')
-        print(f'free     : {info.free / 1024 / 1024:.2f} MB')
-        print(f'used     : {info.used / 1024 / 1024:.2f} MB')
+        nvmlInit()
+        counts = nvmlUnitGetCount()
+        print(f"\tTotal\tFree\tUsed")
+        for i in range(counts):
+            h = nvmlDeviceGetHandleByIndex(i)
+            info = nvmlDeviceGetMemoryInfo(h)
+            print(f'[gpu {i}]\t{info.total / 1024 / 1024:.2f} MB\t{info.free / 1024 / 1024:.2f} MB\t{info.used / 1024 / 1024:.2f} MB')
 
         out = self(X)["logits"]
         loss = F.cross_entropy(out, targets)
