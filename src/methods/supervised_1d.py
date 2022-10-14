@@ -407,7 +407,7 @@ class SupervisedModel_1D(pl.LightningModule):
         return loss
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
-        self.log("train_auroc", self.train_auroc.compute(), sync_dist=True)
+        # self.log("train_auroc", self.train_auroc.compute(), sync_dist=True)
         self.train_auroc.reset()
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
