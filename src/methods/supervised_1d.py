@@ -268,7 +268,9 @@ class SupervisedModel_1D(pl.LightningModule):
         print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
         nvmlInit()
         counts = nvmlUnitGetCount()
-        print(f"\tTotal\tFree\tUsed")
+        if counts == 0:
+            counts = 8
+        print(f"# gpu: {counts}\tTotal\tFree\tUsed")
         for i in range(counts):
             h = nvmlDeviceGetHandleByIndex(i)
             info = nvmlDeviceGetMemoryInfo(h)
