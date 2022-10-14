@@ -184,43 +184,14 @@ class SupervisedModel_1D(pl.LightningModule):
             Dict[str, Any]: a dict containing features and logits.
         """
         # print(f"[ecg] X.shape = {X.shape}")
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-
         if self.pretrained_occlusion_model_dict is not None:
             X = self.pretrained_occlusion_model_dict["mask_head"](
                 self.pretrained_occlusion_model_dict["mask_encoder"](X)
             )
             # print(f"[masks] X.shape = {X.shape}")
-
-        a = torch.cuda.memory_allocated(device)
-        stage = "Before embedding"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
-
         feats = self.backbone(X)
-        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
-        a = torch.cuda.memory_allocated(device)
-        stage = "After embedding"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
         # print(f"feats.shape = {feats.shape}")
         logits = self.classifier(feats)
-        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
-        a = torch.cuda.memory_allocated(device)
-        stage = "After linear"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
         # print(f"logits.shape = {logits.shape}")
         return {"logits": logits, "feats": feats}
 
@@ -287,53 +258,20 @@ class SupervisedModel_1D(pl.LightningModule):
             Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]:
                 batch size, loss, accuracy @1 and accuracy @5.
         """
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print(f"0 - Before data batch, {torch.cuda.memory_allocated(device)}")
         X, targets = batch
         if isinstance(X, list):
             X = torch.cat(X, dim=0)
             targets = torch.cat([targets, targets], dim=0)
         batch_size = X.size(0)
-        verbose = False
-        print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
-        if verbose:
-            if torch.cuda.is_available():
-                print(torch.cuda.memory_summary())
-            try:
-                nvmlInit()
-                counts = nvmlUnitGetCount()
-                if counts == 0:
-                    counts = 8
-                print(f"# gpu: {counts}\tTotal\tFree\tUsed")
-                for i in range(counts):
-                    h = nvmlDeviceGetHandleByIndex(i)
-                    info = nvmlDeviceGetMemoryInfo(h)
-                    print(f'[gpu {i}]\t{info.total / 1024 / 1024:.2f} MB\t{info.free / 1024 / 1024:.2f} MB\t{info.used / 1024 / 1024:.2f} MB')
-            except:
-                pass
-        a = torch.cuda.memory_allocated(device)
-        stage = "Before forward pass"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
+        # print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
 
         out = self(X)["logits"]
         loss = F.cross_entropy(out, targets)
-        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
-        a = torch.cuda.memory_allocated(device)
-        stage = "After forward pass"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
 
         scores = softmax(out)[:, 1].detach()
         if mode in ["train"]:
             self.train_auroc.update(scores, targets.detach())
-            print(mode, len(self.train_auroc.preds))
+            # print(mode, len(self.train_auroc.preds))
         elif mode in ["val"]:
             self.val_auroc.update(scores, targets.detach())
         elif mode in ["test"]:
@@ -341,29 +279,11 @@ class SupervisedModel_1D(pl.LightningModule):
         else:
             raise NotImplementedError("Unkown training mode.")
 
-        # print(f"increased by {torch.cuda.memory_allocated(device) - a}")
-        # a = torch.cuda.memory_allocated(device)
-        # stage = "Before results"
-        # if stage not in self.previous_gpu_load_dict:
-        #     self.previous_gpu_load_dict[stage] = a
-        # previous_usage = self.previous_gpu_load_dict[stage]
-        # print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        # self.previous_gpu_load_dict[stage] = a
-
-        # results = accuracy_at_k(out, targets, top_k=(1,))
-        # print(f"increased by {torch.cuda.memory_allocated(device) - a}")
-        # a = torch.cuda.memory_allocated(device)
-        # stage = "After results"
-        # if stage not in self.previous_gpu_load_dict:
-        #     self.previous_gpu_load_dict[stage] = a
-        # previous_usage = self.previous_gpu_load_dict[stage]
-        # print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        # self.previous_gpu_load_dict[stage] = a
+        results = accuracy_at_k(out, targets, top_k=(1,))
 
         # return batch_size, loss, results['acc1'], results['acc5']
-        # return batch_size, loss.detach(), results['acc1'], results['acc1']
-        # return batch_size, loss, results['acc1'], results['acc1']
-        return batch_size, loss
+        return batch_size, loss, results['acc1'], results['acc1']
+        # return batch_size, loss
 
     def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         """Performs the training step for the linear eval.
@@ -382,60 +302,17 @@ class SupervisedModel_1D(pl.LightningModule):
         else:
             self.backbone.eval()
 
-        # _, loss, acc1, _ = self.shared_step(batch, batch_idx, mode="train")
-        _, loss = self.shared_step(batch, batch_idx, mode="train")
-        # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # a = torch.cuda.memory_allocated(device)
-        # stage = "Before logging"
-        # if stage not in self.previous_gpu_load_dict:
-        #     self.previous_gpu_load_dict[stage] = a
-        # previous_usage = self.previous_gpu_load_dict[stage]
-        # print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        # self.previous_gpu_load_dict[stage] = a
+        _, loss, acc1, _ = self.shared_step(batch, batch_idx, mode="train")
+        # _, loss = self.shared_step(batch, batch_idx, mode="train")
 
-        # log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": float('nan')}
-        # self.log_dict(log, on_epoch=True, sync_dist=True)
-        # print(f"increased by {torch.cuda.memory_allocated(device) - a}")
-        # a = torch.cuda.memory_allocated(device)
-        # stage = "After logging"
-        # if stage not in self.previous_gpu_load_dict:
-        #     self.previous_gpu_load_dict[stage] = a
-        # previous_usage = self.previous_gpu_load_dict[stage]
-        # print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        # self.previous_gpu_load_dict[stage] = a
+        log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": float('nan')}
+        self.log_dict(log, on_epoch=True, sync_dist=True)
 
         return loss
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
-        # with torch.no_grad():
-
-        print(f"Before logging {len(self.train_auroc.preds)}")
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        a = torch.cuda.memory_allocated(device)
-        stage = "Before logging"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
-        self.log("train_auroc", self.train_auroc.compute(), sync_dist=True)
-        print(f"After logging {len(self.train_auroc.preds)}")
-        a = torch.cuda.memory_allocated(device)
-        stage = "After logging"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
+        self.log("train_auroc", self.train_auroc.compute(), on_epoch=True, sync_dist=True)
         self.train_auroc.reset()
-        print(f"After reset {len(self.train_auroc.preds)}")
-        a = torch.cuda.memory_allocated(device)
-        stage = "After reset"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
         """Performs the validation step for the linear eval.
@@ -449,25 +326,7 @@ class SupervisedModel_1D(pl.LightningModule):
                 dict with the batch_size (used for averaging),
                 the classification loss and accuracies.
         """
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        a = torch.cuda.memory_allocated(device)
-        stage = "Before validation step"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
-
         batch_size, loss, acc1, _ = self.shared_step(batch, batch_idx, mode="val")
-
-        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
-        a = torch.cuda.memory_allocated(device)
-        stage = "After validation step"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
 
         results = {
             "batch_size": batch_size,
@@ -476,14 +335,6 @@ class SupervisedModel_1D(pl.LightningModule):
             "val_acc5": float('nan'),
         }
 
-        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
-        a = torch.cuda.memory_allocated(device)
-        stage = "After saving validation results"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
         return results
 
     def validation_epoch_end(self, outs: List[Dict[str, Any]]):
@@ -494,10 +345,6 @@ class SupervisedModel_1D(pl.LightningModule):
         Args:
             outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
-        # val_auroc = self.val_auroc.compute()
-        # print("val_auroc", val_auroc)
-        # self.val_auroc.reset()
-        # self.log("val_auroc", val_auroc, on_epoch=True, sync_dist=True)
         self.log("val_auroc", self.val_auroc.compute(), on_epoch=True, sync_dist=True)
         self.val_auroc.reset()
 
