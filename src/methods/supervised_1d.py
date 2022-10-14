@@ -290,6 +290,7 @@ class SupervisedModel_1D(pl.LightningModule):
             self.previous_gpu_load_dict[stage] = a
         previous_usage = self.previous_gpu_load_dict[stage]
         print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
 
         out = self(X)["logits"]
         loss = F.cross_entropy(out, targets)
@@ -299,6 +300,7 @@ class SupervisedModel_1D(pl.LightningModule):
             self.previous_gpu_load_dict[stage] = a
         previous_usage = self.previous_gpu_load_dict[stage]
         print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
 
         scores = softmax(out)[:, 1]
         if mode in ["train"]:
@@ -316,6 +318,7 @@ class SupervisedModel_1D(pl.LightningModule):
             self.previous_gpu_load_dict[stage] = a
         previous_usage = self.previous_gpu_load_dict[stage]
         print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
 
         results = accuracy_at_k(out, targets, top_k=(1,))
         a = torch.cuda.memory_allocated(device)
@@ -324,6 +327,7 @@ class SupervisedModel_1D(pl.LightningModule):
             self.previous_gpu_load_dict[stage] = a
         previous_usage = self.previous_gpu_load_dict[stage]
         print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
 
         # return batch_size, loss, results['acc1'], results['acc5']
         # return batch_size, loss.detach(), results['acc1'], results['acc1']
@@ -354,6 +358,7 @@ class SupervisedModel_1D(pl.LightningModule):
             self.previous_gpu_load_dict[stage] = a
         previous_usage = self.previous_gpu_load_dict[stage]
         print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
 
         log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": float('nan')}
         self.log_dict(log, on_epoch=True, sync_dist=True)
@@ -363,6 +368,7 @@ class SupervisedModel_1D(pl.LightningModule):
             self.previous_gpu_load_dict[stage] = a
         previous_usage = self.previous_gpu_load_dict[stage]
         print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
 
         return loss
 
