@@ -77,6 +77,7 @@ class SupervisedModel_1D(pl.LightningModule):
         self.scheduler = scheduler
         self.lr_decay_steps = lr_decay_steps
         self.train_backbone = train_backbone
+        self.previous_gpu_load_dict = {}
 
         # all the other parameters
         self.extra_args = kwargs
@@ -284,13 +285,20 @@ class SupervisedModel_1D(pl.LightningModule):
         if torch.cuda.is_available():
             print(torch.cuda.memory_summary())
         a = torch.cuda.memory_allocated(device)
-        print(f"1 - Before forward pass, {torch.cuda.memory_allocated(device)}")
+        stage = "Before forward pass"
+        if stage not in self.previous_gpu_load_dict:
+            self.previous_gpu_load_dict[stage] = a
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
 
         out = self(X)["logits"]
         loss = F.cross_entropy(out, targets)
-        b = torch.cuda.memory_allocated(device)
-        print(f"2 - After forward pass, {torch.cuda.memory_allocated(device)}")
-        print(f"2.5 - memory consumption, {b - a}")
+        a = torch.cuda.memory_allocated(device)
+        stage = "After forward pass"
+        if stage not in self.previous_gpu_load_dict:
+            self.previous_gpu_load_dict[stage] = a
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
 
         scores = softmax(out)[:, 1]
         if mode in ["train"]:
@@ -303,13 +311,20 @@ class SupervisedModel_1D(pl.LightningModule):
             raise NotImplementedError("Unkown training mode.")
 
         a = torch.cuda.memory_allocated(device)
-        print(f"3 - Before results, {a}")
-        print(f"3.5 - memory consumption, {a - b}")
+        stage = "After forward pass"
+        if stage not in self.previous_gpu_load_dict:
+            self.previous_gpu_load_dict[stage] = a
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
 
         results = accuracy_at_k(out, targets, top_k=(1,))
-        b = torch.cuda.memory_allocated(device)
-        print(f"4 - After results, {b}")
-        print(f"4.5 - memory consumption, {b - a}")
+        a = torch.cuda.memory_allocated(device)
+        stage = "After results"
+        if stage not in self.previous_gpu_load_dict:
+            self.previous_gpu_load_dict[stage] = a
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+
         # return batch_size, loss, results['acc1'], results['acc5']
         # return batch_size, loss.detach(), results['acc1'], results['acc1']
         return batch_size, loss, results['acc1'], results['acc1']
@@ -332,10 +347,24 @@ class SupervisedModel_1D(pl.LightningModule):
             self.backbone.eval()
 
         _, loss, acc1, _ = self.shared_step(batch, batch_idx, mode="train")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        a = torch.cuda.memory_allocated(device)
+        stage = "Before logging"
+        if stage not in self.previous_gpu_load_dict:
+            self.previous_gpu_load_dict[stage] = a
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
 
         log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": float('nan')}
         self.log_dict(log, on_epoch=True, sync_dist=True)
-        return loss
+        a = torch.cuda.memory_allocated(device)
+        stage = "After logging"
+        if stage not in self.previous_gpu_load_dict:
+            self.previous_gpu_load_dict[stage] = a
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+
+    return loss
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
         self.log("train_auroc", self.train_auroc, on_epoch=True, sync_dist=True)
