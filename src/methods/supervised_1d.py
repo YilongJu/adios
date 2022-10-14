@@ -407,35 +407,35 @@ class SupervisedModel_1D(pl.LightningModule):
         return loss
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
-        with torch.no_grad():
+        # with torch.no_grad():
 
-            print(f"Before logging {len(self.train_auroc.preds)}")
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            a = torch.cuda.memory_allocated(device)
-            stage = "Before logging"
-            if stage not in self.previous_gpu_load_dict:
-                self.previous_gpu_load_dict[stage] = a
-            previous_usage = self.previous_gpu_load_dict[stage]
-            print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        print(f"Before logging {len(self.train_auroc.preds)}")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        a = torch.cuda.memory_allocated(device)
+        stage = "Before logging"
+        if stage not in self.previous_gpu_load_dict:
             self.previous_gpu_load_dict[stage] = a
-            self.log("train_auroc", self.train_auroc.compute().detach().cpu(), sync_dist=True)
-            print(f"After logging {len(self.train_auroc.preds)}")
-            a = torch.cuda.memory_allocated(device)
-            stage = "After logging"
-            if stage not in self.previous_gpu_load_dict:
-                self.previous_gpu_load_dict[stage] = a
-            previous_usage = self.previous_gpu_load_dict[stage]
-            print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
+        self.log("train_auroc", self.train_auroc.compute(), sync_dist=True)
+        print(f"After logging {len(self.train_auroc.preds)}")
+        a = torch.cuda.memory_allocated(device)
+        stage = "After logging"
+        if stage not in self.previous_gpu_load_dict:
             self.previous_gpu_load_dict[stage] = a
-            self.train_auroc.reset()
-            print(f"After reset {len(self.train_auroc.preds)}")
-            a = torch.cuda.memory_allocated(device)
-            stage = "After reset"
-            if stage not in self.previous_gpu_load_dict:
-                self.previous_gpu_load_dict[stage] = a
-            previous_usage = self.previous_gpu_load_dict[stage]
-            print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
+        self.train_auroc.reset()
+        print(f"After reset {len(self.train_auroc.preds)}")
+        a = torch.cuda.memory_allocated(device)
+        stage = "After reset"
+        if stage not in self.previous_gpu_load_dict:
             self.previous_gpu_load_dict[stage] = a
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
         """Performs the validation step for the linear eval.
