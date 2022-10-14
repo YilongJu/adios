@@ -419,8 +419,25 @@ class SupervisedModel_1D(pl.LightningModule):
                 dict with the batch_size (used for averaging),
                 the classification loss and accuracies.
         """
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        a = torch.cuda.memory_allocated(device)
+        stage = "Before validation step"
+        if stage not in self.previous_gpu_load_dict:
+            self.previous_gpu_load_dict[stage] = a
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
 
         batch_size, loss, acc1, _ = self.shared_step(batch, batch_idx, mode="val")
+
+        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
+        a = torch.cuda.memory_allocated(device)
+        stage = "After validation step"
+        if stage not in self.previous_gpu_load_dict:
+            self.previous_gpu_load_dict[stage] = a
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
 
         results = {
             "batch_size": batch_size,
@@ -428,6 +445,15 @@ class SupervisedModel_1D(pl.LightningModule):
             "val_acc1": acc1,
             "val_acc5": float('nan'),
         }
+
+        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
+        a = torch.cuda.memory_allocated(device)
+        stage = "After saving validation results"
+        if stage not in self.previous_gpu_load_dict:
+            self.previous_gpu_load_dict[stage] = a
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
         return results
 
     def validation_epoch_end(self, outs: List[Dict[str, Any]]):
