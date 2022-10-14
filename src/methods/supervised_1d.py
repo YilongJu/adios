@@ -266,16 +266,20 @@ class SupervisedModel_1D(pl.LightningModule):
             targets = torch.cat([targets, targets], dim=0)
         batch_size = X.size(0)
         print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
-        nvmlInit()
-        counts = nvmlUnitGetCount()
-        if counts == 0:
-            counts = 8
-        print(f"# gpu: {counts}\tTotal\tFree\tUsed")
-        for i in range(counts):
-            h = nvmlDeviceGetHandleByIndex(i)
-            info = nvmlDeviceGetMemoryInfo(h)
-            print(f'[gpu {i}]\t{info.total / 1024 / 1024:.2f} MB\t{info.free / 1024 / 1024:.2f} MB\t{info.used / 1024 / 1024:.2f} MB')
-
+        verbose = False
+        if verbose:
+            try:
+                nvmlInit()
+                counts = nvmlUnitGetCount()
+                if counts == 0:
+                    counts = 8
+                print(f"# gpu: {counts}\tTotal\tFree\tUsed")
+                for i in range(counts):
+                    h = nvmlDeviceGetHandleByIndex(i)
+                    info = nvmlDeviceGetMemoryInfo(h)
+                    print(f'[gpu {i}]\t{info.total / 1024 / 1024:.2f} MB\t{info.free / 1024 / 1024:.2f} MB\t{info.used / 1024 / 1024:.2f} MB')
+            except:
+                pass
         out = self(X)["logits"]
         loss = F.cross_entropy(out, targets)
 
@@ -291,6 +295,7 @@ class SupervisedModel_1D(pl.LightningModule):
 
         results = accuracy_at_k(out, targets, top_k=(1,))
         # return batch_size, loss, results['acc1'], results['acc5']
+        # return batch_size, loss.detach(), results['acc1'], results['acc1']
         return batch_size, loss, results['acc1'], results['acc1']
 
     def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
@@ -318,6 +323,8 @@ class SupervisedModel_1D(pl.LightningModule):
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
         self.log("train_auroc", self.train_auroc, on_epoch=True, sync_dist=True)
+        if torch.cuda.is_available():
+            print(torch.cuda.memory_summary())
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
         """Performs the validation step for the linear eval.
