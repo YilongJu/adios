@@ -407,6 +407,7 @@ class SupervisedModel_1D(pl.LightningModule):
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
         self.log("train_auroc", self.train_auroc, on_epoch=True, sync_dist=True)
+        self.train_auroc.reset()
         pass
 
 
