@@ -265,9 +265,9 @@ class SupervisedModel_1D(pl.LightningModule):
             X = torch.cat(X, dim=0)
             targets = torch.cat([targets, targets], dim=0)
         batch_size = X.size(0)
-        print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
         verbose = False
         if verbose:
+            print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
             try:
                 nvmlInit()
                 counts = nvmlUnitGetCount()
@@ -280,6 +280,8 @@ class SupervisedModel_1D(pl.LightningModule):
                     print(f'[gpu {i}]\t{info.total / 1024 / 1024:.2f} MB\t{info.free / 1024 / 1024:.2f} MB\t{info.used / 1024 / 1024:.2f} MB')
             except:
                 pass
+        if torch.cuda.is_available():
+            print(torch.cuda.memory_summary())
         out = self(X)["logits"]
         loss = F.cross_entropy(out, targets)
 
@@ -323,8 +325,7 @@ class SupervisedModel_1D(pl.LightningModule):
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
         self.log("train_auroc", self.train_auroc, on_epoch=True, sync_dist=True)
-        if torch.cuda.is_available():
-            print(torch.cuda.memory_summary())
+
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
         """Performs the validation step for the linear eval.
