@@ -297,6 +297,8 @@ class SupervisedModel_1D(pl.LightningModule):
         verbose = False
         if verbose:
             print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
+            if torch.cuda.is_available():
+                print(torch.cuda.memory_summary())
             try:
                 nvmlInit()
                 counts = nvmlUnitGetCount()
@@ -309,8 +311,6 @@ class SupervisedModel_1D(pl.LightningModule):
                     print(f'[gpu {i}]\t{info.total / 1024 / 1024:.2f} MB\t{info.free / 1024 / 1024:.2f} MB\t{info.used / 1024 / 1024:.2f} MB')
             except:
                 pass
-        if torch.cuda.is_available():
-            print(torch.cuda.memory_summary())
         a = torch.cuda.memory_allocated(device)
         stage = "Before forward pass"
         if stage not in self.previous_gpu_load_dict:
