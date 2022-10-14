@@ -364,7 +364,7 @@ class SupervisedModel_1D(pl.LightningModule):
         previous_usage = self.previous_gpu_load_dict[stage]
         print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
 
-    return loss
+        return loss
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
         self.log("train_auroc", self.train_auroc, on_epoch=True, sync_dist=True)
