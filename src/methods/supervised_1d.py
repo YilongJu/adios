@@ -330,7 +330,7 @@ class SupervisedModel_1D(pl.LightningModule):
         print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
         self.previous_gpu_load_dict[stage] = a
 
-        # scores = softmax(out)[:, 1]
+        scores = softmax(out)[:, 1]
         # if mode in ["train"]:
         #     self.train_auroc.update(scores.detach(), targets.detach())
         # elif mode in ["val"]:
