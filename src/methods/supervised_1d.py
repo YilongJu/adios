@@ -330,38 +330,39 @@ class SupervisedModel_1D(pl.LightningModule):
         print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
         self.previous_gpu_load_dict[stage] = a
 
-        scores = softmax(out)[:, 1]
-        if mode in ["train"]:
-            self.train_auroc.update(scores.detach(), targets.detach())
-        elif mode in ["val"]:
-            self.val_auroc.update(scores.detach(), targets.detach())
-        elif mode in ["test"]:
-            self.test_auroc.update(scores.detach(), targets.detach())
-        else:
-            raise NotImplementedError("Unkown training mode.")
+        # scores = softmax(out)[:, 1]
+        # if mode in ["train"]:
+        #     self.train_auroc.update(scores.detach(), targets.detach())
+        # elif mode in ["val"]:
+        #     self.val_auroc.update(scores.detach(), targets.detach())
+        # elif mode in ["test"]:
+        #     self.test_auroc.update(scores.detach(), targets.detach())
+        # else:
+        #     raise NotImplementedError("Unkown training mode.")
+        #
+        # print(f"increased by {torch.cuda.memory_allocated(device) - a}")
+        # a = torch.cuda.memory_allocated(device)
+        # stage = "Before results"
+        # if stage not in self.previous_gpu_load_dict:
+        #     self.previous_gpu_load_dict[stage] = a
+        # previous_usage = self.previous_gpu_load_dict[stage]
+        # print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        # self.previous_gpu_load_dict[stage] = a
 
-        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
-        a = torch.cuda.memory_allocated(device)
-        stage = "Before results"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
-
-        results = accuracy_at_k(out, targets, top_k=(1,))
-        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
-        a = torch.cuda.memory_allocated(device)
-        stage = "After results"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
+        # results = accuracy_at_k(out, targets, top_k=(1,))
+        # print(f"increased by {torch.cuda.memory_allocated(device) - a}")
+        # a = torch.cuda.memory_allocated(device)
+        # stage = "After results"
+        # if stage not in self.previous_gpu_load_dict:
+        #     self.previous_gpu_load_dict[stage] = a
+        # previous_usage = self.previous_gpu_load_dict[stage]
+        # print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        # self.previous_gpu_load_dict[stage] = a
 
         # return batch_size, loss, results['acc1'], results['acc5']
         # return batch_size, loss.detach(), results['acc1'], results['acc1']
-        return batch_size, loss, results['acc1'], results['acc1']
+        # return batch_size, loss, results['acc1'], results['acc1']
+        return batch_size, loss
 
     def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
         """Performs the training step for the linear eval.
@@ -380,31 +381,33 @@ class SupervisedModel_1D(pl.LightningModule):
         else:
             self.backbone.eval()
 
-        _, loss, acc1, _ = self.shared_step(batch, batch_idx, mode="train")
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        a = torch.cuda.memory_allocated(device)
-        stage = "Before logging"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
+        # _, loss, acc1, _ = self.shared_step(batch, batch_idx, mode="train")
+        _, loss = self.shared_step(batch, batch_idx, mode="train")
+        # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # a = torch.cuda.memory_allocated(device)
+        # stage = "Before logging"
+        # if stage not in self.previous_gpu_load_dict:
+        #     self.previous_gpu_load_dict[stage] = a
+        # previous_usage = self.previous_gpu_load_dict[stage]
+        # print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        # self.previous_gpu_load_dict[stage] = a
 
-        log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": float('nan')}
-        self.log_dict(log, on_epoch=True, sync_dist=True)
-        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
-        a = torch.cuda.memory_allocated(device)
-        stage = "After logging"
-        if stage not in self.previous_gpu_load_dict:
-            self.previous_gpu_load_dict[stage] = a
-        previous_usage = self.previous_gpu_load_dict[stage]
-        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
-        self.previous_gpu_load_dict[stage] = a
+        # log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": float('nan')}
+        # self.log_dict(log, on_epoch=True, sync_dist=True)
+        # print(f"increased by {torch.cuda.memory_allocated(device) - a}")
+        # a = torch.cuda.memory_allocated(device)
+        # stage = "After logging"
+        # if stage not in self.previous_gpu_load_dict:
+        #     self.previous_gpu_load_dict[stage] = a
+        # previous_usage = self.previous_gpu_load_dict[stage]
+        # print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        # self.previous_gpu_load_dict[stage] = a
 
         return loss
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
-        self.log("train_auroc", self.train_auroc, on_epoch=True, sync_dist=True)
+        # self.log("train_auroc", self.train_auroc, on_epoch=True, sync_dist=True)
+        pass
 
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
@@ -439,13 +442,12 @@ class SupervisedModel_1D(pl.LightningModule):
         print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
         self.previous_gpu_load_dict[stage] = a
 
-        # results = {
-        #     "batch_size": batch_size,
-        #     "val_loss": loss,
-        #     "val_acc1": acc1,
-        #     "val_acc5": float('nan'),
-        # }
-        results = {}
+        results = {
+            "batch_size": batch_size,
+            "val_loss": loss,
+            "val_acc1": acc1,
+            "val_acc5": float('nan'),
+        }
 
         print(f"increased by {torch.cuda.memory_allocated(device) - a}")
         a = torch.cuda.memory_allocated(device)
@@ -472,11 +474,11 @@ class SupervisedModel_1D(pl.LightningModule):
         self.log("val_auroc", self.val_auroc, on_epoch=True, sync_dist=True)
 
 
-        # val_loss = weighted_mean(outs, "val_loss", "batch_size")
-        # val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
-        # # val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
-        # log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": float('nan')}
-        # self.log_dict(log, sync_dist=True)
+        val_loss = weighted_mean(outs, "val_loss", "batch_size")
+        val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
+        # val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
+        log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": float('nan')}
+        self.log_dict(log, sync_dist=True)
 
 
     def test_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
