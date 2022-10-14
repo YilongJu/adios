@@ -259,7 +259,8 @@ class SupervisedModel_1D(pl.LightningModule):
             Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]:
                 batch size, loss, accuracy @1 and accuracy @5.
         """
-
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"0 - Before data batch, {torch.cuda.memory_allocated(device)}")
         X, targets = batch
         if isinstance(X, list):
             X = torch.cat(X, dim=0)
@@ -282,8 +283,14 @@ class SupervisedModel_1D(pl.LightningModule):
                 pass
         if torch.cuda.is_available():
             print(torch.cuda.memory_summary())
+        a = torch.cuda.memory_allocated(device)
+        print(f"1 - Before forward pass, {torch.cuda.memory_allocated(device)}")
+
         out = self(X)["logits"]
         loss = F.cross_entropy(out, targets)
+        b = torch.cuda.memory_allocated(device)
+        print(f"2 - After forward pass, {torch.cuda.memory_allocated(device)}")
+        print(f"2.5 - memory consumption, {b - a}")
 
         scores = softmax(out)[:, 1]
         if mode in ["train"]:
