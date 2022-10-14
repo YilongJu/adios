@@ -295,8 +295,8 @@ class SupervisedModel_1D(pl.LightningModule):
             targets = torch.cat([targets, targets], dim=0)
         batch_size = X.size(0)
         verbose = False
+        print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
         if verbose:
-            print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
             if torch.cuda.is_available():
                 print(torch.cuda.memory_summary())
             try:
@@ -330,13 +330,14 @@ class SupervisedModel_1D(pl.LightningModule):
         print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
         self.previous_gpu_load_dict[stage] = a
 
-        scores = softmax(out)[:, 1]
+        scores = softmax(out)[:, 1].detach()
         if mode in ["train"]:
-            self.train_auroc.update(scores.detach(), targets.detach())
+            self.train_auroc.update(scores, targets.detach())
+            print(mode, len(self.train_auroc.preds))
         elif mode in ["val"]:
-            self.val_auroc.update(scores.detach(), targets.detach())
+            self.val_auroc.update(scores, targets.detach())
         elif mode in ["test"]:
-            self.test_auroc.update(scores.detach(), targets.detach())
+            self.test_auroc.update(scores, targets.detach())
         else:
             raise NotImplementedError("Unkown training mode.")
 
@@ -406,10 +407,8 @@ class SupervisedModel_1D(pl.LightningModule):
         return loss
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
-        # self.log("train_auroc", self.train_auroc, sync_dist=True)
+        self.log("train_auroc", self.train_auroc.compute(), sync_dist=True)
         self.train_auroc.reset()
-        pass
-
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
         """Performs the validation step for the linear eval.
@@ -472,8 +471,8 @@ class SupervisedModel_1D(pl.LightningModule):
         # print("val_auroc", val_auroc)
         # self.val_auroc.reset()
         # self.log("val_auroc", val_auroc, on_epoch=True, sync_dist=True)
-        self.log("val_auroc", self.val_auroc, on_epoch=True, sync_dist=True)
-
+        self.log("val_auroc", self.val_auroc.compute(), on_epoch=True, sync_dist=True)
+        self.val_auroc.reset()
 
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
         val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
@@ -514,7 +513,8 @@ class SupervisedModel_1D(pl.LightningModule):
         Args:
             outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
-        self.log("test_auroc", self.test_auroc, on_epoch=True, sync_dist=True)
+        self.log("test_auroc", self.test_auroc.compute(), on_epoch=True, sync_dist=True)
+        self.test_auroc.reset()
 
         test_loss = weighted_mean(outs, "test_loss", "batch_size")
         test_acc1 = weighted_mean(outs, "test_acc1", "batch_size")
