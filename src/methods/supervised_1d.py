@@ -439,12 +439,13 @@ class SupervisedModel_1D(pl.LightningModule):
         print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
         self.previous_gpu_load_dict[stage] = a
 
-        results = {
-            "batch_size": batch_size,
-            "val_loss": loss,
-            "val_acc1": acc1,
-            "val_acc5": float('nan'),
-        }
+        # results = {
+        #     "batch_size": batch_size,
+        #     "val_loss": loss,
+        #     "val_acc1": acc1,
+        #     "val_acc5": float('nan'),
+        # }
+        results = {}
 
         print(f"increased by {torch.cuda.memory_allocated(device) - a}")
         a = torch.cuda.memory_allocated(device)
@@ -471,11 +472,11 @@ class SupervisedModel_1D(pl.LightningModule):
         self.log("val_auroc", self.val_auroc, on_epoch=True, sync_dist=True)
 
 
-        val_loss = weighted_mean(outs, "val_loss", "batch_size")
-        val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
-        # val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
-        log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": float('nan')}
-        self.log_dict(log, sync_dist=True)
+        # val_loss = weighted_mean(outs, "val_loss", "batch_size")
+        # val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
+        # # val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
+        # log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": float('nan')}
+        # self.log_dict(log, sync_dist=True)
 
 
     def test_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
