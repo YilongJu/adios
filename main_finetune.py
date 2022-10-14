@@ -197,7 +197,8 @@ def main():
     if args.dali:
         trainer.fit(model, val_dataloaders=val_loader)
     else:
-        trainer.fit(model, train_loader, val_loader)
+        # trainer.fit(model, train_loader, val_loader)
+        trainer.fit(model, train_loader)
 
     trainer.test(ckpt_path="best", dataloaders=test_loader)
     # print(f"tested_ckpt_path = {trainer.tested_ckpt_path}")
