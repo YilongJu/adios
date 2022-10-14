@@ -418,7 +418,7 @@ class SupervisedModel_1D(pl.LightningModule):
             previous_usage = self.previous_gpu_load_dict[stage]
             print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
             self.previous_gpu_load_dict[stage] = a
-            self.log("train_auroc", self.train_auroc.compute(), sync_dist=True)
+            self.log("train_auroc", self.train_auroc.compute().detach().cpu(), sync_dist=True)
             print(f"After logging {len(self.train_auroc.preds)}")
             a = torch.cuda.memory_allocated(device)
             stage = "After logging"
