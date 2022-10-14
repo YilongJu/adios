@@ -294,6 +294,7 @@ class SupervisedModel_1D(pl.LightningModule):
 
         out = self(X)["logits"]
         loss = F.cross_entropy(out, targets)
+        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
         a = torch.cuda.memory_allocated(device)
         stage = "After forward pass"
         if stage not in self.previous_gpu_load_dict:
@@ -312,6 +313,7 @@ class SupervisedModel_1D(pl.LightningModule):
         else:
             raise NotImplementedError("Unkown training mode.")
 
+        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
         a = torch.cuda.memory_allocated(device)
         stage = "After forward pass"
         if stage not in self.previous_gpu_load_dict:
@@ -321,6 +323,7 @@ class SupervisedModel_1D(pl.LightningModule):
         self.previous_gpu_load_dict[stage] = a
 
         results = accuracy_at_k(out, targets, top_k=(1,))
+        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
         a = torch.cuda.memory_allocated(device)
         stage = "After results"
         if stage not in self.previous_gpu_load_dict:
@@ -362,6 +365,7 @@ class SupervisedModel_1D(pl.LightningModule):
 
         log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": float('nan')}
         self.log_dict(log, on_epoch=True, sync_dist=True)
+        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
         a = torch.cuda.memory_allocated(device)
         stage = "After logging"
         if stage not in self.previous_gpu_load_dict:
