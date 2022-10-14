@@ -331,15 +331,15 @@ class SupervisedModel_1D(pl.LightningModule):
         self.previous_gpu_load_dict[stage] = a
 
         scores = softmax(out)[:, 1]
-        # if mode in ["train"]:
-        #     self.train_auroc.update(scores.detach(), targets.detach())
-        # elif mode in ["val"]:
-        #     self.val_auroc.update(scores.detach(), targets.detach())
-        # elif mode in ["test"]:
-        #     self.test_auroc.update(scores.detach(), targets.detach())
-        # else:
-        #     raise NotImplementedError("Unkown training mode.")
-        #
+        if mode in ["train"]:
+            self.train_auroc.update(scores.detach(), targets.detach())
+        elif mode in ["val"]:
+            self.val_auroc.update(scores.detach(), targets.detach())
+        elif mode in ["test"]:
+            self.test_auroc.update(scores.detach(), targets.detach())
+        else:
+            raise NotImplementedError("Unkown training mode.")
+
         # print(f"increased by {torch.cuda.memory_allocated(device) - a}")
         # a = torch.cuda.memory_allocated(device)
         # stage = "Before results"
