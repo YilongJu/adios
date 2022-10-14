@@ -184,6 +184,9 @@ class SupervisedModel_1D(pl.LightningModule):
             Dict[str, Any]: a dict containing features and logits.
         """
         # print(f"[ecg] X.shape = {X.shape}")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 
         if self.pretrained_occlusion_model_dict is not None:
             X = self.pretrained_occlusion_model_dict["mask_head"](
@@ -191,9 +194,33 @@ class SupervisedModel_1D(pl.LightningModule):
             )
             # print(f"[masks] X.shape = {X.shape}")
 
+        a = torch.cuda.memory_allocated(device)
+        stage = "Before embedding"
+        if stage not in self.previous_gpu_load_dict:
+            self.previous_gpu_load_dict[stage] = a
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
+
         feats = self.backbone(X)
+        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
+        a = torch.cuda.memory_allocated(device)
+        stage = "After embedding"
+        if stage not in self.previous_gpu_load_dict:
+            self.previous_gpu_load_dict[stage] = a
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
         # print(f"feats.shape = {feats.shape}")
         logits = self.classifier(feats)
+        print(f"increased by {torch.cuda.memory_allocated(device) - a}")
+        a = torch.cuda.memory_allocated(device)
+        stage = "After linear"
+        if stage not in self.previous_gpu_load_dict:
+            self.previous_gpu_load_dict[stage] = a
+        previous_usage = self.previous_gpu_load_dict[stage]
+        print(f"{stage}, {a}, last usage = {previous_usage}, diff = {a - previous_usage}")
+        self.previous_gpu_load_dict[stage] = a
         # print(f"logits.shape = {logits.shape}")
         return {"logits": logits, "feats": feats}
 
@@ -315,7 +342,7 @@ class SupervisedModel_1D(pl.LightningModule):
 
         print(f"increased by {torch.cuda.memory_allocated(device) - a}")
         a = torch.cuda.memory_allocated(device)
-        stage = "After forward pass"
+        stage = "Before results"
         if stage not in self.previous_gpu_load_dict:
             self.previous_gpu_load_dict[stage] = a
         previous_usage = self.previous_gpu_load_dict[stage]
