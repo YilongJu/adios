@@ -302,7 +302,14 @@ class SupervisedModel_1D(pl.LightningModule):
         else:
             raise NotImplementedError("Unkown training mode.")
 
+        a = torch.cuda.memory_allocated(device)
+        print(f"3 - Before results, {a}")
+        print(f"3.5 - memory consumption, {a - b}")
+
         results = accuracy_at_k(out, targets, top_k=(1,))
+        b = torch.cuda.memory_allocated(device)
+        print(f"4 - After results, {b}")
+        print(f"4.5 - memory consumption, {b - a}")
         # return batch_size, loss, results['acc1'], results['acc5']
         # return batch_size, loss.detach(), results['acc1'], results['acc1']
         return batch_size, loss, results['acc1'], results['acc1']
