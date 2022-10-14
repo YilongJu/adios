@@ -17,7 +17,7 @@ parameters:
   transforms:
     values: ["Identity", "Gaussian", "FlipAlongY", "FlipAlongX"]
   batch_size:
-    value: 8 # Should be halfed when transforms are used (effective batch size = batch_size * 2)
+    value: 256 # Should be halfed when transforms are used (effective batch size = batch_size * 2)
   seed:
     values: [0, 1, 2, 3, 4]
   lr:
