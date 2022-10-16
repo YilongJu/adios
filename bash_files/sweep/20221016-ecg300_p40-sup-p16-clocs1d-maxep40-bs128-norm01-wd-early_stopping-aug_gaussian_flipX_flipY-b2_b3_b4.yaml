@@ -5,7 +5,7 @@ metric:
   goal: maximize
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
 project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221016_v11
-name: supervised-clocsCNN_1D-ECG_normalized-20221016_v11-maxep100-early_stopping-aug_identity_gaussian_flipX_flipY
+name: supervised-clocsCNN_1D-ECG_normalized-20221016_v11-maxep40-early_stopping-aug_identity_gaussian_flipX_flipY
 entity: yilongju # replace with your own wandb entity (username)
 early_terminate:
   type: hyperband
@@ -33,7 +33,7 @@ parameters:
   weight_decay:
     values: [0, 1e-5, 1e-3]
   max_epochs:
-    value: 100
+    value: 40
   precision:
     value: 32
   lars:
