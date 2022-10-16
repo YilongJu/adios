@@ -16,7 +16,7 @@ from torch.optim.lr_scheduler import (
     MultiStepLR,
     ReduceLROnPlateau,
 )
-from pynvml import *
+# from pynvml import *
 
 softmax = torch.nn.Softmax(dim=1)
 
