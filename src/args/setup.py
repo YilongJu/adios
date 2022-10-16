@@ -230,6 +230,8 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--normalize_signal", type=str2bool, nargs='?', const=True, default=False)
     parser.add_argument("--ecg_resampling_length", type=int, default=300)
     parser.add_argument("--ecg_resampling_length_target", type=int, default=300)
+    parser.add_argument("--stride", type=int, default=3) # For CLOCS_1D
+    parser.add_argument("--c4_multiplier", type=int, default=10) # For CLOCS_1D
     parser.add_argument("--transforms", type=str, default=None)
 
     # add pytorch lightning trainer args

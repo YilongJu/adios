@@ -30,7 +30,7 @@ s = 3  # stride #3
 class cnn_network_contrastive(nn.Module):
     """ CNN for Self-Supervision """
 
-    def __init__(self, dropout_type="drop1d", p1=0.1, p2=0.1, p3=0.1, nencoders=1, embedding_dim=256, trial='CLOCS', device='', **kwargs):
+    def __init__(self, dropout_type="drop1d", p1=0.1, p2=0.1, p3=0.1, nencoders=1, stride=s, c4_multiplier=10, embedding_dim=256, trial='CLOCS', device='', **kwargs):
         # dropout_type = ['drop1d'] or 'drop2d'
         # p1 = dropout probability for first layer (default = 0.1)
         # p2 = dropout probability for second layer (default = 0.1)
@@ -39,7 +39,8 @@ class cnn_network_contrastive(nn.Module):
         # embedding_dim = dimension of latent embedding (default = 256)
         # trial = ['CMC'] or 'CLOCS' (default = 'CLOCS')
         # device = ['cpu'] or 'cuda' (default = 'cpu')
-        print(p1, p2, p3, nencoders, embedding_dim, trial, device)
+        s = stride
+        print(s, p1, p2, p3, nencoders, embedding_dim, trial, device)
 
         super(cnn_network_contrastive, self).__init__()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -80,7 +81,7 @@ class cnn_network_contrastive(nn.Module):
                 nn.MaxPool1d(2),
                 self.dropout3
             ))
-            self.view_linear_modules.append(nn.Linear(c4 * 10, self.embedding_dim))
+            self.view_linear_modules.append(nn.Linear(c4 * c4_multiplier, self.embedding_dim))
 
     def forward(self, x):
         # Raw input shape: (BxCxS) = (batch_size x num_channels x num_samples)
@@ -115,7 +116,6 @@ class cnn_network_contrastive(nn.Module):
         # latent_embeddings.shape = (batch_size x embedding_dim x nviews)
         latent_embeddings = latent_embeddings.squeeze(2)
         return latent_embeddings
-
 
 class second_cnn_network(nn.Module):
 
