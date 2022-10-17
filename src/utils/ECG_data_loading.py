@@ -213,6 +213,32 @@ class ECG_classification_dataset_with_peak_features(Dataset):
         if Lower('FlipAlongX') in self.transforms:
             frame = -frame
 
+        if Lower("Transverse") in self.transforms:
+            upper = 1.5
+            lower = 0.5
+            t_linspace = np.linspace(0, 2 * np.pi, len(frame))
+            period = 2 * np.pi / np.random.uniform(0.5, 4)
+            phase = np.random.uniform(0, 2 * np.pi)
+            mask = (upper - lower) / 2 * np.sin(t_linspace / period + phase) + (upper + lower) / 2
+            frame = frame * mask
+
+        if Lower("Longitudinal") in self.transforms:
+            amplitude = 20
+            t_linspace = np.linspace(0, 2 * np.pi, 300)
+            period = 2 * np.pi / np.random.uniform(8, 12)
+            phase = np.random.uniform(0, 2 * np.pi)
+            mask = amplitude * np.sin(t_linspace / period + phase)
+            signal_aug = np.zeros_like(frame) * np.nan
+            for i, v in enumerate(frame):
+                new_i = i + np.round(mask[i]).astype(int)
+                if new_i >= 0 and new_i < len(signal_aug):
+                    signal_aug[new_i] = v
+
+            signal_aug_interp = signal_aug
+            nans, x = nan_helper(signal_aug_interp)
+            signal_aug_interp[nans] = np.interp(x(nans), x(~nans), signal_aug_interp[~nans])
+            frame = signal_aug_interp
+
         # Keep data in 0-1 range
         frame = Normalize(frame)
         return frame

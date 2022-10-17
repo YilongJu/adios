@@ -19,6 +19,7 @@ except ImportError:
 else:
     _umap_available = True
 
+import platform
 NEED_AUTO_MASK = ["simclr_adios", "simclr_adios_1d", "simclr_adios_s", "simsiam_adios", "simsiam_adios_s",
                   'byol_adios', 'byol_adios_1d', "byol_adios_s", ]
 NEED_LOAD_MASK = ["simclr_gt", "simclr_rand_mask", *NEED_AUTO_MASK]
@@ -78,6 +79,8 @@ def parse_args_pretrain() -> argparse.Namespace:
     parser.add_argument("--validation_frequency", type=int, default=1)
     parser.add_argument("--pretrained_dir", type=str, default=None)
     # parser.add_argument("--checkpoint_dir", type=str, default=None)
+    parser.add_argument("--wandb_dir", type=str, default="wandb")
+
     parser.add_argument("--cluster_name", type=str, default="b4")
     parser.add_argument("--read_data_by_chunk", type=str2bool, nargs='?', const=True, default=True)
     parser.add_argument("--data_chunk_folder", type=str, default="ecg-pat40-tch-sinus_jet")
@@ -102,17 +105,26 @@ def parse_args_pretrain() -> argparse.Namespace:
         args.load_masks = False
     if not hasattr(temp_args, "morph"):
         args.morph = 'none'
-    if args.cluster_name in ["b4"]:
-        args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
-    elif args.cluster_name in ["b2"]:
-        args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
-    else: # e.g., args.cluster_name == "auto"
-        if os.path.exists("/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"):
+
+    if platform.system() == "Darwin":
+        args.checkpoint_dir = "trained_models"
+        args.wandb_dir = "wandb"
+    else:
+        if args.cluster_name in ["b4"]:
             args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
-        elif os.path.exists("/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"):
+            args.wandb_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios"
+        elif args.cluster_name in ["b2"]:
             args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
-        else:
-            raise ValueError("Cannot determine checkpoint_dir!")
+            args.wandb_dir = "/mnt/group1/yilong/JET-Detection-Data/adios"
+        else: # e.g., args.cluster_name == "auto"
+            if os.path.exists("/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"):
+                args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
+                args.wandb_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios"
+            elif os.path.exists("/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"):
+                args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
+                args.wandb_dir = "/mnt/group1/yilong/JET-Detection-Data/adios"
+            else:
+                raise ValueError("Cannot determine checkpoint_dir and wandb_dir!")
 
     # load pretrained model
     if args.pretrained_dir is not None:
@@ -233,6 +245,8 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--stride", type=int, default=3) # For CLOCS_1D
     parser.add_argument("--c4_multiplier", type=int, default=10) # For CLOCS_1D
     parser.add_argument("--transforms", type=str, default=None)
+    parser.add_argument("--wandb_dir", type=str, default="wandb")
+
 
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)
@@ -246,6 +260,7 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--embedding_dim", type=int, default=256)
     parser.add_argument("--ckpt_epoch", type=int, default=-1)
 
+
     # THIS LINE IS KEY TO PULL WANDB
     temp_args, _ = parser.parse_known_args()
 
@@ -255,6 +270,26 @@ def parse_args_finetune() -> argparse.Namespace:
 
     # parse args
     args = parser.parse_args()
+    if platform.system() == "Darwin":
+        args.checkpoint_dir = "trained_models"
+        args.wandb_dir = "wandb"
+    else:
+        if args.cluster_name in ["b4"]:
+            args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
+            args.wandb_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios"
+        elif args.cluster_name in ["b2"]:
+            args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
+            args.wandb_dir = "/mnt/group1/yilong/JET-Detection-Data/adios"
+        else: # e.g., args.cluster_name == "auto"
+            if os.path.exists("/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"):
+                args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
+                args.wandb_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios"
+            elif os.path.exists("/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"):
+                args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
+                args.wandb_dir = "/mnt/group1/yilong/JET-Detection-Data/adios"
+            else:
+                raise ValueError("Cannot determine checkpoint_dir and wandb_dir!")
+
     additional_setup_linear(args)
 
     return args

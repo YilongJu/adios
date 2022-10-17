@@ -157,7 +157,9 @@ def main():
     # wandb logging
     if args.wandb:
         wandb_logger = WandbLogger(
-            name=args.name, project=args.project, entity=args.entity, offline=args.offline
+            name=args.name, project=args.project,
+            entity=args.entity, offline=args.offline,
+            save_dir=args.wandb_dir
         )
         wandb_logger.watch(model, log="gradients", log_freq=100)
         wandb_logger.log_hyperparams(args)
