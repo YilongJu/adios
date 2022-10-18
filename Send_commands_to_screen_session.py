@@ -19,5 +19,5 @@ for gpu_id in args.gpu_ids.split(","):
         command_str = "^C^C"
     else:
         command_str = command
-    output = f"{cuda_str}screen -S {args.prefix}{gpu_id} -p 0 -X stuff '{command_str}\\n'"
+    output = f"screen -S {args.prefix}{gpu_id} -p 0 -X stuff '{cuda_str}{command_str}\\n'"
     print(output)
