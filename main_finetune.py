@@ -103,8 +103,13 @@ def main():
         feature_with_ecg_df_dev_single_lead = feature_with_ecg_df_dev.query(f"channel_ID == {channel_ID}")
         feature_with_ecg_df_val_single_lead = feature_with_ecg_df_val.query(f"channel_ID == {channel_ID}")
         feature_with_ecg_df_test_single_lead = feature_with_ecg_df_test.query(f"channel_ID == {channel_ID}")
-        print(
-            f"Single lead: dev: {feature_with_ecg_df_dev_single_lead.shape}, val: {feature_with_ecg_df_val_single_lead.shape}, test: {feature_with_ecg_df_test_single_lead.shape}")
+        print(f"Single lead: dev: {feature_with_ecg_df_dev_single_lead.shape}, val: {feature_with_ecg_df_val_single_lead.shape}, test: {feature_with_ecg_df_test_single_lead.shape}")
+
+        if args.save_eval_dataset:
+            feature_with_ecg_df_val_single_lead.to_csv(os.path.join(save_folder, f"feature_with_ecg_df_val_lead{channel_ID}.csv"), index=False)
+            feature_with_ecg_df_test_single_lead.to_csv(os.path.join(save_folder, f"feature_with_ecg_df_test_lead{channel_ID}.csv"), index=False)
+            print(f"Evaluation dataset saved to {save_folder}")
+            return
 
         ecg_resampling_length = args.ecg_resampling_length
         ecg_colnames = [f"ecg{i + 1}" for i in range(ecg_resampling_length)]

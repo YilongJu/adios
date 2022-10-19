@@ -33,23 +33,18 @@ def Data_preprocessing(args):
         else:
             raise ValueError("Cannot determine data_folder!")
 
-    data_folder_2 = data_folder
-    large_data_folder = data_folder
-
-    save_folder = os.path.join(data_folder, "Results")
+    # save_folder = os.path.join(data_folder, "Results")
+    save_folder = data_folder
 
     if platform.system() == "Darwin":
         print("Using MacOS.")
         data_folder = os.path.normpath("/Users/yj31/Dropbox/Study/GitHub/JET-Detection")
-        data_folder_2 = data_folder
     elif platform.system() == "Linux":
         print("Using Linux.")
     else:
         print("Using Windows.")
         data_folder = os.path.normpath("D:\\Dropbox\\Study\\GitHub\\JET-Detection")
-        # data_folder_2 = os.path.normpath("D:\\Backup\\JET-Detection\\")
-        data_folder_2 = data_folder
-        large_data_folder = os.path.normpath("D:\\Backup\\JET-Detection\\Heartbeats_dict_20220201\\")
+        # data_folder = os.path.normpath("D:\\Backup\\JET-Detection\\")
 
     # TODO: modify this step to make it use less memory at once
     # debug = True
@@ -57,7 +52,7 @@ def Data_preprocessing(args):
     debug = args.debug
     if debug:
         feature_df_all_selected_with_ecg = pd.read_csv(
-            os.path.join(data_folder_2, "feature_df_all_selected_with_ecg_20220210_rtfixed_sample10000.csv"))
+            os.path.join(data_folder, "feature_df_all_selected_with_ecg_20220210_rtfixed_sample10000.csv"))
     else:
         if args.read_data_by_chunk:
             data_chunk_list = []
@@ -66,7 +61,7 @@ def Data_preprocessing(args):
             feature_df_all_selected_with_ecg = pd.concat(data_chunk_list, axis=0)
         else:
             feature_df_all_selected_with_ecg = pd.read_csv(
-                os.path.join(data_folder_2, "feature_df_all_selected_with_ecg_20220210_rtfixed.csv"))
+                os.path.join(data_folder, "feature_df_all_selected_with_ecg_20220210_rtfixed.csv"))
     feature_with_ecg_df_train = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_train}")
     feature_with_ecg_df_test = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_test}")
     feature_with_ecg_df_dev = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_dev}")

@@ -246,6 +246,7 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--c4_multiplier", type=int, default=10) # For CLOCS_1D
     parser.add_argument("--transforms", type=str, default=None)
     parser.add_argument("--wandb_dir", type=str, default="wandb")
+    parser.add_argument("--save_eval_dataset", type=str2bool, nargs='?', const=True, default=False)
 
 
     # add pytorch lightning trainer args
