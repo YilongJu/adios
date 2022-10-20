@@ -81,7 +81,6 @@ def main():
             ckpt_path, strict=False, **method_args
         )
         model = model_base.encoder
-
     else:
         base_model = SUPPORTED_NETWORKS[args.encoder]
         model = base_model(zero_init_residual=args.zero_init_residual, embedding_dim=args.embedding_dim,
