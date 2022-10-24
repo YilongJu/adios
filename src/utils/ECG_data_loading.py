@@ -9,6 +9,7 @@ import random
 import torch
 from torch.utils.data import Dataset
 from scipy.signal import resample_poly
+from src.transforms.ecg_transform_1d import *
 
 patient_ID_list_train = [398573, 462229, 637891, 667681, 537854, 628521, 642321, 662493,
                          387479, 624179, 417349, 551554, 631270, 655769, 678877]  # 15
@@ -126,24 +127,6 @@ def Lower(word):
     """ Convert word to lower case """
     return word.lower()
 
-""" https://stackoverflow.com/questions/6518811/interpolate-nan-values-in-a-numpy-array """
-def nan_helper(y):
-    """Helper to handle indices and logical indices of NaNs.
-
-    Input:
-        - y, 1d numpy array with possible NaNs
-    Output:
-        - nans, logical indices of NaNs
-        - index, a function, with signature indices= index(logical_indices),
-          to convert logical indices of NaNs to 'equivalent' indices
-    Example:
-        >>> # linear interpolation of NaNs
-        >>> nans, x= nan_helper(y)
-        >>> y[nans]= np.interp(x(nans), x(~nans), y[~nans])
-    """
-
-    return np.isnan(y), lambda z: z.nonzero()[0]
-
 class ECG_classification_dataset_with_peak_features(Dataset):
     def __init__(self, feature_df_all_selected_p_ind_with_ecg, ecg_resampling_length_target=300,
                  peak_loc_name="p_ind_resampled", label_name="label", short_identifier_list=None,
@@ -205,52 +188,53 @@ class ECG_classification_dataset_with_peak_features(Dataset):
             frame (numpy array): perturbed frame based
         """
         if Lower('Gaussian') in self.transforms:
-            mult_factor = 1
-            if self.dataset_name in ['ptb', 'physionet2020']:
-                # The ECG frames were normalized in amplitude between the values of 0 and 1.
-                variance_factor = 0.01 * mult_factor
-            elif self.dataset_name in ['cardiology', 'chapman']:
-                variance_factor = 10 * mult_factor
-            elif self.dataset_name in ['physionet', 'physionet2017']:
-                variance_factor = 100 * mult_factor
-            elif self.dataset_name in ["tch-ecg-jet-p40"]:
-                variance_factor = 0.01 * mult_factor
-            else:
-                raise NotImplementedError("Dataset not implemented")
-            gauss_noise = np.random.normal(0, variance_factor, size=(self.ecg_resampling_length_target))
-            frame = frame + gauss_noise
+            frame = Add_Gaussian_noise(frame, dataset_name=self.dataset_name)
 
         if Lower('FlipAlongY') in self.transforms:
-            frame = np.flip(frame)
+            frame = Flip_Along_Y(frame)
 
         if Lower('FlipAlongX') in self.transforms:
-            frame = -frame
+            frame = Flip_Along_X(frame)
 
         if Lower("Transverse") in self.transforms:
-            upper = 1.5
-            lower = 0.5
-            t_linspace = np.linspace(0, 2 * np.pi, len(frame))
-            period = 2 * np.pi / np.random.uniform(0.5, 4)
-            phase = np.random.uniform(0, 2 * np.pi)
-            mask = (upper - lower) / 2 * np.sin(t_linspace / period + phase) + (upper + lower) / 2
-            frame = frame * mask
+            frame = Transverse_transformation(frame)
 
         if Lower("Longitudinal") in self.transforms:
-            amplitude = 20
-            t_linspace = np.linspace(0, 2 * np.pi, 300)
-            period = 2 * np.pi / np.random.uniform(8, 12)
-            phase = np.random.uniform(0, 2 * np.pi)
-            mask = amplitude * np.sin(t_linspace / period + phase)
-            signal_aug = np.zeros_like(frame) * np.nan
-            for i, v in enumerate(frame):
-                new_i = i + np.round(mask[i]).astype(int)
-                if new_i >= 0 and new_i < len(signal_aug):
-                    signal_aug[new_i] = v
+            frame = Longitudinal_transformation(frame)
 
-            signal_aug_interp = signal_aug
-            nans, x = nan_helper(signal_aug_interp)
-            signal_aug_interp[nans] = np.interp(x(nans), x(~nans), signal_aug_interp[~nans])
-            frame = signal_aug_interp
+        if Lower("TemporalWarp") in self.transforms: # The TaskAug Paper (using init values)
+            frame = Temporal_Warp(frame).numpy().ravel()
+
+        if Lower("BaselineWander") in self.transforms: # The TaskAug Paper (using init values)
+            frame = Baseline_wander(frame).numpy().ravel()
+
+        if Lower("GauNoise") in self.transforms: # The TaskAug Paper (using init values)
+            # No point of using this since we have already added Gaussian noise
+            frame = Gau_noise(frame).numpy().ravel()
+            # ------------------------------------!
+
+        if Lower("MagnitudeScale") in self.transforms: # The TaskAug Paper (using init values)
+            # No point of using this since we normalize the signal to 0-1 range
+            frame = Magnitude_scale(frame).numpy().ravel()
+            # ------------------------------------!
+
+        if Lower("TimeMask") in self.transforms: # The TaskAug Paper (using init values)
+            frame = Time_mask(frame).numpy().ravel()
+
+        if Lower("RandTemporalDisp") in self.transforms: # The TaskAug Paper (using init values)
+            frame = Random_temporal_displacement(frame).numpy().ravel()
+
+        if Lower("SpecAugment") in self.transforms: # The TaskAug Paper (baseline)
+            """ Does not make sense since we only have 1 heartbeat """
+            pass
+
+        if Lower("DiscGuidedWarp") in self.transforms: # The TaskAug Paper (baseline), discriminative guided warping (DGW)
+            """ Slow and there are artifacts """
+            pass
+
+        if Lower("SMOTE") in self.transforms: # The TaskAug Paper (baseline) upsampling for classes that have less samples
+            """ Not really useful since we have a lot of samples """
+            pass
 
         # Keep data in 0-1 range
         frame = Normalize(frame)

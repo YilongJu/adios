@@ -1,0 +1,76 @@
+program: main_finetune.py
+method: grid
+metric:
+  name: val_auroc
+  goal: maximize
+description: sweep for ECG data from TCH 40 patients with Sinus and JET
+project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221016_v11
+name: supervised-clocsCNN_1D-ECG_normalized-20221024_v11-maxep40-early_stopping-aug_tw_bw_tm_rtd
+entity: yilongju # replace with your own wandb entity (username)
+early_terminate:
+  type: hyperband
+  min_iter: 2
+  eta: 2
+parameters:
+  cluster_name:
+    value: "auto"
+  stride:
+    value: 2
+  c4_multiplier:
+    value: 3
+  transforms:
+    values: ["TemporalWarp", "BaselineWander", "TimeMask", "RandTemporalDisp"]
+  batch_size:
+    value: 64 # Should be halfed when transforms are used (effective batch size = batch_size * 2)
+  seed:
+    values: [0, 1, 2, 3, 4]
+  lr:
+    values: [0.001, 0.005]
+  classifier_lr:
+    values: [0.001, 0.01]
+  optimizer:
+    value: "adam"
+  weight_decay:
+    value: 1e-6
+  max_epochs:
+    value: 40
+  precision:
+    value: 32
+  lars:
+    value: True
+  exclude_bias_n_norm:
+    value: True
+  scheduler:
+    values: ["warmup_cosine"]
+  num_workers:
+    value: 4
+  wandb:
+    value: True
+  gpus:
+    value: 0
+  encoder:
+    value: "clocs_cnn1d"
+  ecg_resampling_length_target:
+    value: 300
+  embedding_dim:
+    values: [1, 16, 256]
+  dataset:
+    value: "ecg-TCH-40_patient-20220201"
+  ptl_accelerator:
+    value: "ddp"
+  sync_batchnorm:
+    value: True
+  accumulate_grad_batches:
+    value: 1
+  read_data_by_chunk:
+    value: True
+  data_chunk_folder:
+    value: "ecg-pat40-tch-sinus_jet"
+  shift_signal:
+    value: False
+  normalize_signal:
+    value: True
+  debug:
+    value: False
+  train_backbone:
+    value: True
