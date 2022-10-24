@@ -18,7 +18,7 @@ if __name__ == '__main__':
     for chunk in pd.read_csv(os.path.join(args.load_folder, args.dataset_name), chunksize=args.chunk_size):
         print(f"[Time {time.time() - st:.2f}] Saving chunk {chunk_id}...")
         if args.channel_ID > 0:
-            chunk_tmp = chunk.query(f"channle_ID == {args.channel_ID}")
+            chunk_tmp = chunk.query(f"channel_ID == {args.channel_ID}")
         else:
             chunk_tmp = chunk
         chunk_tmp.to_csv(os.path.join(args.save_folder, f'{args.dataset_name}_chunk{chunk_id}.csv'), index=False)
