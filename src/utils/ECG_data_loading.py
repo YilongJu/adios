@@ -56,9 +56,14 @@ def Data_preprocessing(args):
             os.path.join(data_folder, "feature_df_all_selected_with_ecg_20220210_rtfixed_sample10000.csv"))
     else:
         if args.read_data_by_chunk:
+            if args.channel_ID == 2:
+                data_chunk_folder = "ecg-pat40-tch-sinus_jet_lead2"
+            else:
+                data_chunk_folder = args.data_chunk_folder
+
             data_chunk_list = []
-            for data_filename in os.listdir(os.path.join(data_folder, args.data_chunk_folder)):
-                data_chunk_list.append(pd.read_csv(os.path.join(data_folder, args.data_chunk_folder, data_filename)))
+            for data_filename in os.listdir(os.path.join(data_folder, data_chunk_folder)):
+                data_chunk_list.append(pd.read_csv(os.path.join(data_folder, data_chunk_folder, data_filename)))
             feature_df_all_selected_with_ecg = pd.concat(data_chunk_list, axis=0)
         else:
             feature_df_all_selected_with_ecg = pd.read_csv(

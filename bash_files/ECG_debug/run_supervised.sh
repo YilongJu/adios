@@ -27,6 +27,7 @@ python main_finetune.py --seed 0 --transforms "gaussian" --encoder "clocs_cnn1d"
 
 
 python main_finetune.py --seed 0 --save_eval_dataset True --transforms "gaussian" --encoder "clocs_cnn1d" --ecg_resampling_length_target 2500 --embedding_dim 64 --normalize_signal True --dataset "ecg-TCH-40_patient-20220201" --max_epochs 2 --precision 32 --optimizer sgd --scheduler warmup_cosine --classifier_lr 0.001 --lr 0.001 --weight_decay 5e-4 --batch_size 256 --num_workers 4 --project "adios_ecg_debug" --entity "yilongju" --name "supervised_clocs_ECG_debug" --wandb True --ptl_accelerator "ddp" --gpus 0,1,2,3 --train_backbone True --read_data_by_chunk True --cluster_name "auto"
+python main_finetune.py --seed 0 --save_eval_dataset True --transforms "gaussian" --encoder "clocs_cnn1d" --ecg_resampling_length_target 2500 --embedding_dim 64 --normalize_signal True --dataset "ecg-TCH-40_patient-20220201" --max_epochs 2 --precision 32 --optimizer sgd --scheduler warmup_cosine --classifier_lr 0.001 --lr 0.001 --weight_decay 5e-4 --batch_size 256 --num_workers 4 --project "adios_ecg_debug" --entity "yilongju" --name "supervised_clocs_ECG_debug" --wandb True --ptl_accelerator "ddp" --gpus 0,1,2,3 --train_backbone True --read_data_by_chunk True --cluster_name "auto"
 
 
 # MacOS + pretrained_mask
