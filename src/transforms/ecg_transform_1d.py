@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-import warp_ops
+from src.transforms import warp_ops
 
 
 def Add_Gaussian_noise(x, dataset_name="tch-ecg-jet-p40", mean=0, std=-1):
