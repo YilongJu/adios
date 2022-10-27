@@ -13,7 +13,8 @@ from src.utils import (
     metrics,
     momentum,
     pretrain_dataloader,
-    unet
+    unet,
+    tricks
 )
 
 __all__ = [
@@ -31,7 +32,8 @@ __all__ = [
     "metrics",
     "momentum",
     "pretrain_dataloader",
-    "unet"
+    "unet",
+    "tricks"
 ]
 
 try:

@@ -136,7 +136,7 @@ class ECG_classification_dataset_with_peak_features(Dataset):
     def __init__(self, feature_df_all_selected_p_ind_with_ecg, ecg_resampling_length_target=300,
                  peak_loc_name="p_ind_resampled", label_name="label", short_identifier_list=None,
                  peak_feature_name_list=None, shift_signal=False, shift_amount=None, normalize_signal=False,
-                 transforms=None, dataset_name="tch-ecg-jet-p40"):
+                 transforms=None, dataset_name="tch-ecg-jet-p40", aug_prob=0):
         """
         normalize_signal: Normalize each individual signal to 0 - 1 range
         """
@@ -173,6 +173,7 @@ class ECG_classification_dataset_with_peak_features(Dataset):
         self.shift_signal = shift_signal
         self.shift_amount = shift_amount
         self.normalize_signal = normalize_signal
+        self.aug_prob = aug_prob
         if self.shift_signal:
             if self.shift_amount is None:
                 self.shift_amount = 0
@@ -208,29 +209,30 @@ class ECG_classification_dataset_with_peak_features(Dataset):
             frame = Longitudinal_transformation(frame)
 
         if Lower("TemporalWarp") in self.transforms: # The TaskAug Paper (using init values)
-            frame = Temporal_Warp(frame).numpy().ravel()
+            frame = Temporal_Warp(frame)
 
         if Lower("BaselineWander") in self.transforms: # The TaskAug Paper (using init values)
-            frame = Baseline_wander(frame).numpy().ravel()
+            frame = Baseline_wander(frame)
 
         if Lower("GauNoise") in self.transforms: # The TaskAug Paper (using init values)
             # No point of using this since we have already added Gaussian noise
-            frame = Gau_noise(frame).numpy().ravel()
+            frame = Gau_noise(frame)
             # ------------------------------------!
 
         if Lower("MagnitudeScale") in self.transforms: # The TaskAug Paper (using init values)
             # No point of using this since we normalize the signal to 0-1 range
-            frame = Magnitude_scale(frame).numpy().ravel()
+            frame = Magnitude_scale(frame)
             # ------------------------------------!
 
         if Lower("TimeMask") in self.transforms: # The TaskAug Paper (using init values)
-            frame = Time_mask(frame).numpy().ravel()
+            frame = Time_mask(frame)
 
         if Lower("RandTemporalDisp") in self.transforms: # The TaskAug Paper (using init values)
-            frame = Random_temporal_displacement(frame).numpy().ravel()
+            frame = Random_temporal_displacement(frame)
 
         if Lower("SpecAugment") in self.transforms: # The TaskAug Paper (baseline)
-            """ Does not make sense since we only have 1 heartbeat """
+            """ Does not make sense to mask by freq since we only have 1 heartbeat """
+            """ Masking by time is the same as TimeMask """
             pass
 
         if Lower("DiscGuidedWarp") in self.transforms: # The TaskAug Paper (baseline), discriminative guided warping (DGW)
@@ -240,6 +242,21 @@ class ECG_classification_dataset_with_peak_features(Dataset):
         if Lower("SMOTE") in self.transforms: # The TaskAug Paper (baseline) upsampling for classes that have less samples
             """ Not really useful since we have a lot of samples """
             pass
+
+        if Lower("SelectedAug_20221025") in self.transforms:
+            """ Selected Augmentations based on test performance """
+            """ Using Longitudinal (better than TemporalWarp), Transverse (better than BaselineWander),
+                RandTemporalDisp, Gaussian, FlipAlongX """
+            if np.random.uniform() < self.aug_prob:
+                frame = Longitudinal_transformation(frame)
+            if np.random.uniform() < self.aug_prob:
+                frame = Transverse_transformation(frame)
+            if np.random.uniform() < self.aug_prob:
+                frame = Random_temporal_displacement(frame)
+            if np.random.uniform() < self.aug_prob:
+                frame = Add_Gaussian_noise(frame, dataset_name=self.dataset_name)
+            if np.random.uniform() < self.aug_prob:
+                frame = Flip_Along_X(frame)
 
         # Keep data in 0-1 range
         frame = Normalize(frame)
@@ -261,8 +278,9 @@ class ECG_classification_dataset_with_peak_features(Dataset):
         peak_features = self.peak_feature_mat[idx, :]
 
         # return X[np.newaxis, :], peak_idx, label, id_vec, peak_features[np.newaxis, :]
-        if len(self.transforms) == 0 or (len(self.transforms) == 1 and Lower("Identity") in self.transforms):
+        if len(self.transforms) == 0 \
+                or (len(self.transforms) == 1
+                    and Lower(self.transforms[0]) in [Lower("Identity"), Lower("SelectedAug_20221025")]):
             return X[np.newaxis, :], label
         else:
             return (X[np.newaxis, :], X_aug[np.newaxis, :]), label
-

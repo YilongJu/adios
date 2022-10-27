@@ -87,7 +87,7 @@ def Longitudinal_transformation(x):
 """ ======= Below this line ====== 
     Adapted from the TaskAug paper 
     =============================== """
-def Temporal_Warp(x, mag=1., warp_obj=None):
+def _Temporal_Warp(x, mag=1., warp_obj=None):
     if warp_obj is None:
         warp_obj = warp_ops.RandWarpAug([len(x)])
     mag = 100 * (mag ** 2)
@@ -95,7 +95,7 @@ def Temporal_Warp(x, mag=1., warp_obj=None):
     return warp_obj(x, mag)
 
 
-def Baseline_wander(x, mag=0.):
+def _Baseline_wander(x, mag=0.):
     x = torch.from_numpy(x).float().unsqueeze(0).unsqueeze(0)
     BS, C, L = x.shape
 
@@ -110,7 +110,7 @@ def Baseline_wander(x, mag=0.):
     return x + drift
 
 
-def Gau_noise(x, mag=0.):  # TaskAug
+def _Gau_noise(x, mag=0.):  # TaskAug
     x = torch.from_numpy(x).float().unsqueeze(0).unsqueeze(0)
     BS, C, L = x.shape
     stdval = torch.std(x, dim=2).view(BS, C, 1).detach()
@@ -118,7 +118,7 @@ def Gau_noise(x, mag=0.):  # TaskAug
     return x + noise
 
 
-def Magnitude_scale(x, mag=0.):
+def _Magnitude_scale(x, mag=0.):
     x = torch.from_numpy(x).float().unsqueeze(0).unsqueeze(0)
     BS, C, L = x.shape
     strength = torch.sigmoid(torch.tensor(mag)) * (-0.5 * (torch.rand(BS).to(x.device)).view(BS, 1, 1) + 1.25)
@@ -126,7 +126,7 @@ def Magnitude_scale(x, mag=0.):
     return x * strength
 
 
-def Time_mask(x, mag=0.1):
+def _Time_mask(x, mag=0.1):
     x = torch.from_numpy(x).float().unsqueeze(0).unsqueeze(0)
     x_aug = x.clone()
     # get shapes
@@ -138,10 +138,27 @@ def Time_mask(x, mag=0.1):
     x_aug[:, :, start:end] = 0.
     return x_aug
 
-
-def Random_temporal_displacement(x, mag=0.5, warp_obj=None):
+def _Random_temporal_displacement(x, mag=0.5, warp_obj=None):
     if warp_obj is None:
         warp_obj = warp_ops.DispAug([len(x)])
     disp_mag = 100 * (mag ** 2)
     x = torch.from_numpy(x).float().unsqueeze(0).unsqueeze(0)
     return warp_obj(x, disp_mag)
+
+def Temporal_Warp(x, mag=1.):
+    return _Temporal_Warp(x, mag=mag).squeeze().numpy()
+
+def Baseline_wander(x, mag=0.):
+    return _Baseline_wander(x, mag=mag).squeeze().numpy()
+
+def Gau_noise(x, mag=0.):
+    return _Gau_noise(x, mag=mag).squeeze().numpy()
+
+def Magnitude_scale(x, mag=0.):
+    return _Magnitude_scale(x, mag=mag).squeeze().numpy()
+
+def Time_mask(x, mag=0.1):
+    return _Time_mask(x, mag=mag).squeeze().numpy()
+
+def Random_temporal_displacement(x, mag=0.5):
+    return _Random_temporal_displacement(x, mag=mag).squeeze().numpy()

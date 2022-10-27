@@ -247,7 +247,10 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--transforms", type=str, default=None)
     parser.add_argument("--wandb_dir", type=str, default="wandb")
     parser.add_argument("--save_eval_dataset", type=str2bool, nargs='?', const=True, default=False)
-
+    parser.add_argument("--aug_prob", type=float, default=0.0)
+    parser.add_argument("--mixup_alpha", type=float, default=-1.0)
+    parser.add_argument("--label_smoothing", type=float, default=0.0)
+    parser.add_argument("--patience", type=int, default=10)
 
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)

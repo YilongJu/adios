@@ -9,6 +9,7 @@ from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from src.utils.lars import LARSWrapper
 from src.utils.metrics import accuracy_at_k, weighted_mean, AUROC
 from src.utils.blocks import str2bool
+from src.utils.tricks import mixup_data, mixup_criterion, LabelSmoothingLoss
 from src.methods.base import SUPPORTED_NETWORKS
 from torch.optim.lr_scheduler import (
     CosineAnnealingLR,
@@ -17,7 +18,7 @@ from torch.optim.lr_scheduler import (
     ReduceLROnPlateau,
 )
 # from pynvml import *
-
+from torch.autograd import Variable
 softmax = torch.nn.Softmax(dim=1)
 
 class SupervisedModel_1D(pl.LightningModule):
@@ -36,6 +37,8 @@ class SupervisedModel_1D(pl.LightningModule):
         scheduler: str,
         dataset: str,
         train_backbone: bool,
+        mixup_alpha: float,
+        label_smoothing: float,
         lr_decay_steps: Optional[Sequence[int]] = None,
         **kwargs,
     ):
@@ -77,7 +80,9 @@ class SupervisedModel_1D(pl.LightningModule):
         self.scheduler = scheduler
         self.lr_decay_steps = lr_decay_steps
         self.train_backbone = train_backbone
-        self.previous_gpu_load_dict = {}
+        self.mixup_alpha = mixup_alpha
+        self.label_smoothing = label_smoothing
+        self.criterion = LabelSmoothingLoss(n_classes=2, smoothing=self.label_smoothing) if self.label_smoothing > 0 else nn.CrossEntropyLoss()
 
         # all the other parameters
         self.extra_args = kwargs
@@ -262,11 +267,18 @@ class SupervisedModel_1D(pl.LightningModule):
         if isinstance(X, list):
             X = torch.cat(X, dim=0)
             targets = torch.cat([targets, targets], dim=0)
-        batch_size = X.size(0)
-        # print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
 
-        out = self(X)["logits"]
-        loss = F.cross_entropy(out, targets)
+        if mode == "train":
+            use_cuda = torch.cuda.is_available()
+            X, targets_a, targets_b, lam = mixup_data(X, targets, self.mixup_alpha, use_cuda)
+            X, targets_a, targets_b = map(Variable, (X, targets_a, targets_b))
+            out = self(X)["logits"]
+            loss = mixup_criterion(self.criterion, out, targets_a, targets_b, lam)
+        else:
+            out = self(X)["logits"]
+            loss = self.criterion(out, targets)
+
+        # print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
 
         scores = softmax(out)[:, 1].detach()
         if mode in ["train"]:
@@ -280,6 +292,7 @@ class SupervisedModel_1D(pl.LightningModule):
             raise NotImplementedError("Unkown training mode.")
 
         results = accuracy_at_k(out, targets, top_k=(1,))
+        batch_size = X.size(0)
 
         # return batch_size, loss, results['acc1'], results['acc5']
         return batch_size, loss, results['acc1'], results['acc1']
