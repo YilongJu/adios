@@ -2,6 +2,7 @@ import os
 import json
 from pathlib import Path
 from torch import nn
+import wandb
 
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
