@@ -258,6 +258,22 @@ class ECG_classification_dataset_with_peak_features(Dataset):
             if np.random.uniform() < self.aug_prob:
                 frame = Flip_Along_X(frame)
 
+        if Lower("SelectedAug_20221029") in self.transforms:
+            """ Selected Augmentations based on test performance """
+            """ Using Longitudinal (better than TemporalWarp), Transverse (better than BaselineWander),
+                RandTemporalDisp, Gaussian """
+            """ Only apply one augmentation """
+            transformation_func_list = np.random.choice(
+                [Longitudinal_transformation, Transverse_transformation, Random_temporal_displacement,
+                 Add_Gaussian_noise], size=2, replace=False)
+            random_number = np.random.uniform()
+
+            if random_number < self.aug_prob:
+                frame = transformation_func_list[0](frame)
+
+            if random_number + 1 < self.aug_prob:
+                frame = transformation_func_list[1](frame)
+
         # Keep data in 0-1 range
         frame = Normalize(frame)
         return frame
