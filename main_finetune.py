@@ -86,7 +86,7 @@ def main():
     else:
         base_model = SUPPORTED_NETWORKS[args.encoder]
         model = base_model(zero_init_residual=args.zero_init_residual, embedding_dim=args.embedding_dim,
-                           stride=args.stride, c4_multiplier=args.c4_multiplier, in_channels=args.in_channels)
+                           stride=args.stride, c4_multiplier=args.c4_multiplier, in_channels=args.in_channels, in_channels_type=args.in_channels_type)
         # remove fc layer
         model.fc = nn.Identity()
 
@@ -187,21 +187,24 @@ def main():
                                                             shift_amount=signal_min_train,
                                                             normalize_signal=args.normalize_signal,
                                                             ecg_resampling_length_target=args.ecg_resampling_length_target,
-                                                            transforms=args.transforms)
+                                                            transforms=args.transforms,
+                                                            in_channels_type=args.in_channels_type)
         val_dataset = ECG_classification_dataset_with_CVP(data_tensor_val,
                                                           data_label_val,
                                                           in_channels=args.in_channels,
                                                           shift_signal=args.shift_signal,
                                                           shift_amount=signal_min_train,
                                                           normalize_signal=args.normalize_signal,
-                                                          ecg_resampling_length_target=args.ecg_resampling_length_target)
+                                                          ecg_resampling_length_target=args.ecg_resampling_length_target,
+                                                          in_channels_type=args.in_channels_type)
         test_dataset = ECG_classification_dataset_with_CVP(data_tensor_test,
                                                            data_label_test,
                                                            in_channels=args.in_channels,
                                                            shift_signal=args.shift_signal,
                                                            shift_amount=signal_min_train,
                                                            normalize_signal=args.normalize_signal,
-                                                           ecg_resampling_length_target=args.ecg_resampling_length_target)
+                                                           ecg_resampling_length_target=args.ecg_resampling_length_target,
+                                                           in_channels_type=args.in_channels_type)
         if Lower(args.transforms) in [Lower("Identity")]:
             args.batch_size = args.batch_size * 2
 

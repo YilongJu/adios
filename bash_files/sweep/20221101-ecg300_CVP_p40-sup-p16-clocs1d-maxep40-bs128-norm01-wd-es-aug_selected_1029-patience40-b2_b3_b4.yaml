@@ -3,9 +3,9 @@ method: grid
 metric:
   name: val_auroc
   goal: maximize
-description: sweep for ECG data from TCH 40 patients with Sinus and JET
-project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221030_v14
-name: supervised-clocsCNN_1D-ECG_normalized-20221101_v14-maxep200-early_stopping_patience40-mixup-label_smoothing-aug_selected_20221029_prob0__2
+description: sweep for ECG and CVP data from TCH 40 patients with Sinus and JET
+project: adios_ecg-supervised-clocsCNN_1D-ECG_CVP_normalized-20221101_v20
+name: supervised-clocsCNN_1D-ECG_CVP_normalized-20221101_v20-maxep200-early_stopping_patience40-mixup-label_smoothing-aug_selected_20221029_prob0__2
 entity: yilongju # replace with your own wandb entity (username)
 #entity: jspace # replace with your own wandb entity (username)
 #early_terminate:
@@ -19,8 +19,10 @@ parameters:
     value: 2
   c4_multiplier:
     value: 3
+  in_channels_type:
+    values: ["ECG", "CVP", "ECG,CVP"]
   aug_prob:
-    values: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+    values: [0.0, 0.5, 1.0, 1.5, 2.0]
   mixup_alpha:
     values: [0, 0.2, 0.4]
   label_smoothing:
@@ -62,7 +64,7 @@ parameters:
   ecg_resampling_length_target:
     value: 300
   embedding_dim:
-    values: [16, 256]
+    values: [16]
   dataset:
     value: "ecg-TCH-40_patient-20220201"
   ptl_accelerator:

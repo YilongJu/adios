@@ -322,11 +322,20 @@ class ECG_classification_dataset_with_peak_features(Dataset):
 
 class ECG_classification_dataset_with_CVP(Dataset):
     def __init__(self, data_tensor_np, data_label_np, in_channels=1, ecg_resampling_length=300, shift_signal=False, shift_amount=None, normalize_signal=False,
-                 transforms=None, dataset_name="ecg-TCH-40_patient-20220201_with_CVP", aug_prob=0, ecg_resampling_length_target=300):
+                 transforms=None, dataset_name="ecg-TCH-40_patient-20220201_with_CVP", aug_prob=0, ecg_resampling_length_target=300, in_channels_type=None):
         self.data_tensor_np = data_tensor_np
         self.data_label_np = data_label_np
         self.device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
-        self.in_channels = in_channels
+        if Lower(in_channels_type) == Lower("ECG"):
+            in_channels_selected = [0]
+        elif Lower(in_channels_type) == Lower("CVP"):
+            in_channels_selected = [1]
+        elif Lower(in_channels_type) in [Lower("ECG,CVP"), Lower("CVP,ECG")]:
+            in_channels_selected = [0, 1]
+        else:
+            raise ValueError(f"Unknown in_channels_type: {in_channels_type}")
+
+        self.in_channels_selected = in_channels_selected
         self.ecg_resampling_length = ecg_resampling_length
         self.ecg_resampling_length_target = ecg_resampling_length_target
 
@@ -364,7 +373,7 @@ class ECG_classification_dataset_with_CVP(Dataset):
         return frame
 
     def __getitem__(self, idx):
-        X = self.data_tensor_np[idx, :self.in_channels, ...]
+        X = self.data_tensor_np[idx, self.in_channels_selected, ...]
         X_aug = self.obtain_perturbed_frame(X)
 
         label = self.data_label_np[idx]
