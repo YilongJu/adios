@@ -9,3 +9,5 @@ auto_mask/*
 data/*
 img/*
 feature_with_ecg_df_test_lead2.csv
+ecg-pat40-tch-sinus_jet_lead2/*
+feature_with_ecg_df_val_lead2.csv

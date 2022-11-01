@@ -30,7 +30,7 @@ s = 3  # stride #3
 class cnn_network_contrastive(nn.Module):
     """ CNN for Self-Supervision """
 
-    def __init__(self, dropout_type="drop1d", p1=0.1, p2=0.1, p3=0.1, nencoders=1, stride=s, c4_multiplier=10, embedding_dim=256, trial='CLOCS', device='', **kwargs):
+    def __init__(self, dropout_type="drop1d", p1=0.1, p2=0.1, p3=0.1, nencoders=1, stride=s, in_channels=None, c4_multiplier=10, embedding_dim=256, trial='CLOCS', device='', **kwargs):
         # dropout_type = ['drop1d'] or 'drop2d'
         # p1 = dropout probability for first layer (default = 0.1)
         # p2 = dropout probability for second layer (default = 0.1)
@@ -46,6 +46,10 @@ class cnn_network_contrastive(nn.Module):
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.embedding_dim = embedding_dim
         self.num_features = self.embedding_dim
+        if in_channels is not None:
+            c1 = in_channels
+        self.in_channels = in_channels
+        self.c4_multiplier = c4_multiplier
 
         if dropout_type == 'drop1d':
             self.dropout1 = nn.Dropout(p=p1)  # 0.2 drops pixels following a Bernoulli
@@ -91,6 +95,7 @@ class cnn_network_contrastive(nn.Module):
         Outputs:
             h (torch.Tensor): latent embedding for each of the N views (BxHxN)
         """
+        # print(f"clocs 1d input dim: {x.shape}")
         x = x.float()
         x = x.unsqueeze(3) # [20221009] Each view is fed seperatedly to the CNN
         batch_size = x.shape[0]

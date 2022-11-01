@@ -4,7 +4,7 @@ import torch
 from src.transforms import warp_ops
 
 
-def Add_Gaussian_noise(x, dataset_name="tch-ecg-jet-p40", mean=0, std=-1):
+def Add_Gaussian_noise(x, dataset_name="ecg-TCH-40_patient-20220201", mean=0, std=-1):
     mult_factor = 1
     if dataset_name in ['ptb', 'physionet2020']:
         # The ECG frames were normalized in amplitude between the values of 0 and 1.
@@ -13,7 +13,7 @@ def Add_Gaussian_noise(x, dataset_name="tch-ecg-jet-p40", mean=0, std=-1):
         variance_factor = 10 * mult_factor
     elif dataset_name in ['physionet', 'physionet2017']:
         variance_factor = 100 * mult_factor
-    elif dataset_name in ["tch-ecg-jet-p40"]:
+    elif dataset_name in ["ecg-TCH-40_patient-20220201", "ecg-TCH-40_patient-20220201_with_CVP"]:
         variance_factor = 0.01 * mult_factor
     else:
         raise NotImplementedError("Dataset not implemented")

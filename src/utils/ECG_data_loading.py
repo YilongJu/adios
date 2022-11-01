@@ -16,8 +16,8 @@ patient_ID_list_train = [398573, 462229, 637891, 667681, 537854, 628521, 642321,
 patient_ID_list_test = [756172, 424072, 748555, 748900, 759678, 741235, 595561, 678607,
                         782501, 510915, 771495, 740475, 533362, 581650, 803389, 577874,
                         681150, 536886, 477589, 844864, 824744, 515544, 771958, 725860, 609090]  # 25
-patient_ID_list_val = [462229, 642321, 387479]
-patient_ID_list_dev = [patient_ID for patient_ID in patient_ID_list_train if patient_ID not in patient_ID_list_val]
+patient_ID_list_val = [462229, 642321, 387479] # 3
+patient_ID_list_dev = [patient_ID for patient_ID in patient_ID_list_train if patient_ID not in patient_ID_list_val] # 12
 
 
 def Data_preprocessing(args):
@@ -47,32 +47,43 @@ def Data_preprocessing(args):
         data_folder = os.path.normpath("D:\\Dropbox\\Study\\GitHub\\JET-Detection")
         # data_folder = os.path.normpath("D:\\Backup\\JET-Detection\\")
 
-    # TODO: modify this step to make it use less memory at once
-    # debug = True
-    # debug = False
-    debug = args.debug
-    if debug:
-        feature_df_all_selected_with_ecg = pd.read_csv(
-            os.path.join(data_folder, "feature_df_all_selected_with_ecg_20220210_rtfixed_sample10000.csv"))
-    else:
-        if args.read_data_by_chunk:
-            if args.channel_ID == 2:
-                data_chunk_folder = "ecg-pat40-tch-sinus_jet_lead2"
-            else:
-                data_chunk_folder = args.data_chunk_folder
-
-            data_chunk_list = []
-            for data_filename in os.listdir(os.path.join(data_folder, data_chunk_folder)):
-                data_chunk_list.append(pd.read_csv(os.path.join(data_folder, data_chunk_folder, data_filename)))
-            feature_df_all_selected_with_ecg = pd.concat(data_chunk_list, axis=0)
-        else:
+    if args.dataset in ["ecg-TCH-40_patient-20220201"]:
+        # debug = True
+        # debug = False
+        debug = args.debug
+        if debug:
             feature_df_all_selected_with_ecg = pd.read_csv(
-                os.path.join(data_folder, "feature_df_all_selected_with_ecg_20220210_rtfixed.csv"))
-    feature_with_ecg_df_train = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_train}")
-    feature_with_ecg_df_test = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_test}")
-    feature_with_ecg_df_dev = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_dev}")
-    feature_with_ecg_df_val = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_val}")
-    print(f"Data shape: {feature_df_all_selected_with_ecg.shape}, train: {feature_with_ecg_df_train.shape}, dev: {feature_with_ecg_df_dev.shape}, val: {feature_with_ecg_df_val.shape}, test: {feature_with_ecg_df_test.shape}")
+                os.path.join(data_folder, "feature_df_all_selected_with_ecg_20220210_rtfixed_sample10000.csv"))
+        else:
+            if args.read_data_by_chunk:
+                if args.channel_ID == 2:
+                    data_chunk_folder = "ecg-pat40-tch-sinus_jet_lead2"
+                else:
+                    data_chunk_folder = args.data_chunk_folder
+
+                data_chunk_list = []
+                for data_filename in os.listdir(os.path.join(data_folder, data_chunk_folder)):
+                    data_chunk_list.append(pd.read_csv(os.path.join(data_folder, data_chunk_folder, data_filename)))
+                feature_df_all_selected_with_ecg = pd.concat(data_chunk_list, axis=0)
+            else:
+                feature_df_all_selected_with_ecg = pd.read_csv(
+                    os.path.join(data_folder, "feature_df_all_selected_with_ecg_20220210_rtfixed.csv"))
+        feature_with_ecg_df_train = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_train}")
+        feature_with_ecg_df_test = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_test}")
+        feature_with_ecg_df_dev = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_dev}")
+        feature_with_ecg_df_val = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_val}")
+        print(f"Data shape: {feature_df_all_selected_with_ecg.shape}, train: {feature_with_ecg_df_train.shape}, dev: {feature_with_ecg_df_dev.shape}, val: {feature_with_ecg_df_val.shape}, test: {feature_with_ecg_df_test.shape}")
+    elif args.dataset in ["ecg-TCH-40_patient-20220201_with_CVP"]:
+        feature_with_ecg_df_train = None
+        debug = args.debug
+        if debug:
+            feature_with_ecg_df_dev = np.load(os.path.join(data_folder, "ECG_CVP_20221101_dev_10000.npz"))
+        else:
+            feature_with_ecg_df_dev = np.load(os.path.join(data_folder, "ECG_CVP_20221101_dev.npz"))
+        feature_with_ecg_df_val = np.load(os.path.join(data_folder, "ECG_CVP_20221101_val.npz"))
+        feature_with_ecg_df_test = np.load(os.path.join(data_folder, "ECG_CVP_20221101_test.npz"))
+    else:
+        raise ValueError(f"Unknown dataset: {args.dataset}")
 
     return feature_with_ecg_df_train, feature_with_ecg_df_test, feature_with_ecg_df_dev, feature_with_ecg_df_val, save_folder
     # return feature_with_ecg_df_train, feature_with_ecg_df_test, save_folder
@@ -132,11 +143,109 @@ def Lower(word):
     """ Convert word to lower case """
     return word.lower()
 
+def Transform_frame(frame, transforms, aug_prob=0.0, dataset_name="ecg-TCH-40_patient-20220201"):
+    # Adapted from https://github.com/danikiyasseh/CLOCS
+
+    """ Apply Sequence of Perturbations to Frame
+    Args:
+        frame (numpy array): frame containing ECG data
+    Outputs
+        frame (numpy array): perturbed frame based
+    """
+    if Lower('Gaussian') in transforms:
+        frame = Add_Gaussian_noise(frame, dataset_name=dataset_name)
+
+    if Lower('FlipAlongY') in transforms:
+        frame = Flip_Along_Y(frame)
+
+    if Lower('FlipAlongX') in transforms:
+        frame = Flip_Along_X(frame)
+
+    if Lower("Transverse") in transforms:
+        frame = Transverse_transformation(frame)
+
+    if Lower("Longitudinal") in transforms:
+        frame = Longitudinal_transformation(frame)
+
+    if Lower("TemporalWarp") in transforms: # The TaskAug Paper (using init values)
+        frame = Temporal_Warp(frame)
+
+    if Lower("BaselineWander") in transforms: # The TaskAug Paper (using init values)
+        frame = Baseline_wander(frame)
+
+    if Lower("GauNoise") in transforms: # The TaskAug Paper (using init values)
+        # No point of using this since we have already added Gaussian noise
+        frame = Gau_noise(frame)
+        # ------------------------------------!
+
+    if Lower("MagnitudeScale") in transforms: # The TaskAug Paper (using init values)
+        # No point of using this since we normalize the signal to 0-1 range
+        frame = Magnitude_scale(frame)
+        # ------------------------------------!
+
+    if Lower("TimeMask") in transforms: # The TaskAug Paper (using init values)
+        frame = Time_mask(frame)
+
+    if Lower("RandTemporalDisp") in transforms: # The TaskAug Paper (using init values)
+        frame = Random_temporal_displacement(frame)
+
+    if Lower("SpecAugment") in transforms: # The TaskAug Paper (baseline)
+        """ Does not make sense to mask by freq since we only have 1 heartbeat """
+        """ Masking by time is the same as TimeMask """
+        pass
+
+    if Lower("DiscGuidedWarp") in transforms: # The TaskAug Paper (baseline), discriminative guided warping (DGW)
+        """ Slow and there are artifacts """
+        pass
+
+    if Lower("SMOTE") in transforms: # The TaskAug Paper (baseline) upsampling for classes that have less samples
+        """ Not really useful since we have a lot of samples """
+        pass
+
+    if Lower("SelectedAug_20221025") in transforms:
+        """ Selected Augmentations based on test performance """
+        """ Using Longitudinal (better than TemporalWarp), Transverse (better than BaselineWander),
+            RandTemporalDisp, Gaussian, FlipAlongX """
+        if np.random.uniform() < aug_prob:
+            frame = Longitudinal_transformation(frame)
+        if np.random.uniform() < aug_prob:
+            frame = Transverse_transformation(frame)
+        if np.random.uniform() < aug_prob:
+            frame = Random_temporal_displacement(frame)
+        if np.random.uniform() < aug_prob:
+            frame = Add_Gaussian_noise(frame, dataset_name=dataset_name)
+        if np.random.uniform() < aug_prob:
+            frame = Flip_Along_X(frame)
+
+    if Lower("SelectedAug_20221029") in transforms:
+        """ Selected Augmentations based on test performance """
+        """ Using Longitudinal (better than TemporalWarp), Transverse (better than BaselineWander),
+            RandTemporalDisp, Gaussian """
+        """ Only apply one augmentation """
+        def Add_Gaussian_noise_dataset(x):
+            return Add_Gaussian_noise(x, dataset_name=dataset_name)
+
+        transformation_func_list = np.random.choice(
+            [Longitudinal_transformation, Transverse_transformation, Random_temporal_displacement,
+             Add_Gaussian_noise_dataset], size=2, replace=False)
+        random_number = np.random.uniform()
+
+        if random_number < aug_prob:
+            frame = transformation_func_list[0](frame)
+
+        if random_number + 1 < aug_prob:
+            frame = transformation_func_list[1](frame)
+
+    # Keep data in 0-1 range
+    frame = Normalize(frame)
+    return frame
+
+
 class ECG_classification_dataset_with_peak_features(Dataset):
     def __init__(self, feature_df_all_selected_p_ind_with_ecg, ecg_resampling_length_target=300,
                  peak_loc_name="p_ind_resampled", label_name="label", short_identifier_list=None,
                  peak_feature_name_list=None, shift_signal=False, shift_amount=None, normalize_signal=False,
-                 transforms=None, dataset_name="tch-ecg-jet-p40", aug_prob=0):
+                 transforms=None, dataset_name="ecg-TCH-40_patient-20220201", aug_prob=0):
         """
         normalize_signal: Normalize each individual signal to 0 - 1 range
         """
@@ -185,97 +294,7 @@ class ECG_classification_dataset_with_peak_features(Dataset):
             self.ecg_mat = (self.ecg_mat - ecg_min) / (ecg_max - ecg_min)
 
     def obtain_perturbed_frame(self, frame):
-        # Adapted from https://github.com/danikiyasseh/CLOCS
-
-        """ Apply Sequence of Perturbations to Frame
-        Args:
-            frame (numpy array): frame containing ECG data
-        Outputs
-            frame (numpy array): perturbed frame based
-        """
-        if Lower('Gaussian') in self.transforms:
-            frame = Add_Gaussian_noise(frame, dataset_name=self.dataset_name)
-
-        if Lower('FlipAlongY') in self.transforms:
-            frame = Flip_Along_Y(frame)
-
-        if Lower('FlipAlongX') in self.transforms:
-            frame = Flip_Along_X(frame)
-
-        if Lower("Transverse") in self.transforms:
-            frame = Transverse_transformation(frame)
-
-        if Lower("Longitudinal") in self.transforms:
-            frame = Longitudinal_transformation(frame)
-
-        if Lower("TemporalWarp") in self.transforms: # The TaskAug Paper (using init values)
-            frame = Temporal_Warp(frame)
-
-        if Lower("BaselineWander") in self.transforms: # The TaskAug Paper (using init values)
-            frame = Baseline_wander(frame)
-
-        if Lower("GauNoise") in self.transforms: # The TaskAug Paper (using init values)
-            # No point of using this since we have already added Gaussian noise
-            frame = Gau_noise(frame)
-            # ------------------------------------!
-
-        if Lower("MagnitudeScale") in self.transforms: # The TaskAug Paper (using init values)
-            # No point of using this since we normalize the signal to 0-1 range
-            frame = Magnitude_scale(frame)
-            # ------------------------------------!
-
-        if Lower("TimeMask") in self.transforms: # The TaskAug Paper (using init values)
-            frame = Time_mask(frame)
-
-        if Lower("RandTemporalDisp") in self.transforms: # The TaskAug Paper (using init values)
-            frame = Random_temporal_displacement(frame)
-
-        if Lower("SpecAugment") in self.transforms: # The TaskAug Paper (baseline)
-            """ Does not make sense to mask by freq since we only have 1 heartbeat """
-            """ Masking by time is the same as TimeMask """
-            pass
-
-        if Lower("DiscGuidedWarp") in self.transforms: # The TaskAug Paper (baseline), discriminative guided warping (DGW)
-            """ Slow and there are artifacts """
-            pass
-
-        if Lower("SMOTE") in self.transforms: # The TaskAug Paper (baseline) upsampling for classes that have less samples
-            """ Not really useful since we have a lot of samples """
-            pass
-
-        if Lower("SelectedAug_20221025") in self.transforms:
-            """ Selected Augmentations based on test performance """
-            """ Using Longitudinal (better than TemporalWarp), Transverse (better than BaselineWander),
-                RandTemporalDisp, Gaussian, FlipAlongX """
-            if np.random.uniform() < self.aug_prob:
-                frame = Longitudinal_transformation(frame)
-            if np.random.uniform() < self.aug_prob:
-                frame = Transverse_transformation(frame)
-            if np.random.uniform() < self.aug_prob:
-                frame = Random_temporal_displacement(frame)
-            if np.random.uniform() < self.aug_prob:
-                frame = Add_Gaussian_noise(frame, dataset_name=self.dataset_name)
-            if np.random.uniform() < self.aug_prob:
-                frame = Flip_Along_X(frame)
-
-        if Lower("SelectedAug_20221029") in self.transforms:
-            """ Selected Augmentations based on test performance """
-            """ Using Longitudinal (better than TemporalWarp), Transverse (better than BaselineWander),
-                RandTemporalDisp, Gaussian """
-            """ Only apply one augmentation """
-            transformation_func_list = np.random.choice(
-                [Longitudinal_transformation, Transverse_transformation, Random_temporal_displacement,
-                 Add_Gaussian_noise], size=2, replace=False)
-            random_number = np.random.uniform()
-
-            if random_number < self.aug_prob:
-                frame = transformation_func_list[0](frame)
-
-            if random_number + 1 < self.aug_prob:
-                frame = transformation_func_list[1](frame)
-
-        # Keep data in 0-1 range
-        frame = Normalize(frame)
+        frame = Transform_frame(frame, transforms=self.transforms, dataset_name=self.dataset_name, aug_prob=self.aug_prob)
         return frame
 
     def __len__(self):
@@ -295,8 +314,64 @@ class ECG_classification_dataset_with_peak_features(Dataset):
 
         # return X[np.newaxis, :], peak_idx, label, id_vec, peak_features[np.newaxis, :]
         if len(self.transforms) == 0 \
-                or (len(self.transforms) == 1
-                    and Lower(self.transforms[0]) in [Lower("Identity"), Lower("SelectedAug_20221025")]):
-            return X[np.newaxis, :], label
+                or (len(self.transforms) == 1 and Lower(self.transforms[0]) in [Lower("Identity"), Lower("SelectedAug_20221025"), Lower("SelectedAug_20221029")]):
+            return X_aug[np.newaxis, :], label
         else:
             return (X[np.newaxis, :], X_aug[np.newaxis, :]), label
+
+
+class ECG_classification_dataset_with_CVP(Dataset):
+    def __init__(self, data_tensor_np, data_label_np, in_channels=1, ecg_resampling_length=300, shift_signal=False, shift_amount=None, normalize_signal=False,
+                 transforms=None, dataset_name="ecg-TCH-40_patient-20220201_with_CVP", aug_prob=0, ecg_resampling_length_target=300):
+        self.data_tensor_np = data_tensor_np
+        self.data_label_np = data_label_np
+        self.device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+        self.in_channels = in_channels
+        self.ecg_resampling_length = ecg_resampling_length
+        self.ecg_resampling_length_target = ecg_resampling_length_target
+
+        if transforms is None:
+            self.transforms = []
+        else:
+            if isinstance(transforms, str):
+                transforms = [transforms]
+            self.transforms = [Lower(ele) for ele in transforms]
+        self.dataset_name = dataset_name
+
+        self.shift_signal = shift_signal
+        self.shift_amount = shift_amount
+        self.normalize_signal = normalize_signal
+        self.aug_prob = aug_prob
+        if self.shift_signal:
+            if self.shift_amount is None:
+                self.shift_amount = 0
+            self.data_tensor_np -= self.shift_amount  # Shift ECG to 0 baseline
+
+        if self.normalize_signal:
+            ecg_min = np.min(self.data_tensor_np, axis=2)[:, :, np.newaxis]
+            ecg_max = np.max(self.data_tensor_np, axis=2)[:, :, np.newaxis]
+            self.data_tensor_np = (self.data_tensor_np - ecg_min) / (ecg_max - ecg_min)
+
+    def __len__(self):
+        return len(self.data_label_np)
+
+    def obtain_perturbed_frame(self, frame):
+        frame_list = []
+        for x in frame:
+            frame_list.append(Transform_frame(x, transforms=self.transforms, dataset_name=self.dataset_name, aug_prob=self.aug_prob)[np.newaxis, :])
+        frame = np.concatenate(frame_list, axis=0)
+        # print(f"augmented frame shape: {frame.shape}")
+        return frame
+
+    def __getitem__(self, idx):
+        X = self.data_tensor_np[idx, :self.in_channels, ...]
+        X_aug = self.obtain_perturbed_frame(X)
+
+        label = self.data_label_np[idx]
+        if len(self.transforms) == 0 \
+                or (len(self.transforms) == 1 and Lower(self.transforms[0]) in [Lower("Identity"),
+                                                                                Lower("SelectedAug_20221025"),
+                                                                                Lower("SelectedAug_20221029")]):
+            return X_aug, label
+        else:
+            return (X, X_aug), label

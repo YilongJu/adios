@@ -251,6 +251,7 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--mixup_alpha", type=float, default=-1.0)
     parser.add_argument("--label_smoothing", type=float, default=0.0)
     parser.add_argument("--patience", type=int, default=10)
+    parser.add_argument("--in_channels", type=int, default=1)
 
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)

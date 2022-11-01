@@ -27,5 +27,7 @@ if __name__ == '__main__':
 
     # python Divide_large_dataset.py --dataset_name "feature_df_all_selected_with_ecg_20220210_rtfixed.csv" --load_folder "/mnt/group1/yilong/JET-Detection-Data" --save_folder "/mnt/group1/yilong/JET-Detection-Data/ecg-pat40-tch-sinus_jet" --chunk_size 100000
     # python Divide_large_dataset.py --dataset_name "feature_df_all_selected_with_ecg_20220210_rtfixed.csv" --load_folder "/mnt/group1/yilong/JET-Detection-Data" --save_folder "/mnt/group1/yilong/JET-Detection-Data/ecg-pat40-tch-sinus_jet_lead2" --chunk_size 25000 --channel_ID 2
+    # python Divide_large_dataset.py --dataset_name "ECG_CVP_20220512_train.csv" --load_folder "/mnt/group1/yilong/JET-Detection-Data" --save_folder "/mnt/group1/yilong/JET-Detection-Data/ecg-pat40-tch-sinus_jet_lead2_cvp" --chunk_size 25000 --channel_ID 2
     # python Divide_large_dataset.py --dataset_name "feature_df_all_selected_with_ecg_20220210_rtfixed.csv" --load_folder "/mnt/scratch07/yilong" --save_folder "/mnt/scratch07/yilong/ecg-pat40-tch-sinus_jet" --chunk_size 100000
     # python Divide_large_dataset.py --dataset_name "feature_df_all_selected_with_ecg_20220210_rtfixed.csv" --load_folder "/mnt/scratch07/yilong" --save_folder "/mnt/scratch07/yilong/ecg-pat40-tch-sinus_jet_lead2" --chunk_size 25000 --channel_ID 2
+    # python Divide_large_dataset.py --dataset_name "ECG_CVP_20220512_train.npz" --load_folder "/mnt/scratch07/yilong" --save_folder "/mnt/scratch07/yilong/ecg-pat40-tch-sinus_jet_lead2_cvp" --chunk_size 25000 --channel_ID 2

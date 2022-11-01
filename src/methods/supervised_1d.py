@@ -264,6 +264,7 @@ class SupervisedModel_1D(pl.LightningModule):
                 batch size, loss, accuracy @1 and accuracy @5.
         """
         X, targets = batch
+        # print(f"batch, input dim = {X.shape}")
         if isinstance(X, list):
             X = torch.cat(X, dim=0)
             targets = torch.cat([targets, targets], dim=0)
