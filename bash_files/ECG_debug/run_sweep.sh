@@ -92,14 +92,14 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --cud
 
 
 # 20221101 ECG + CVP
-#python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221030_v14/wu5dkqcl"
-python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221030_v14/wu5dkqcl"
+#python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_CVP_normalized-20221101_v20/fpo0uwgr"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_CVP_normalized-20221101_v20/fpo0uwgr"
 
-python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221030_v14/wu5dkqcl"
-python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221030_v14/wu5dkqcl"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_CVP_normalized-20221101_v20/fpo0uwgr"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_CVP_normalized-20221101_v20/fpo0uwgr"
 
-python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221030_v14/wu5dkqcl"
-python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221030_v14/wu5dkqcl"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_CVP_normalized-20221101_v20/fpo0uwgr"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_CVP_normalized-20221101_v20/fpo0uwgr"
 
 
 
