@@ -36,7 +36,7 @@ parameters:
   classifier_lr:
     values: [0.001, 0.01]
   optimizer:
-    value: "adam"
+    values: ["sgd", "adam"]
   weight_decay:
     value: 1e-6
   max_epochs:

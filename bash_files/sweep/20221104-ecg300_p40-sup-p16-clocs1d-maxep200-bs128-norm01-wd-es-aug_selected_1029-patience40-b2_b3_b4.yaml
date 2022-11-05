@@ -4,8 +4,8 @@ metric:
   name: val_auroc
   goal: maximize
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
-project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221030_v14
-name: supervised-clocsCNN_1D-ECG_normalized-20221101_v14-maxep200-early_stopping_patience40-mixup-label_smoothing-aug_selected_20221029_prob0__2
+project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221104_v21
+name: supervised-clocsCNN_1D-ECG_normalized-20221104_v21-maxep200-es_patience40-mixup-ls-aug_selected_20221029_prob0__2
 entity: yilongju # replace with your own wandb entity (username)
 #entity: jspace # replace with your own wandb entity (username)
 #early_terminate:
@@ -19,12 +19,10 @@ parameters:
     value: 2
   c4_multiplier:
     value: 3
-  in_channels:
-    values: [1, 2]
   aug_prob:
     values: [0.0, 0.5, 1.0, 1.5, 2.0]
   mixup_alpha:
-    values: [0, 0.2, 0.4]
+    values: [0.2]
   label_smoothing:
     values: [0.2]
   transforms:
@@ -34,13 +32,13 @@ parameters:
   seed:
     values: [0, 1, 2, 3, 4]
   lr:
-    values: [0.001, 0.005]
+    values: [0.001, 0.005, 0.025]
   classifier_lr:
-    values: [0.001, 0.01]
+    values: [0.001, 0.01, 0.1]
   optimizer:
-    value: "adam"
+    values: ["sgd", "adam"]
   weight_decay:
-    value: 1e-6
+    values: [1e-6]
   max_epochs:
     value: 200
   patience:
@@ -66,7 +64,7 @@ parameters:
   embedding_dim:
     values: [16, 256]
   dataset:
-    value: "ecg-TCH-40_patient-20220201_with_CVP"
+    value: "ecg-TCH-40_patient-20220201"
   ptl_accelerator:
     value: "ddp"
   sync_batchnorm:
