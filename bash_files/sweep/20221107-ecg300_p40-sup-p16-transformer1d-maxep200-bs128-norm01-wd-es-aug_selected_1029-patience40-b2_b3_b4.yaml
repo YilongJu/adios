@@ -5,7 +5,7 @@ metric:
   goal: maximize
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
 project: adios_ecg-supervised-transformer_1D-ECG_normalized-20221107_v22
-name: supervised-transformer_1D-ECG_normalized-20221107_v22-maxep200-es_patience40-mixup-ls-aug_selected_20221029_prob0
+name: supervised-transformer_1D-ECG_normalized-20221108_v22-maxep200-es_patience40-mixup-ls-aug_selected_20221029_prob0-small_lr
 entity: yilongju # replace with your own wandb entity (username)
 #entity: jspace # replace with your own wandb entity (username)
 #early_terminate:
@@ -34,7 +34,7 @@ parameters:
   seed:
     values: [0, 1, 2, 3, 4]
   lr:
-    values: [0.001, 0.005, 0.025]
+    values: [0.00001, 0.0000316, 0.0001]
   classifier_lr:
     values: [0.001, 0.01, 0.1]
   optimizer:
