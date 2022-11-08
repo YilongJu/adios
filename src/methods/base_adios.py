@@ -74,18 +74,20 @@ class BaseADIOSModel(BaseModel):
                 i for i, m in enumerate(self.learnable_params['inpainter']) if m.pop("static_lr", False)
             ]
 
-            optimizer = [optimizer(
+            optimizer = [
+                optimizer(
                 self.learnable_params['inpainter'],
                 lr=self.lr,
                 weight_decay=self.weight_decay,
                 **self.extra_optimizer_args,
-            ),
-            optimizer(
+                ),
+                optimizer(
                     self.learnable_params['mask'],
                     lr=self.lr,
                     weight_decay=self.weight_decay,
                     **self.extra_optimizer_args,
-                )]
+                )
+            ]
         else:
             idxs_no_scheduler = [
                 i for i, m in enumerate(self.learnable_params) if m.pop("static_lr", False)

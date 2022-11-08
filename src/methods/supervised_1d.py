@@ -253,7 +253,7 @@ class SupervisedModel_1D(pl.LightningModule):
     def shared_step(
         self, batch: Tuple, batch_idx: int
     , mode: str = "train") -> Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]:
-        """Performs operations that are shared between the training nd validation steps.
+        """Performs operations that are shared between the training, validation and test steps.
 
         Args:
             batch (Tuple): a batch of images in the tensor format.

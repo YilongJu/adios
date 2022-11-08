@@ -85,8 +85,18 @@ def main():
         model = model_base.encoder
     else:
         base_model = SUPPORTED_NETWORKS[args.encoder]
-        model = base_model(zero_init_residual=args.zero_init_residual, embedding_dim=args.embedding_dim,
-                           stride=args.stride, c4_multiplier=args.c4_multiplier, in_channels=args.in_channels, in_channels_type=args.in_channels_type)
+        model = base_model(zero_init_residual=args.zero_init_residual,
+                           embedding_dim=args.embedding_dim, stride=args.stride,
+                           c4_multiplier=args.c4_multiplier, in_channels=args.in_channels,
+                           in_channels_type=args.in_channels_type,
+                           n_classes=args.n_classes,
+                           n_length=args.ecg_resampling_length_target,
+                           num_layers=args.num_layers,
+                           d_model=args.d_model,
+                           nhead=args.nhead,
+                           dim_feedforward=args.dim_feedforward,
+                           dropout=args.dropout,
+                           activation=args.activation)
         # remove fc layer
         model.fc = nn.Identity()
 

@@ -32,6 +32,7 @@ from src.utils.backbones import (
 
 from src.models.ResNet1D import ResNet1D
 from src.models.CLOCS_1D import cnn_network_contrastive
+from src.models.Transformer_1D import Transformer1d
 import numpy as np
 
 SUPPORTED_NETWORKS = {
@@ -51,7 +52,8 @@ SUPPORTED_NETWORKS = {
             "poolformer_m36": poolformer_m36,
             "poolformer_m48": poolformer_m48,
             "resnet1d": ResNet1D,
-            "clocs_cnn1d": cnn_network_contrastive
+            "clocs_cnn1d": cnn_network_contrastive,
+            "transformer1d": Transformer1d
         }
 
 def static_lr(
