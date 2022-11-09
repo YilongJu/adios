@@ -1,0 +1,91 @@
+program: main_finetune.py
+method: grid
+metric:
+  name: val_auroc
+  goal: maximize
+description: sweep for ECG data from TCH 40 patients with Sinus and JET
+project: adios_ecg-supervised-transformer_1D-ECG_normalized-20221107_v22
+name: supervised-transformer_1D-ECG_normalized-20221109_v22-maxep200-es_patience40-mixup-ls-aug_selected_20221029_prob0
+entity: yilongju # replace with your own wandb entity (username)
+#entity: jspace # replace with your own wandb entity (username)
+#early_terminate:
+#  type: hyperband
+#  min_iter: 2
+#  eta: 2
+parameters:
+  cluster_name:
+    value: "auto"
+  n_classes:
+    value: 2
+  num_layers:
+    values: [1, 4]
+  dim_feedforward:
+    values: [128, 512]
+  embedding_dim:
+    values: [16, 64]
+  d_model:
+    values: [64]
+  nhead:
+    values: [1, 4]
+  aug_prob:
+    values: [0]
+  mixup_alpha:
+    values: [0.2]
+  label_smoothing:
+    values: [0.2]
+  transforms:
+    values: ["SelectedAug_20221029"]
+  batch_size:
+    value: 128 # Should be halfed when transforms are used (effective batch size = batch_size * 2)
+  seed:
+    values: [0, 1, 2, 3, 4]
+  lr:
+    values: [0.00001, 0.0000316, 0.0001]
+  classifier_lr:
+    values: [0.0001, 0.001, 0.01]
+  optimizer:
+    values: ["sgd", "adam"]
+  weight_decay:
+    values: [1e-6]
+  max_epochs:
+    value: 200
+  patience:
+    value: 40
+  precision:
+    value: 32
+  lars:
+    value: True
+  exclude_bias_n_norm:
+    value: True
+  scheduler:
+    values: ["warmup_cosine"]
+  num_workers:
+    value: 4
+  wandb:
+    value: True
+  gpus:
+    value: 0
+  encoder:
+    value: "transformer1d"
+  ecg_resampling_length_target:
+    value: 300
+  dataset:
+    value: "ecg-TCH-40_patient-20220201"
+  ptl_accelerator:
+    value: "ddp"
+  sync_batchnorm:
+    value: True
+  accumulate_grad_batches:
+    value: 1
+  read_data_by_chunk:
+    value: True
+  data_chunk_folder:
+    value: "ecg-pat40-tch-sinus_jet"
+  shift_signal:
+    value: False
+  normalize_signal:
+    value: True
+  debug:
+    value: False
+  train_backbone:
+    value: True
