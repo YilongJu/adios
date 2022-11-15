@@ -303,7 +303,7 @@ class ECG_classification_dataset_with_peak_features(Dataset):
     def __getitem__(self, idx):
         X = self.ecg_mat[idx, :]
         if self.ecg_resampling_length_target != self.ecg_resampling_length:
-            X = resample_poly(X, int(self.ecg_resampling_length_target / 100), int(self.ecg_resampling_length / 100),
+            X = resample_poly(X, self.ecg_resampling_length_target, self.ecg_resampling_length,
                               padtype="line")
         X = Normalize(X)
         X_aug = self.obtain_perturbed_frame(X)

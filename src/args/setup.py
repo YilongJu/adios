@@ -253,6 +253,7 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--dim_feedforward", type=int, default=128) # For Transformer_1D
     parser.add_argument("--dropout", type=float, default=0.1) # For Transformer_1D
     parser.add_argument("--activation", type=str, default="relu") # For Transformer_1D
+    parser.add_argument("--use_raw_patch", type=str2bool, nargs='?', const=True, default=False)
 
     parser.add_argument("--transforms", type=str, default=None)
     parser.add_argument("--wandb_dir", type=str, default="wandb")

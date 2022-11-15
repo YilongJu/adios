@@ -96,7 +96,8 @@ def main():
                            nhead=args.nhead,
                            dim_feedforward=args.dim_feedforward,
                            dropout=args.dropout,
-                           activation=args.activation)
+                           activation=args.activation,
+                           use_raw_patch=args.use_raw_patch)
         # remove fc layer
         model.fc = nn.Identity()
 

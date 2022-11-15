@@ -304,6 +304,7 @@ class DISENTANGLED_ADIOS_1D(pl.LightningModule):
             z_masked_a_class, z_masked_b_class, z_bg_a_domain, z_bg_b_domain,
             X_br_a, X_br_b, X_bg_a, X_bg_b
         ]
+
         return return_list
 
     def training_step(self, batch: Sequence[Any], batch_idx: int):
@@ -316,12 +317,54 @@ class DISENTANGLED_ADIOS_1D(pl.LightningModule):
         """
 
         """ Loss functions """
-        z_aug_a_domain, z_aug_b_domain, z_aug_a_class, z_aug_b_class, \
-            z_masked_a_class, z_masked_b_class, z_bg_a_domain, z_bg_b_domain, \
-            X_br_a, X_br_b, X_bg_a, X_bg_b = self.shared_step(batch, mode="train")
+        # z_aug_a_domain, z_aug_b_domain, z_aug_a_class, z_aug_b_class, \
+        #     z_masked_a_class, z_masked_b_class, z_bg_a_domain, z_bg_b_domain, \
+        #     X_br_a, X_br_b, X_bg_a, X_bg_b = self.shared_step(batch, mode="train")
 
+        X_aug_a, X_aug_b, X_br_a, X_br_b, y = batch  # X_aug_a, X_aug_b: augmented ECGs, X_br: baseline removed ECG, y: label
+        # print(f"[ecg] X_aug_a.shape = {X_aug_a.shape}")
+        X_masked_a, r_aug_a_latent = self.encoder(X_aug_a)
+        X_masked_b, r_aug_b_latent = self.encoder(X_aug_b)
+        z_aug_a_domain = self.domain_info_network_head(r_aug_a_latent)
+        z_aug_b_domain = self.domain_info_network_head(r_aug_b_latent)
+        z_aug_a_class = self.class_info_network_head(r_aug_a_latent)
+        z_aug_b_class = self.class_info_network_head(r_aug_b_latent)
+        _, r_masked_a_latent = self.encoder(X_masked_a)
+        _, r_masked_b_latent = self.encoder(X_masked_b)
+        z_masked_a_class = self.class_info_network_head(r_masked_a_latent)
+        z_masked_b_class = self.class_info_network_head(r_masked_b_latent)
+        X_bg_a = X_aug_a - X_masked_a
+        X_bg_b = X_aug_b - X_masked_b
+        _, r_bg_a_latent = self.encoder(X_bg_a)
+        _, r_bg_b_latent = self.encoder(X_bg_b)
+        z_bg_a_domain = self.domain_info_network_head(r_bg_a_latent)
+        z_bg_b_domain = self.domain_info_network_head(r_bg_b_latent)
+        # return_list = [
+        #     z_aug_a_domain, z_aug_b_domain, z_aug_a_class, z_aug_b_class,
+        #     z_masked_a_class, z_masked_b_class, z_bg_a_domain, z_bg_b_domain,
+        #     X_br_a, X_br_b, X_bg_a, X_bg_b
+        # ]
+        loss_type = "mean_distance_to_center"
+        alpha_class = 1.
+        if loss_type == "mean_distance_to_center":
+            def Compute_mean_dist(z_tensor, ord=2):
+                z_mean = torch.mean(z_tensor, dim=2)
+                z_centered = z_tensor - z_mean.unsqueeze(2)
+                z_dist = torch.sqrt(torch.sum(torch.abs(z_centered) ** ord, dim=1))
+                z_dist_mean = torch.mean(z_dist, dim=1)
+                return z_dist_mean
 
+            z_domain_all = torch.cat([z_aug_a_domain.unsqueeze(2), z_aug_b_domain.unsqueeze(2),
+                                      z_bg_a_domain.unsqueeze(2), z_bg_b_domain.unsqueeze(2)], dim=2)
+            z_domain_dist_mean = Compute_mean_dist(z_domain_all)
+            z_class_all = torch.cat([z_aug_a_class.unsqueeze(2), z_aug_b_class.unsqueeze(2),
+                                     z_masked_a_class.unsqueeze(2), z_masked_b_class.unsqueeze(2)], dim=2)
+            z_class_dist_mean = Compute_mean_dist(z_class_all)
+            loss = torch.mean(z_domain_dist_mean) + alpha_class * torch.mean(z_class_dist_mean)
+        else:
+            raise ValueError("loss_type not implemented.")
 
+        return loss
 
 
     def linear_forward(self, batch: Sequence[Any], batch_idx: int) -> torch.Tensor:
