@@ -259,13 +259,13 @@ def main():
         # save checkpoint on last epoch only
         save_args = Checkpointer(
             args,
-            logdir=os.path.join(args.checkpoint_dir, "linear"),
+            logdir=os.path.join(args.checkpoint_dir, "linear", args.name),
             frequency=args.checkpoint_frequency,
             keep_previous_checkpoints=False
         )
         callbacks.append(save_args)
         # PyTorch Lightning Checkpointer
-        chkt_dir = os.path.join(args.checkpoint_dir, "linear", wandb_logger.version)
+        chkt_dir = os.path.join(args.checkpoint_dir, "linear", args.name, wandb_logger.version)
         ckpt = ModelCheckpoint(monitor='val_auroc', dirpath=chkt_dir,
                                save_top_k=-1, mode='max',
                                filename=f"{args.name}-{wandb_logger.version}-" + '{epoch:02d}-{val_auroc:.4f}',
