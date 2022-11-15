@@ -13,6 +13,8 @@ entity: yilongju # replace with your own wandb entity (username)
 #  min_iter: 2
 #  eta: 2
 parameters:
+  name:
+    value: "supervised-transformer_1D-ECG_normalized-20221115_v23-maxep200-es_patience40-mixup-ls-aug_selected_20221029_prob0"
   cluster_name:
     value: "auto"
   n_classes:

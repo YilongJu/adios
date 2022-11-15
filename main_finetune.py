@@ -299,6 +299,7 @@ def main():
     # print(f"tested_ckpt_path = {trainer.tested_ckpt_path}")
     # print(f"trainer.logger.version = {trainer.logger.version}")
     # print(f"wandb_logger.version = {wandb_logger.version}")
+    # print(f"wandb_logger.name = {wandb_logger.name}")
 
 
 if __name__ == "__main__":
