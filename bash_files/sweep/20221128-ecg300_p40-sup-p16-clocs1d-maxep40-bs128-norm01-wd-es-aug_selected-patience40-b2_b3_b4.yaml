@@ -13,6 +13,8 @@ entity: yilongju # replace with your own wandb entity (username)
 #  min_iter: 2
 #  eta: 2
 parameters:
+  name:
+    value: "supervised-clocsCNN_1D-ECG_normalized-20221128_v21-maxep200-early_stopping_patience40-mixup-label_smoothing-aug_selected_20221029_prob0__2"
   cluster_name:
     value: "auto"
   stride:
