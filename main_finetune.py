@@ -136,7 +136,8 @@ def main():
                                                                       shift_amount=signal_min_train,
                                                                       normalize_signal=args.normalize_signal,
                                                                       ecg_resampling_length_target=args.ecg_resampling_length_target,
-                                                                      transforms=args.transforms)
+                                                                      transforms=args.transforms,
+                                                                      aug_prob=args.aug_prob)
         val_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_val_single_lead,
                                                                     shift_signal=args.shift_signal,
                                                                     shift_amount=signal_min_train,

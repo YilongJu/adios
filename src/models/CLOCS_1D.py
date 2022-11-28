@@ -17,12 +17,7 @@ import torch
 
 # %%
 
-c1 = 1  # b/c single time-series
-c2 = 4  # 4
-c3 = 16  # 16
-c4 = 32  # 32
-k = 7  # kernel size #7
-s = 3  # stride #3
+
 
 
 # num_classes = 3
@@ -30,7 +25,7 @@ s = 3  # stride #3
 class cnn_network_contrastive(nn.Module):
     """ CNN for Self-Supervision """
 
-    def __init__(self, dropout_type="drop1d", p1=0.1, p2=0.1, p3=0.1, nencoders=1, stride=s, in_channels=None,
+    def __init__(self, dropout_type="drop1d", p1=0.1, p2=0.1, p3=0.1, nencoders=1, stride=3, in_channels=None,
                  c4_multiplier=10, embedding_dim=256, trial='CLOCS', device='', in_channels_type=None, **kwargs):
         # dropout_type = ['drop1d'] or 'drop2d'
         # p1 = dropout probability for first layer (default = 0.1)
@@ -40,6 +35,13 @@ class cnn_network_contrastive(nn.Module):
         # embedding_dim = dimension of latent embedding (default = 256)
         # trial = ['CMC'] or 'CLOCS' (default = 'CLOCS')
         # device = ['cpu'] or 'cuda' (default = 'cpu')
+        c1 = 1  # b/c single time-series
+        c2 = 4  # 4
+        c3 = 16  # 16
+        c4 = 32  # 32
+        k = 7  # kernel size #7
+        # s = 3  # stride #3
+
         s = stride
         print(s, p1, p2, p3, nencoders, embedding_dim, trial, device)
 
@@ -90,6 +92,8 @@ class cnn_network_contrastive(nn.Module):
             ))
             self.view_linear_modules.append(nn.Linear(c4 * c4_multiplier, self.embedding_dim))
 
+        print(f"c1, c2, k, s, c3, c4, c4_multiplier, embedding_dim: {c1, c2, k, s, c3, c4, c4_multiplier, self.embedding_dim}")
+
     def forward(self, x):
         # Raw input shape: (BxCxS) = (batch_size x num_channels x num_samples)
         """ Forward Pass on Batch of Inputs - CLOCS
@@ -115,8 +119,11 @@ class cnn_network_contrastive(nn.Module):
                 h = torch.reshape(h, (h.shape[0], h.shape[1] * h.shape[2]))
                 h = self.view_linear_modules[n](h)
             else:
+                print(f"[before view_modules] h.shape: {h.shape}")
                 h = self.view_modules[0](h)  # nencoder = 1 (used for all views)
+                print(f"[before reshape] h.shape: {h.shape}")
                 h = torch.reshape(h, (h.shape[0], h.shape[1] * h.shape[2]))
+                print(f"[after reshape] h.shape: {h.shape}")
                 h = self.view_linear_modules[0](h)
 
             latent_embeddings[:, :, n] = h

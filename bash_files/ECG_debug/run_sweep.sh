@@ -153,4 +153,15 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20221115_v23/cf0nxwgq"
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20221115_v23/cf0nxwgq"
 
+# 20221120 ECG (original, without CVP) + transformer 1D (better hyperparameters?)
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20221115_v23/c0l1exut"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20221115_v23/c0l1exut"
+
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20221115_v23/c0l1exut"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20221115_v23/c0l1exut"
+
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20221115_v23/c0l1exut"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20221115_v23/c0l1exut"
+
+
 

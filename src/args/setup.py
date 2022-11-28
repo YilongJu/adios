@@ -68,14 +68,20 @@ def parse_args_pretrain() -> argparse.Namespace:
     parser.add_argument("--ecg_resampling_length", type=int, default=300)
     parser.add_argument("--ecg_resampling_length_target", type=int, default=300)
 
+    # Config for Clocs1D
+    parser.add_argument("--stride", type=int, default=3)  # For CLOCS_1D
+    parser.add_argument("--c4_multiplier", type=int, default=10)  # For CLOCS_1D
 
+    # Config for data augmentation
+    parser.add_argument("--transforms", type=str, default=None)
+    parser.add_argument("--aug_prob", type=float, default=0.0)
 
     # add auto umap, auto mask args
     parser.add_argument("--auto_umap", type=str2bool, nargs='?', const=True, default=False)
     parser.add_argument("--auto_mask", type=str2bool, nargs='?', const=True, default=True)
     parser.add_argument("--load_masks", type=str2bool, nargs='?', const=True, default=True)
     parser.add_argument("--auto_resume", type=str2bool, nargs='?', const=False, default=False)
-    parser.add_argument("--wandb_dir", type=str)
+    # parser.add_argument("--wandb_dir", type=str)
     parser.add_argument("--validation_frequency", type=int, default=1)
     parser.add_argument("--pretrained_dir", type=str, default=None)
     # parser.add_argument("--checkpoint_dir", type=str, default=None)

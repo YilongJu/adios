@@ -22,6 +22,8 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
         N: int,
         mask_fbase: int,
         unet_norm: str,
+        stride: int,
+        c4_multiplier: int,
         **kwargs
     ):
         """Implements SimCLR (https://arxiv.org/abs/2002.05709) with ADIOS. In each forward

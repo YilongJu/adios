@@ -20,6 +20,7 @@ else:
     _dali_avaliable = True
 
 from src.utils.auto_mask import AutoMASK
+
 try:
     from src.utils.auto_umap import AutoUMAP
 except ImportError:
@@ -51,7 +52,6 @@ def main():
         seed = np.random.randint(0, 2 ** 32)
         seed_everything(seed, workers=True)
 
-
     if sys.gettrace() is not None:
         args.num_workers = 0
 
@@ -67,7 +67,8 @@ def main():
     model = MethodClass(**args.__dict__)
 
     if args.dataset in ["ecg-TCH-40_patient-20220201"]:
-        feature_with_ecg_df_train, feature_with_ecg_df_test, save_folder = Data_preprocessing(args)
+        # feature_with_ecg_df_train, feature_with_ecg_df_test, save_folder = Data_preprocessing(args)
+        feature_with_ecg_df_train, feature_with_ecg_df_test, _, _, save_folder = Data_preprocessing(args)
         channel_ID = args.channel_ID
         """ Get dataloader """
         feature_with_ecg_df_train_single_lead = feature_with_ecg_df_train.query(f"channel_ID == {channel_ID}")
@@ -78,8 +79,15 @@ def main():
         ecg_mat = feature_with_ecg_df_train_single_lead[ecg_colnames].values
         signal_min_train = np.min(ecg_mat.ravel())
 
-        train_dataset = dataset_with_index(ECG_classification_dataset_with_peak_features)(feature_with_ecg_df_train_single_lead, shift_signal=args.shift_signal, shift_amount=signal_min_train, normalize_signal=args.normalize_signal, ecg_resampling_length_target=args.ecg_resampling_length_target)
-        test_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_test_single_lead, shift_signal=args.shift_signal, shift_amount=signal_min_train, normalize_signal=args.normalize_signal, ecg_resampling_length_target=args.ecg_resampling_length_target)
+        train_dataset = dataset_with_index(ECG_classification_dataset_with_peak_features)(
+            feature_with_ecg_df_train_single_lead, shift_signal=args.shift_signal, shift_amount=signal_min_train,
+            normalize_signal=args.normalize_signal, ecg_resampling_length_target=args.ecg_resampling_length_target,
+            transforms=args.transforms, aug_prob=args.aug_prob)
+        test_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_test_single_lead,
+                                                                     shift_signal=args.shift_signal,
+                                                                     shift_amount=signal_min_train,
+                                                                     normalize_signal=args.normalize_signal,
+                                                                     ecg_resampling_length_target=args.ecg_resampling_length_target)
 
         train_loader = prepare_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=True
@@ -145,7 +153,8 @@ def main():
             train_loader = prepare_dataloader(
                 train_dataset, batch_size=args.batch_size, num_workers=args.num_workers
             )
-            print(f"train_loader size = # batches {len(train_loader)} * batch_size {args.batch_size} = {len(train_loader) * args.batch_size}")
+            print(
+                f"train_loader size = # batches {len(train_loader)} * batch_size {args.batch_size} = {len(train_loader) * args.batch_size}")
 
         # normal dataloader for when it is available
         _, val_loader = prepare_data_classification(
@@ -191,8 +200,6 @@ def main():
                     # print(f"{ele2[:5, ...]}")
         if i >= 1:
             break
-
-
 
     callbacks = []
 
@@ -253,7 +260,6 @@ def main():
             )
             args.resume_from_checkpoint = resume_from_checkpoint
 
-
     trainer = Trainer.from_argparse_args(
         args,
         logger=wandb_logger if args.wandb else None,
@@ -275,4 +281,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
