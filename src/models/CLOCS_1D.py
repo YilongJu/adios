@@ -119,11 +119,11 @@ class cnn_network_contrastive(nn.Module):
                 h = torch.reshape(h, (h.shape[0], h.shape[1] * h.shape[2]))
                 h = self.view_linear_modules[n](h)
             else:
-                print(f"[before view_modules] h.shape: {h.shape}")
+                # print(f"[before view_modules] h.shape: {h.shape}")
                 h = self.view_modules[0](h)  # nencoder = 1 (used for all views)
-                print(f"[before reshape] h.shape: {h.shape}")
+                # print(f"[before reshape] h.shape: {h.shape}")
                 h = torch.reshape(h, (h.shape[0], h.shape[1] * h.shape[2]))
-                print(f"[after reshape] h.shape: {h.shape}")
+                # print(f"[after reshape] h.shape: {h.shape}")
                 h = self.view_linear_modules[0](h)
 
             latent_embeddings[:, :, n] = h
