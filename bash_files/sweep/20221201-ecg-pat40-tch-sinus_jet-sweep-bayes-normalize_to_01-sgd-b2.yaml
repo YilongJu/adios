@@ -23,7 +23,7 @@ parameters:
   alpha_entropy:
     value: 0
   seed:
-    value: [0, 1, 2]
+    values: [0, 1, 2]
   alpha_sparsity:
     values: [0.25, 0.5, 1., 2.]
   mask_lr:
