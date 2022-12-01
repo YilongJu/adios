@@ -75,7 +75,7 @@ parameters:
   encoder:
     value: "clocs_cnn1d"
   mask_fbase:
-    values: 16
+    values: [16]
   unet_norm:
     value: 'gn'
   N:
