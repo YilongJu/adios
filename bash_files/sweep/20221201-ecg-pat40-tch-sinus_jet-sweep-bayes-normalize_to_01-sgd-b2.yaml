@@ -31,7 +31,7 @@ parameters:
   lr:
     values: [0.001]
   optimizer:
-    value: ["sgd", "adam"]
+    values: ["sgd", "adam"]
   temperature:
     values: [0.2]
   accumulate_grad_batches:
