@@ -97,6 +97,8 @@ class BaseModel(pl.LightningModule):
         lr_decay_steps: Sequence = None,
         disable_knn_eval: bool = True,
         knn_k: int = 20,
+        stride: int = 2,
+        c4_multiplier: int = 3,
         **kwargs,
     ):
         """Base model that implements all basic operations for all self-supervised methods.
@@ -192,7 +194,8 @@ class BaseModel(pl.LightningModule):
 
         # initialize encoder
         self.encoder_kwargs = {"zero_init_residual": zero_init_residual} \
-            if 'resnet' in encoder else {"img_size": img_size}
+            if 'resnet' in encoder else {"img_size": img_size, "stride": stride, "c4_multiplier": c4_multiplier}
+        print(f"self.encoder_kwargs = {self.encoder_kwargs}")
         self.encoder = self.base_model(**self.encoder_kwargs).to(torch.float)
 
         print(f"self.n_crops = {self.n_crops}")
@@ -457,7 +460,7 @@ class BaseModel(pl.LightningModule):
         # print(f"self.n_small_crops = {self.n_small_crops}")
         assert len(X) == self.n_crops + self.n_small_crops
 
-        outs = [self._shared_step(x, targets) for x in X[: self.n_crops]]
+        outs = [self._shared_step(x, targets) for x in X[:self.n_crops]]
 
         # collect data
         logits = [out["logits"] for out in outs]
@@ -484,7 +487,9 @@ class BaseModel(pl.LightningModule):
         logit_cat = torch.cat(logits[:self.n_crops], dim=0)
         # print(f"logit_cat.shape = {logit_cat.shape}")
         scores = softmax(logit_cat)[:, 1]
+        targets = targets.repeat(self.n_crops)
 
+        print(f"scores.shape = {scores.shape}, targets.shape = {targets.shape}")
         self.train_auroc.update(scores.detach(), targets.detach())
 
         out_dict = {

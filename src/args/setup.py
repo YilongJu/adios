@@ -24,6 +24,39 @@ NEED_AUTO_MASK = ["simclr_adios", "simclr_adios_1d", "simclr_adios_s", "simsiam_
                   'byol_adios', 'byol_adios_1d', "byol_adios_s", ]
 NEED_LOAD_MASK = ["simclr_gt", "simclr_rand_mask", *NEED_AUTO_MASK]
 
+def determine_paths_for_clusters_automatically(args):
+    if platform.system() == "Darwin":
+        args.checkpoint_dir = "trained_models"
+        args.wandb_dir = "wandb"
+        args.auto_mask_dir = "auto_mask"
+    else:
+        if args.cluster_name in ["b4"]:
+            args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
+            args.wandb_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios"
+            args.auto_mask_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/auto_mask"
+        elif args.cluster_name in ["b2"]:
+            args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
+            args.wandb_dir = "/mnt/group1/yilong/JET-Detection-Data/adios"
+            args.auto_mask_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/auto_mask"
+        else:  # e.g., args.cluster_name == "auto"
+            if os.path.exists("/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"):
+                args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
+                args.wandb_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios"
+                args.auto_mask_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/auto_mask"
+            elif os.path.exists("/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"):
+                args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
+                args.wandb_dir = "/mnt/group1/yilong/JET-Detection-Data/adios"
+                args.auto_mask_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/auto_mask"
+            elif os.path.exists("/mnt/data/group1/yilong/JET-Detection-Data/adios/trained_models"):
+                args.checkpoint_dir = "/mnt/data/group1/yilong/JET-Detection-Data/adios/trained_models"
+                args.wandb_dir = "/mnt/data/group1/yilong/JET-Detection-Data/adios"
+                args.auto_mask_dir = "/mnt/data/group1/yilong/JET-Detection-Data/adios/auto_mask"
+            else:
+                raise ValueError("Cannot determine checkpoint_dir and wandb_dir!")
+
+    return args
+
+
 def parse_args_pretrain() -> argparse.Namespace:
     """Parses dataset, augmentation, pytorch lightning, model specific and additional args.
 
@@ -75,6 +108,7 @@ def parse_args_pretrain() -> argparse.Namespace:
     # Config for data augmentation
     parser.add_argument("--transforms", type=str, default=None)
     parser.add_argument("--aug_prob", type=float, default=0.0)
+    parser.add_argument("--return_original_signal", type=str2bool, nargs='?', const=True, default=True)
 
     # add auto umap, auto mask args
     parser.add_argument("--auto_umap", type=str2bool, nargs='?', const=True, default=False)
@@ -112,26 +146,7 @@ def parse_args_pretrain() -> argparse.Namespace:
     if not hasattr(temp_args, "morph"):
         args.morph = 'none'
 
-    if platform.system() == "Darwin":
-        args.checkpoint_dir = "trained_models"
-        args.wandb_dir = "wandb"
-    else:
-        if args.cluster_name in ["b4"]:
-            args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
-            args.wandb_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios"
-        elif args.cluster_name in ["b2"]:
-            args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
-            args.wandb_dir = "/mnt/group1/yilong/JET-Detection-Data/adios"
-        else: # e.g., args.cluster_name == "auto"
-            if os.path.exists("/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"):
-                args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
-                args.wandb_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios"
-            elif os.path.exists("/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"):
-                args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
-                args.wandb_dir = "/mnt/group1/yilong/JET-Detection-Data/adios"
-            else:
-                raise ValueError("Cannot determine checkpoint_dir and wandb_dir!")
-
+    args = determine_paths_for_clusters_automatically(args)
     # load pretrained model
     if args.pretrained_dir is not None:
         assert os.path.exists(args.pretrained_dir), \
@@ -293,26 +308,7 @@ def parse_args_finetune() -> argparse.Namespace:
 
     # parse args
     args = parser.parse_args()
-    if platform.system() == "Darwin":
-        args.checkpoint_dir = "trained_models"
-        args.wandb_dir = "wandb"
-    else:
-        if args.cluster_name in ["b4"]:
-            args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
-            args.wandb_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios"
-        elif args.cluster_name in ["b2"]:
-            args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
-            args.wandb_dir = "/mnt/group1/yilong/JET-Detection-Data/adios"
-        else: # e.g., args.cluster_name == "auto"
-            if os.path.exists("/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"):
-                args.checkpoint_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios/trained_models"
-                args.wandb_dir = "/mnt/scratch07/yilong/JET-Detection-Data/adios"
-            elif os.path.exists("/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"):
-                args.checkpoint_dir = "/mnt/group1/yilong/JET-Detection-Data/adios/trained_models"
-                args.wandb_dir = "/mnt/group1/yilong/JET-Detection-Data/adios"
-            else:
-                raise ValueError("Cannot determine checkpoint_dir and wandb_dir!")
-
+    args = determine_paths_for_clusters_automatically(args)
     additional_setup_linear(args)
 
     return args

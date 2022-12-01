@@ -82,7 +82,7 @@ def main():
         train_dataset = dataset_with_index(ECG_classification_dataset_with_peak_features)(
             feature_with_ecg_df_train_single_lead, shift_signal=args.shift_signal, shift_amount=signal_min_train,
             normalize_signal=args.normalize_signal, ecg_resampling_length_target=args.ecg_resampling_length_target,
-            transforms=args.transforms, aug_prob=args.aug_prob)
+            transforms=args.transforms, aug_prob=args.aug_prob, return_original_signal=args.return_original_signal)
         test_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_test_single_lead,
                                                                      shift_signal=args.shift_signal,
                                                                      shift_amount=signal_min_train,
@@ -221,7 +221,7 @@ def main():
         # save checkpoint on last epoch only [all / epochs]
         ckpt = Checkpointer(
             args,
-            logdir=os.path.join(args.checkpoint_dir, args.method),
+            logdir=os.path.join(args.checkpoint_dir, args.method, args.name),
             frequency=args.checkpoint_frequency,
             keep_previous_checkpoints=True
         )

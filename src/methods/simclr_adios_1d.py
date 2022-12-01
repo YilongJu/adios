@@ -22,8 +22,6 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
         N: int,
         mask_fbase: int,
         unet_norm: str,
-        stride: int,
-        c4_multiplier: int,
         **kwargs
     ):
         """Implements SimCLR (https://arxiv.org/abs/2002.05709) with ADIOS. In each forward
@@ -212,11 +210,10 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
                 [X] is a list of size self.n_crops containing batches of images.
         """
-        # TODO: Add transformation for ECG """
-        # indexes, [x_orig, x_transformed], target = batch
+        indexes, [x_orig, x_transformed], target = batch
         # Untransformed pair for now (20220629)
-        indexes, x_orig, target = batch
-        x_transformed = x_orig
+        # indexes, x_orig, target = batch
+        # x_transformed = x_orig
         enc_feat = self.mask_encoder(x_transformed)
         masks = self.mask_head(enc_feat)
 
@@ -242,11 +239,10 @@ class SimCLR_ADIOS_1D(BaseADIOSModel):
             batch (Sequence[Any]): a batch of data in the format of [img_indexes, [X], Y], where
                 [X] is a list of size self.n_crops containing batches of images.
         """
-        # TODO: Add transformation for ECG """
-        # indexes, [x_orig, x_transformed], target = batch
+        indexes, [x_orig, x_transformed], target = batch
         # Untransformed pair for now (20220630)
-        indexes, x_orig, target = batch
-        x_transformed = x_orig
+        # indexes, x_orig, target = batch
+        # x_transformed = x_orig
         enc_feat = self.mask_encoder(x_transformed)
         masks = self.mask_head(enc_feat)
 

@@ -1,0 +1,108 @@
+program: main_pretrain.py
+method: grid
+metric:
+  name: val_auroc
+  goal: maximize
+name: simclr_adios_clocs1D_ECG_normalized-20221230_u01
+description: sweep for ECG data from TCH 40 patients with Sinus and JET
+project: adios_ecg_normalized-adios-20221230_u01
+entity: yilongju # replace with your own wandb entity (username)
+parameters:
+  name:
+    value: "simclr_adios_clocs1D_ECG_normalized-20221230_u01"
+  cluster_name:
+    value: "auto"
+  aug_prob:
+    value: 1.5
+  stride:
+    value: 2
+  c4_multiplier:
+    value: 3
+  transforms:
+    values: ["SelectedAug_20221029"]
+  alpha_entropy:
+    value: 0
+  seed:
+    value: [0, 1, 2]
+  alpha_sparsity:
+    values: [0.25, 0.5, 1., 2.]
+  mask_lr:
+    values: [0.001]
+  lr:
+    values: [0.001]
+  optimizer:
+    value: ["sgd", "adam"]
+  temperature:
+    values: [0.2]
+  accumulate_grad_batches:
+    values: [1, 4, 16]
+  classifier_lr:
+    values: [0.1]
+  weight_decay:
+    values: [1e-6]
+  max_epochs:
+    value: 100
+  precision:
+    value: 32
+  lars:
+    value: True
+  grad_clip_lars:
+    value: True
+  eta_lars:
+    value: 0.02
+  exclude_bias_n_norm:
+    value: True
+  scheduler:
+    value: warmup_cosine
+  batch_size:
+    value: 256
+  num_workers:
+    value: 4
+  proj_hidden_dim:
+    value: 256
+  output_dim:
+    value: 128
+  wandb:
+    value: True
+  gpus:
+    value: 1
+  n_crops:
+    value: 2
+  n_small_crops:
+    value: 0
+  method:
+    value: "simclr_adios_1d"
+  encoder:
+    value: "clocs_cnn1d"
+  mask_fbase:
+    values: 16
+  unet_norm:
+    value: 'gn'
+  N:
+    value: 1
+  dataset:
+    value: "ecg-TCH-40_patient-20220201"
+  ptl_accelerator:
+    value: "ddp"
+  sync_batchnorm:
+    value: True
+  auto_umap:
+    value: False
+  auto_mask:
+    value: True
+  read_data_by_chunk:
+    value: True
+  data_chunk_folder:
+    value: "ecg-pat40-tch-sinus_jet"
+  mask_plot_type:
+    value: "soft"
+  auto_mask_n_batches:
+    value: 25
+  img_per_row:
+    value: 40
+  shift_signal:
+    value: False
+  normalize_signal:
+    value: True
+  ecg_resampling_length_target:
+    value: 300

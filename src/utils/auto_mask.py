@@ -8,6 +8,39 @@ import torch
 from pytorch_lightning.callbacks import Callback
 
 from src.utils.ECG_data_plotting import Convert_batch_of_time_series_to_batch_of_img_torch_array
+import wandb
+
+from typing import Union, Optional, List, Tuple, Text, BinaryIO
+from torchvision.utils import make_grid
+from PIL import Image, ImageDraw, ImageFont, ImageColor
+import pathlib
+@torch.no_grad()
+def save_image_with_return_img_list(
+    tensor: Union[torch.Tensor, List[torch.Tensor]],
+    fp: Union[Text, pathlib.Path, BinaryIO],
+    format: Optional[str] = None,
+    **kwargs
+):
+    """
+    Save a given Tensor into an image file.
+
+    Args:
+        tensor (Tensor or list): Image to be saved. If given a mini-batch tensor,
+            saves the tensor as a grid of images by calling ``make_grid``.
+        fp (string or file object): A filename or a file object
+        format(Optional):  If omitted, the format to use is determined from the filename extension.
+            If a file object was used instead of a filename, this parameter should always be used.
+        **kwargs: Other arguments are documented in ``make_grid``.
+    """
+
+    grid = make_grid(tensor, **kwargs)
+    # Add 0.5 after unnormalizing to [0, 255] to round to nearest integer
+    ndarr = grid.mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
+    # print(f"ndarr.shape: {ndarr.shape}")
+    im = Image.fromarray(ndarr)
+    im.save(fp, format=format)
+    return [im]
+
 
 class AutoMASK(Callback):
     def __init__(
@@ -101,6 +134,14 @@ class AutoMASK(Callback):
             trainer (pl.Trainer): pytorch lightning trainer object.
             module (pl.LightningModule): current module object.
         """
+
+        """ Set seeds for consistent plotting """
+        if self.args.ptl_accelerator in ["ddp"]:
+            for v in trainer.val_dataloaders:
+                v.sampler.shuffle = True
+                v.sampler.set_epoch(0)
+                print(f"v.sampler.set_epoch(0)")
+
         if "none" not in self.path:
             device = module.device
             # set module to eval model and collect all feature representations
@@ -127,7 +168,6 @@ class AutoMASK(Callback):
                         input_img = x.cpu()
                         save_tensor.append(input_img)
                     elif len(x.shape) == 3: # Time series
-                        # TODO: Save ECG plots to buffer and convert to data matrix for plotting [Done]
                         """
                         References: 
                         - https://www.tutorialspoint.com/how-to-convert-matplotlib-figure-to-pil-image-object
@@ -155,7 +195,11 @@ class AutoMASK(Callback):
                     else:
                         raise NotImplementedError("Unknown data shape.")
 
-                    save_image(save_tensor_cat, path)
+                    img_list = save_image_with_return_img_list(save_tensor_cat, path)
+                    # print(f"len(img_list): {len(img_list)}")
+                    wandb.log({"examples": [wandb.Image(img) for img in img_list]}, step=trainer.global_step)
+
+
             module.train()
 
     def on_validation_end(self, trainer: pl.Trainer, module: pl.LightningModule):
@@ -172,9 +216,4 @@ class AutoMASK(Callback):
 
         epoch = trainer.current_epoch  # type: ignore
         if epoch % self.frequency == 0 and not trainer.sanity_checking:
-            if self.args.ptl_accelerator in ["ddp"]:
-                for v in trainer.val_dataloaders:
-                    v.sampler.shuffle = True
-                    v.sampler.set_epoch(0)
-
             self.plot(trainer, module)
