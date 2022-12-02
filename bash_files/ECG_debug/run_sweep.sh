@@ -4,6 +4,10 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix a -
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix b --stop
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix c --stop
 
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --stop
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --stop
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix c --stop
+
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix a --stop
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --stop
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix c --stop
@@ -181,6 +185,18 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --cud
 
 # 20221201 ECG (original, without CVP) + clocs 1D + simclr_adios + data augmentation
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg_normalized-adios-20221230_u01/7vdr76c7"
+
+# 20221202 ECG (original, without CVP) + clocs 1D + data augmentation
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221202_v30/fjtvwtqe"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221202_v30/fjtvwtqe"
+
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221202_v30/fjtvwtqe"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221202_v30/fjtvwtqe"
+
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221202_v30/fjtvwtqe"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221202_v30/fjtvwtqe"
+
+
 
 
 

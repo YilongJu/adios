@@ -80,7 +80,7 @@ def Get_target_and_preds_from_AUROC_object(auroc_object):
     target = torch.cat(auroc_object.target)
     preds = torch.cat(auroc_object.preds)
     preds = torch.cat([(1 - preds).unsqueeze(1), preds.unsqueeze(1)], dim=1)
-    return target, preds
+    return target.cpu(), preds.cpu()
 
 
 def compute_auroc(outputs: List[Dict]) -> float:
