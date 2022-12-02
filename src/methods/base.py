@@ -489,7 +489,7 @@ class BaseModel(pl.LightningModule):
         scores = softmax(logit_cat)[:, 1]
         targets = targets.repeat(self.n_crops)
 
-        print(f"scores.shape = {scores.shape}, targets.shape = {targets.shape}")
+        # print(f"scores.shape = {scores.shape}, targets.shape = {targets.shape}")
         self.train_auroc.update(scores.detach(), targets.detach())
 
         out_dict = {

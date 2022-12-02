@@ -4,8 +4,8 @@ metric:
   name: val_auroc
   goal: maximize
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
-project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221104_v21
-name: supervised-clocsCNN_1D-ECG_normalized-20221128_v21-maxep200-early_stopping_patience40-mixup-label_smoothing-aug_selected_20221029_prob0__2
+project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221202_v30
+name: supervised-clocsCNN_1D-ECG_normalized-20221202_v30-maxep200-early_stopping_patience40-mixup-label_smoothing-aug_selected_20221029_prob0__2
 entity: yilongju # replace with your own wandb entity (username)
 #entity: jspace # replace with your own wandb entity (username)
 #early_terminate:
@@ -14,7 +14,7 @@ entity: yilongju # replace with your own wandb entity (username)
 #  eta: 2
 parameters:
   name:
-    value: "supervised-clocsCNN_1D-ECG_normalized-20221128_v21-maxep200-early_stopping_patience40-mixup-label_smoothing-aug_selected_20221029_prob0__2"
+    value: "supervised-clocsCNN_1D-ECG_normalized-20221202_v30-maxep200-early_stopping_patience40-mixup-label_smoothing-aug_selected_20221029_prob0__2"
   cluster_name:
     value: "auto"
   stride:

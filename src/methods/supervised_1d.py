@@ -1,13 +1,13 @@
 from argparse import ArgumentParser
 from typing import Any, Dict, List, Optional, Sequence, Tuple
-
+import wandb
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from src.utils.lars import LARSWrapper
-from src.utils.metrics import accuracy_at_k, weighted_mean, AUROC
+from src.utils.metrics import accuracy_at_k, weighted_mean, AUROC, Get_target_and_preds_from_AUROC_object
 from src.utils.blocks import str2bool
 from src.utils.tricks import mixup_data, mixup_criterion, LabelSmoothingLoss
 from src.methods.base import SUPPORTED_NETWORKS
@@ -19,28 +19,30 @@ from torch.optim.lr_scheduler import (
 )
 # from pynvml import *
 from torch.autograd import Variable
+
 softmax = torch.nn.Softmax(dim=1)
+
 
 class SupervisedModel_1D(pl.LightningModule):
     def __init__(
-        self,
-        backbone: nn.Module,
-        n_classes: int,
-        max_epochs: int,
-        batch_size: int,
-        optimizer: str,
-        lars: bool,
-        lr: float,
-        weight_decay: float,
-        exclude_bias_n_norm: bool,
-        extra_optimizer_args: dict,
-        scheduler: str,
-        dataset: str,
-        train_backbone: bool,
-        mixup_alpha: float,
-        label_smoothing: float,
-        lr_decay_steps: Optional[Sequence[int]] = None,
-        **kwargs,
+            self,
+            backbone: nn.Module,
+            n_classes: int,
+            max_epochs: int,
+            batch_size: int,
+            optimizer: str,
+            lars: bool,
+            lr: float,
+            weight_decay: float,
+            exclude_bias_n_norm: bool,
+            extra_optimizer_args: dict,
+            scheduler: str,
+            dataset: str,
+            train_backbone: bool,
+            mixup_alpha: float,
+            label_smoothing: float,
+            lr_decay_steps: Optional[Sequence[int]] = None,
+            **kwargs,
     ):
         """Implements linear evaluation.
 
@@ -82,7 +84,8 @@ class SupervisedModel_1D(pl.LightningModule):
         self.train_backbone = train_backbone
         self.mixup_alpha = mixup_alpha
         self.label_smoothing = label_smoothing
-        self.criterion = LabelSmoothingLoss(n_classes=2, smoothing=self.label_smoothing) if self.label_smoothing > 0 else nn.CrossEntropyLoss()
+        self.criterion = LabelSmoothingLoss(n_classes=2,
+                                            smoothing=self.label_smoothing) if self.label_smoothing > 0 else nn.CrossEntropyLoss()
 
         # all the other parameters
         self.extra_args = kwargs
@@ -96,6 +99,10 @@ class SupervisedModel_1D(pl.LightningModule):
         self.train_auroc = AUROC(pos_label=1)
         self.val_auroc = AUROC(pos_label=1)
         self.test_auroc = AUROC(pos_label=1)
+        self.buffer_train_auroc = -1
+        self.max_val_auroc = -1
+        self.corresponding_train_auroc = -1
+        self.update_corresponding_train_auroc = True
 
         if "cifar" in dataset:
             self.backbone.conv1 = nn.Conv2d(
@@ -170,7 +177,8 @@ class SupervisedModel_1D(pl.LightningModule):
         """
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"device = {device}")
-        self.pretrained_occlusion_model_dict["mask_encoder"] = self.pretrained_occlusion_model_dict["mask_encoder"].to(device)
+        self.pretrained_occlusion_model_dict["mask_encoder"] = self.pretrained_occlusion_model_dict["mask_encoder"].to(
+            device)
         self.pretrained_occlusion_model_dict["mask_head"] = self.pretrained_occlusion_model_dict["mask_head"].to(device)
 
         if self.pretrained_occlusion_model_dict is not None:
@@ -251,8 +259,8 @@ class SupervisedModel_1D(pl.LightningModule):
             return [optimizer], [scheduler]
 
     def shared_step(
-        self, batch: Tuple, batch_idx: int
-    , mode: str = "train") -> Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]:
+            self, batch: Tuple, batch_idx: int
+            , mode: str = "train") -> Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Performs operations that are shared between the training, validation and test steps.
 
         Args:
@@ -325,7 +333,16 @@ class SupervisedModel_1D(pl.LightningModule):
         return loss
 
     def training_epoch_end(self, outs: List[Dict[str, Any]]):
-        self.log("train_auroc", self.train_auroc.compute(), on_epoch=True, sync_dist=True)
+        train_auroc = self.train_auroc.compute()
+        # self.buffer_train_auroc = train_auroc
+        if self.update_corresponding_train_auroc:
+            self.corresponding_train_auroc = train_auroc
+
+        self.log("train_auroc", train_auroc, on_epoch=True, sync_dist=True)
+        self.log("corresponding_train_auroc", self.corresponding_train_auroc, on_epoch=True, sync_dist=True)
+        target, preds = Get_target_and_preds_from_AUROC_object(self.train_auroc)
+        title = "Train ROC"
+        wandb.log({title: wandb.plot.roc_curve(target, preds, labels=["Sinus", "JET"], classes_to_plot=[1], title=title)})
         self.train_auroc.reset()
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
@@ -359,7 +376,18 @@ class SupervisedModel_1D(pl.LightningModule):
         Args:
             outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
-        self.log("val_auroc", self.val_auroc.compute(), on_epoch=True, sync_dist=True)
+        val_auroc = self.val_auroc.compute()
+        self.log("val_auroc", val_auroc, on_epoch=True, sync_dist=True)
+        if val_auroc > self.max_val_auroc or self.corresponding_train_auroc < 0:
+            self.max_val_auroc = val_auroc
+            self.update_corresponding_train_auroc = True
+        else:
+            self.update_corresponding_train_auroc = False
+
+        self.log("max_val_auroc", self.max_val_auroc, on_epoch=True, sync_dist=True)
+        target, preds = Get_target_and_preds_from_AUROC_object(self.val_auroc)
+        title = "Validation ROC"
+        wandb.log({title: wandb.plot.roc_curve(target, preds, labels=["Sinus", "JET"], classes_to_plot=[1], title=title)})
         self.val_auroc.reset()
 
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
@@ -367,7 +395,6 @@ class SupervisedModel_1D(pl.LightningModule):
         # val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": float('nan')}
         self.log_dict(log, sync_dist=True)
-
 
     def test_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
         """Performs the test step for the linear eval.
@@ -392,7 +419,6 @@ class SupervisedModel_1D(pl.LightningModule):
         }
         return results
 
-
     def test_epoch_end(self, outs: List[Dict[str, Any]]):
         """Averages the losses and accuracies of all the test batches.
         This is needed because the last batch can be smaller than the others,
@@ -401,7 +427,11 @@ class SupervisedModel_1D(pl.LightningModule):
         Args:
             outs (List[Dict[str, Any]]): list of outputs of the validation step.
         """
-        self.log("test_auroc", self.test_auroc.compute(), on_epoch=True, sync_dist=True)
+        test_auroc = self.test_auroc.compute()
+        self.log("test_auroc", test_auroc, on_epoch=True, sync_dist=True)
+        target, preds = Get_target_and_preds_from_AUROC_object(self.test_auroc)
+        title = "Test ROC"
+        wandb.log({title: wandb.plot.roc_curve(target, preds, labels=["Sinus", "JET"], classes_to_plot=[1], title=title)})
         self.test_auroc.reset()
 
         test_loss = weighted_mean(outs, "test_loss", "batch_size")
@@ -409,4 +439,3 @@ class SupervisedModel_1D(pl.LightningModule):
         # test_acc5 = weighted_mean(outs, "test_acc5", "batch_size")
         log = {"test_loss": test_loss, "test_acc1": test_acc1, "test_acc5": float('nan')}
         self.log_dict(log, sync_dist=True)
-

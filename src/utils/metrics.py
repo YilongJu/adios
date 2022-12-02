@@ -73,6 +73,16 @@ def multiclass_accuracy(outputs: torch.Tensor, targets: torch.Tensor) -> Dict:
 #     except:
 #         auroc = np.nan
 
+def Get_target_and_preds_from_AUROC_object(auroc_object):
+    """
+    Gets the target and predictions from the AUROC object.
+    """
+    target = torch.cat(auroc_object.target)
+    preds = torch.cat(auroc_object.preds)
+    preds = torch.cat([(1 - preds).unsqueeze(1), preds.unsqueeze(1)], dim=1)
+    return target, preds
+
+
 def compute_auroc(outputs: List[Dict]) -> float:
     y_score_list = []
     y_label_list = []
