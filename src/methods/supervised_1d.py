@@ -389,7 +389,11 @@ class SupervisedModel_1D(pl.LightningModule):
         target, preds = Get_target_and_preds_from_AUROC_object(self.val_auroc)
         title = "Validation ROC"
         if len(target) > 0 and len(preds) > 0:
-            wandb.log({title: wandb.plot.roc_curve(target, preds, labels=["Sinus", "JET"], classes_to_plot=[1], title=title)})
+            try:
+                wandb.log({title: wandb.plot.roc_curve(target, preds, labels=["Sinus", "JET"], classes_to_plot=[1], title=title)})
+            except:
+                print(f"target: {target}")
+                print(f"preds: {preds}")
         self.val_auroc.reset()
 
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
