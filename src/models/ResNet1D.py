@@ -133,7 +133,8 @@ class ResNet1D(nn.Module):
         groups: int = 1,
         width_per_group: int = 64,
         replace_stride_with_dilation: Optional[List[bool]] = None,
-        norm_layer: Optional[Callable[..., nn.Module]] = None
+        norm_layer: Optional[Callable[..., nn.Module]] = None,
+        **kwargs
     ) -> None:
         if layers is None:
             layers = [2, 2, 2, 2]
