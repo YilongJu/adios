@@ -7,11 +7,6 @@ description: sweep for ECG data from TCH 40 patients with Sinus and JET
 project: adios_ecg-supervised-ResNet18_1D-ECG_normalized-20221204_v31
 name: supervised-ResNet18_1D-ECG_normalized-20221204_v31-maxep200-early_stopping_patience40-mixup-label_smoothing-aug_selected_20221029_prob0__2
 entity: yilongju # replace with your own wandb entity (username)
-#entity: jspace # replace with your own wandb entity (username)
-#early_terminate:
-#  type: hyperband
-#  min_iter: 2
-#  eta: 2
 parameters:
   name:
     value: "supervised-ResNet18_1D-ECG_normalized-20221204_v31-maxep200-early_stopping_patience40-mixup-label_smoothing-aug_selected_20221029_prob0__2"

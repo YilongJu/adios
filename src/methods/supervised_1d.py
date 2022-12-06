@@ -340,10 +340,10 @@ class SupervisedModel_1D(pl.LightningModule):
 
         self.log("train_auroc", train_auroc, on_epoch=True, sync_dist=True)
         self.log("corresponding_train_auroc", self.corresponding_train_auroc, on_epoch=True, sync_dist=True)
-        target, preds = Get_target_and_preds_from_AUROC_object(self.train_auroc)
-        title = "Train ROC"
-        if len(target) > 0 and len(preds) > 0:
-            wandb.log({title: wandb.plot.roc_curve(target, preds, labels=["Sinus", "JET"], classes_to_plot=[1], title=title)})
+        # target, preds = Get_target_and_preds_from_AUROC_object(self.train_auroc)
+        # title = "Train ROC"
+        # if len(target) > 0 and len(preds) > 0:
+        #     wandb.log({title: wandb.plot.roc_curve(target, preds, labels=["Sinus", "JET"], classes_to_plot=[1], title=title)})
         self.train_auroc.reset()
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
