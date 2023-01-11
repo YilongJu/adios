@@ -61,7 +61,7 @@ parameters:
   num_workers:
     value: 4
   proj_hidden_dim:
-    value: [256, 2048]
+    values: [256, 2048]
   output_dim:
     value: 128
   wandb:
