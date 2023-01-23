@@ -90,10 +90,14 @@ class Checkpointer(Callback):
         if trainer.is_global_zero and not trainer.sanity_checking:
             epoch = trainer.current_epoch  # type: ignore
             ckpt_path = os.path.join(self.path, self.ckpt_placeholder.format(epoch))
-            checkpoint = trainer.checkpoint_connector.dump_checkpoint(weights_only=False)
+            if hasattr(trainer, "checkpoint_connector"):
+                checkpoint = trainer.checkpoint_connector.dump_checkpoint(weights_only=False)
+            else:
+                checkpoint = trainer._checkpoint_connector.dump_checkpoint(weights_only=False)
             for clrs in checkpoint['lr_schedulers']:
                 if 'get_lr' in clrs.keys():
                     clrs.__delitem__('get_lr')
+            # print(f"trainer.accelerator.__dict__", trainer.accelerator.__dict__)
             trainer.accelerator.save_checkpoint(checkpoint, ckpt_path)
 
             if self.last_ckpt and self.last_ckpt != ckpt_path and not self.keep_previous_checkpoints:

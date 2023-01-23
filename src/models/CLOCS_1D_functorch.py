@@ -8,7 +8,6 @@ https://github.com/danikiyasseh/CLOCS
 
 import torch.nn as nn
 import torch
-from src.models.Debugging import *
 
 # %%
 """ Functions in this scripts:
@@ -23,11 +22,11 @@ from src.models.Debugging import *
 
 # num_classes = 3
 
-class cnn_network_contrastive(nn.Module):
+class cnn_network_contrastive_functorch(nn.Module):
     """ CNN for Self-Supervision """
 
     def __init__(self, dropout_type="drop1d", p1=0.1, p2=0.1, p3=0.1, nencoders=1, stride=3, in_channels=None,
-                 c4_multiplier=10, embedding_dim=256, kernel_size=7, trial='CLOCS', device='', in_channels_type=None, **kwargs):
+                 c4_multiplier=10, embedding_dim=256, trial='CLOCS', device='', in_channels_type=None, n_classes=2, **kwargs):
         # dropout_type = ['drop1d'] or 'drop2d'
         # p1 = dropout probability for first layer (default = 0.1)
         # p2 = dropout probability for second layer (default = 0.1)
@@ -40,19 +39,13 @@ class cnn_network_contrastive(nn.Module):
         c2 = 4  # 4
         c3 = 16  # 16
         c4 = 32  # 32
-        k = kernel_size  # kernel size #7
+        k = 7  # kernel size #7
         # s = 3  # stride #3
-        if k in [5, 6, 7]:
-            c4_multiplier = 3
-        elif k in [3, 4]:
-            c4_multiplier = 4
-
 
         s = stride
         print(s, p1, p2, p3, nencoders, embedding_dim, trial, device)
-        print(f"Using kernel size: {k}")
 
-        super(cnn_network_contrastive, self).__init__()
+        super(cnn_network_contrastive_functorch, self).__init__()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.embedding_dim = embedding_dim
         self.num_features = self.embedding_dim
@@ -79,25 +72,27 @@ class cnn_network_contrastive(nn.Module):
         # self.device = device
         self.view_modules = nn.ModuleList()
         self.view_linear_modules = nn.ModuleList()
+        self.n_classes = n_classes
         for n in range(nencoders):
             self.view_modules.append(nn.Sequential(
                 nn.Conv1d(c1, c2, k, s),
-                nn.BatchNorm1d(c2),
+                # nn.BatchNorm1d(c2),
                 nn.ReLU(),
                 nn.MaxPool1d(2),
-                self.dropout1,
+                # self.dropout1,
                 nn.Conv1d(c2, c3, k, s),
-                nn.BatchNorm1d(c3),
+                # nn.BatchNorm1d(c3),
                 nn.ReLU(),
                 nn.MaxPool1d(2),
-                self.dropout2,
+                # self.dropout2,
                 nn.Conv1d(c3, c4, k, s),
-                nn.BatchNorm1d(c4),
+                # nn.BatchNorm1d(c4),
                 nn.ReLU(),
                 nn.MaxPool1d(2),
-                self.dropout3
+                # self.dropout3
             ))
             self.view_linear_modules.append(nn.Linear(c4 * c4_multiplier, self.embedding_dim))
+            self.view_linear_modules.append(nn.Linear(self.embedding_dim, self.n_classes))
 
         print(f"c1, c2, k, s, c3, c4, c4_multiplier, embedding_dim: {c1, c2, k, s, c3, c4, c4_multiplier, self.embedding_dim}")
 
@@ -111,33 +106,13 @@ class cnn_network_contrastive(nn.Module):
         """
         # print(f"clocs 1d input dim: {x.shape}")
         x = x.float()
-        x = x.unsqueeze(3)  # [20221009] Each view is fed seperatedly to the CNN
-        batch_size = x.shape[0]
-        # nsamples = x.shape[2]
-        nviews = x.shape[3]
-        # nviews = 1
-        latent_embeddings = torch.empty(batch_size, self.embedding_dim, nviews, device=self.device)
-        for n in range(nviews):
-            """ Obtain Inputs From Each View """
-            h = x[:, :, :, n]
-
-            if self.trial == 'CMC':
-                h = self.view_modules[n](h)  # nencoders = nviews
-                h = torch.reshape(h, (h.shape[0], h.shape[1] * h.shape[2]))
-                h = self.view_linear_modules[n](h)
-            else:
-                # print(f"[before view_modules] h.shape: {h.shape}")
-                h = self.view_modules[0](h)  # nencoder = 1 (used for all views)
-                # print(f"[before reshape] h.shape: {h.shape}")
-                h = torch.reshape(h, (h.shape[0], h.shape[1] * h.shape[2]))
-                # print(f"[after reshape] h.shape: {h.shape}")
-                h = self.view_linear_modules[0](h)
-
-            latent_embeddings[:, :, n] = h
-
-        # latent_embeddings.shape = (batch_size x embedding_dim x nviews)
-        latent_embeddings = latent_embeddings.squeeze(2)
-        return latent_embeddings
+        # print(f"x.shape: {x.shape}")
+        x = self.view_modules[0](x)
+        x = torch.reshape(x, (x.shape[0], x.shape[1] * x.shape[2]))
+        latent_embeddings = self.view_linear_modules[0](x)
+        logits = self.view_linear_modules[1](latent_embeddings)
+        # print(f"latent_embeddings:\n{latent_embeddings}")
+        return logits
 
 
 class second_cnn_network(nn.Module):
@@ -153,8 +128,3 @@ class second_cnn_network(nn.Module):
         h = h.squeeze()  # to get rid of final dimension from torch.empty before
         output = self.linear(h)
         return output
-
-if __name__ == "__main__":
-    model = cnn_network_contrastive(stride=2, embedding_dim=16, kernel_size=6)
-    input_dim = (1, 300) # without the batch dimension
-    print(summary(model, input_dim))

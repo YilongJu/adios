@@ -1,3 +1,4 @@
+import copy
 import os
 import json
 from pathlib import Path
@@ -21,6 +22,7 @@ else:
     _dali_avaliable = True
 from src.methods.supervised import SupervisedModel
 from src.methods.supervised_1d import SupervisedModel_1D
+from src.methods.supervised_1d_PNTK import SupervisedModel_1D_PNTK
 from src.utils.classification_dataloader import prepare_data
 from src.utils.checkpointer import Checkpointer
 from src.methods import METHODS
@@ -33,9 +35,12 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 
+from functorch import make_functional_with_buffers, vmap, grad, jacrev
+
 def main():
     args = parse_args_finetune()
     if args.mask_feature_extractor is not None:
+        print("Masking feature extractor")
         # build paths
         ckpt_dir = Path(args.mask_feature_extractor)
         args_path = ckpt_dir / "args.json"
@@ -66,9 +71,11 @@ def main():
             raise NotImplementedError("Unknown precision.")
 
     else:
+        print("No mask feature extractor")
         pretrained_occlusion_model_dict = None
 
     if args.pretrained_feature_extractor is not None:
+        print("Loading pretrained feature extractor...")
         # build paths
         ckpt_dir = Path(args.pretrained_feature_extractor)
         args_path = ckpt_dir / "args.json"
@@ -82,10 +89,11 @@ def main():
         model_base = METHODS[method_args["method"]].load_from_checkpoint(
             ckpt_path, strict=False, **method_args
         )
-        model = model_base.encoder
+        model_pytorch = model_base.encoder
     else:
+        print("No pretrained feature extractor.")
         base_model = SUPPORTED_NETWORKS[args.encoder]
-        model = base_model(zero_init_residual=args.zero_init_residual,
+        model_pytorch = base_model(zero_init_residual=args.zero_init_residual,
                            embedding_dim=args.embedding_dim, stride=args.stride,
                            c4_multiplier=args.c4_multiplier, in_channels=args.in_channels,
                            in_channels_type=args.in_channels_type,
@@ -97,17 +105,15 @@ def main():
                            dim_feedforward=args.dim_feedforward,
                            dropout=args.dropout,
                            activation=args.activation,
-                           use_raw_patch=args.use_raw_patch,
-                           kernel_size=args.kernel_size)
-        # remove fc layer
-        model.fc = nn.Identity()
+                           use_raw_patch=args.use_raw_patch)
+        # # remove fc layer
+        # model_pytorch.fc = nn.Identity()
 
-    model.pretrained_occlusion_model_dict = pretrained_occlusion_model_dict
-
+    # model.pretrained_occlusion_model_dict = pretrained_occlusion_model_dict
     # model = SupervisedModel(model, **args.__dict__)
 
     if args.dataset in ["ecg-TCH-40_patient-20220201"]:
-        model = SupervisedModel_1D(model, **args.__dict__)
+        model = SupervisedModel_1D_PNTK(model_pytorch, **args.__dict__)
 
         feature_with_ecg_df_train, feature_with_ecg_df_test, feature_with_ecg_df_dev, feature_with_ecg_df_val, save_folder = Data_preprocessing(
             args)
@@ -150,8 +156,8 @@ def main():
                                                                      normalize_signal=args.normalize_signal,
                                                                      ecg_resampling_length_target=args.ecg_resampling_length_target)
 
-        if Lower(args.transforms) in [Lower("Identity")]:
-            args.batch_size = args.batch_size * 2
+        # if Lower(args.transforms) in [Lower("Identity")]:
+        #     args.batch_size = args.batch_size * 2
 
         train_loader = prepare_dataloader(
             train_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=True
@@ -163,7 +169,7 @@ def main():
             test_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=False
         )
     elif args.dataset in ["ecg-TCH-40_patient-20220201_with_CVP"]:
-        model = SupervisedModel_1D(model, **args.__dict__)
+        model = SupervisedModel_1D_PNTK(model_pytorch, **args.__dict__)
 
         _, feature_with_ecg_df_test, feature_with_ecg_df_dev, feature_with_ecg_df_val, save_folder = Data_preprocessing(
             args)
@@ -231,7 +237,7 @@ def main():
             test_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=False
         )
     else:
-        model = SupervisedModel(model, **args.__dict__)
+        model = SupervisedModel(model_pytorch, **args.__dict__)
 
         train_loader, val_loader = prepare_data(
             dataset=args.dataset,
@@ -259,13 +265,13 @@ def main():
         callbacks.append(lr_monitor)
 
         # save checkpoint on last epoch only
-        save_args = Checkpointer(
-            args,
-            logdir=os.path.join(args.checkpoint_dir, "linear", args.name),
-            frequency=args.checkpoint_frequency,
-            keep_previous_checkpoints=False
-        )
-        callbacks.append(save_args)
+        # save_args = Checkpointer(
+        #     args,
+        #     logdir=os.path.join(args.checkpoint_dir, "linear", args.name),
+        #     frequency=args.checkpoint_frequency,
+        #     keep_previous_checkpoints=False
+        # )
+        # callbacks.append(save_args)
         # PyTorch Lightning Checkpointer
         chkt_dir = os.path.join(args.checkpoint_dir, "linear", args.name, wandb_logger.version)
         ckpt = ModelCheckpoint(monitor='val_auroc', dirpath=chkt_dir,
@@ -290,18 +296,43 @@ def main():
         check_val_every_n_epoch=args.validation_frequency,
         deterministic=False if args.ptl_accelerator in ["cpu"] else True
     )
+    """ PNTK setup """
+    print(f"trainer.num_training_batches: {trainer.num_training_batches}")
+    # model.train_batches = int(trainer.num_training_batches)
+    model.train_batches = len(train_loader)
+    print(f"model.train_batches: {model.train_batches}")
+    print(f"batch_size: {model.batch_size}")
+    print(f"Dout: {model.Dout}")
+    model.PNTK_logging_dict["PNTK"] = torch.zeros(model.batch_size * model.train_batches, model.batch_size, model.Dout)
+
+    """ Get 1st batch of test data. Reset dataloader after getting them. """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    for idx, (test_x, test_label) in enumerate(test_loader):
+        if idx == 0:  # 1st batch only - save space/time
+            model.PNTK_logging_dict["test_X_batch_0"] = test_x.to(device)
+    test_loader = prepare_dataloader(
+        test_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=False
+    )
+
+
+    # """ For functorch calculation """
+    # model_pytorch_b = copy.deepcopy(model_pytorch)
+    # fmodel, _, buffers = make_functional_with_buffers(model_pytorch_b)
+    # model.PNTK_functorch_dict["fmodel"] = fmodel # Use `model.fmodel = fmodel` will cause error due to the underlying copy operation
+    # model.PNTK_functorch_dict["buffers"] = buffers
+    # model.PNTK_functorch_dict["ft_compute_grad"] = grad(model.compute_loss_stateless_model)
+    # model.PNTK_functorch_dict["ft_compute_sample_grad"] = vmap(model.PNTK_functorch_dict["ft_compute_grad"], in_dims=(None, None, 0, 0))
+    # model.PNTK_functorch_dict["ft_compute_jac"] = jacrev(model.compute_output_stateless_model)
+    # model.PNTK_functorch_dict["ft_compute_sample_jac"] = vmap(model.PNTK_functorch_dict["ft_compute_jac"], in_dims=(None, None, 0))
+    # print(f"model.fmodel: {fmodel}")
+
+
     if args.dali:
         trainer.fit(model, val_dataloaders=val_loader)
     else:
         trainer.fit(model, train_loader, val_loader)
-        # trainer.fit(model, train_loader)
 
     trainer.test(ckpt_path="best", dataloaders=test_loader)
-    # print(f"tested_ckpt_path = {trainer.tested_ckpt_path}")
-    # print(f"trainer.logger.version = {trainer.logger.version}")
-    # print(f"wandb_logger.version = {wandb_logger.version}")
-    # print(f"wandb_logger.name = {wandb_logger.name}")
-
 
 if __name__ == "__main__":
     main()

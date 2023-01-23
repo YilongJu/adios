@@ -265,6 +265,7 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--ecg_resampling_length_target", type=int, default=300)
     parser.add_argument("--stride", type=int, default=3) # For CLOCS_1D
     parser.add_argument("--c4_multiplier", type=int, default=10) # For CLOCS_1D
+    parser.add_argument("--kernel_size", type=int, default=7) # For CLOCS_1D
 
     parser.add_argument("--n_classes", type=int, default=2) # For Transformer_1D
     parser.add_argument("--n_length", type=int, default=300) # For Transformer_1D
