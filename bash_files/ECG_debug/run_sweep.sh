@@ -210,6 +210,12 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3 --prefix a --cuda --command "wandb agent yilongju/ECG-adios-20230111/a5e4meru"
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3 --prefix b --cuda --command "wandb agent yilongju/ECG-adios-20230111/a5e4meru"
 
+# 20230123 ECG (original, without CVP) + Clocs 1D + data augmentation (prob = 1.25) + kernel size (3, 4, 5, 6)
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20230123_v30/3tkl4qcc"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20230123_v30/3tkl4qcc"
+
+
+
 
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --stop
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --stop
