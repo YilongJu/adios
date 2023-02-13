@@ -12,6 +12,7 @@ for 12-Lead ECG Classification. 2020 Computing in Cardiology, 2020, pp. 1–4, d
 import torch
 import torch.nn as nn
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
+from src.models.Debugging import *
 
 
 class PositionalEncoding(nn.Module):
@@ -178,5 +179,9 @@ class Transformer1D(nn.Module):
         #         print('shape after flatten', xc.shape)
         #         xc = self.fc_out2(self.dropout(self.relu(self.fc_out1(xc))))
         xc = self.dropout(self.relu(self.fc_out1(xc)))
-
         return xc
+
+if __name__ == "__main__":
+    model = Transformer1D(stride=2, embedding_dim=16, kernel_size=6)
+    input_dim = (1, 300) # without the batch dimension
+    print(summary(model, input_dim))

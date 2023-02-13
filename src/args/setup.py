@@ -260,7 +260,7 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--channel_ID", type=int, default=2)
     ## Preprocessing for ECG data
     parser.add_argument("--shift_signal", type=str2bool, nargs='?', const=True, default=False)
-    parser.add_argument("--normalize_signal", type=str2bool, nargs='?', const=True, default=False)
+    parser.add_argument("--normalize_signal", type=bool, default=True)
     parser.add_argument("--ecg_resampling_length", type=int, default=300)
     parser.add_argument("--ecg_resampling_length_target", type=int, default=300)
     parser.add_argument("--stride", type=int, default=3) # For CLOCS_1D
@@ -275,6 +275,8 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--dim_feedforward", type=int, default=128) # For Transformer_1D
     parser.add_argument("--dropout", type=float, default=0.1) # For Transformer_1D
     parser.add_argument("--activation", type=str, default="relu") # For Transformer_1D
+    parser.add_argument("--pos_encoding", type=str, default="learned") # For TS Transformer_1D
+    parser.add_argument("--feat_dim", type=int, default=1) # For TS Transformer_1D
     parser.add_argument("--use_raw_patch", type=str2bool, nargs='?', const=True, default=False)
 
     parser.add_argument("--transforms", type=str, default=None)

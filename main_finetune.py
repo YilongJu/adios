@@ -86,8 +86,10 @@ def main():
     else:
         base_model = SUPPORTED_NETWORKS[args.encoder]
         model = base_model(zero_init_residual=args.zero_init_residual,
-                           embedding_dim=args.embedding_dim, stride=args.stride,
-                           c4_multiplier=args.c4_multiplier, in_channels=args.in_channels,
+                           embedding_dim=args.embedding_dim,
+                           stride=args.stride,
+                           c4_multiplier=args.c4_multiplier,
+                           in_channels=args.in_channels,
                            in_channels_type=args.in_channels_type,
                            n_classes=args.n_classes,
                            n_length=args.ecg_resampling_length_target,
@@ -116,8 +118,7 @@ def main():
         feature_with_ecg_df_dev_single_lead = feature_with_ecg_df_dev.query(f"channel_ID == {channel_ID}")
         feature_with_ecg_df_val_single_lead = feature_with_ecg_df_val.query(f"channel_ID == {channel_ID}")
         feature_with_ecg_df_test_single_lead = feature_with_ecg_df_test.query(f"channel_ID == {channel_ID}")
-        print(
-            f"Single lead: dev: {feature_with_ecg_df_dev_single_lead.shape}, val: {feature_with_ecg_df_val_single_lead.shape}, test: {feature_with_ecg_df_test_single_lead.shape}")
+        print(f"Single lead: dev: {feature_with_ecg_df_dev_single_lead.shape}, val: {feature_with_ecg_df_val_single_lead.shape}, test: {feature_with_ecg_df_test_single_lead.shape}")
 
         if args.save_eval_dataset:
             feature_with_ecg_df_val_single_lead.to_csv(
@@ -259,13 +260,13 @@ def main():
         callbacks.append(lr_monitor)
 
         # save checkpoint on last epoch only
-        save_args = Checkpointer(
-            args,
-            logdir=os.path.join(args.checkpoint_dir, "linear", args.name),
-            frequency=args.checkpoint_frequency,
-            keep_previous_checkpoints=False
-        )
-        callbacks.append(save_args)
+        # save_args = Checkpointer(
+        #     args,
+        #     logdir=os.path.join(args.checkpoint_dir, "linear", args.name),
+        #     frequency=args.checkpoint_frequency,
+        #     keep_previous_checkpoints=False
+        # )
+        # callbacks.append(save_args)
         # PyTorch Lightning Checkpointer
         chkt_dir = os.path.join(args.checkpoint_dir, "linear", args.name, wandb_logger.version)
         ckpt = ModelCheckpoint(monitor='val_auroc', dirpath=chkt_dir,
