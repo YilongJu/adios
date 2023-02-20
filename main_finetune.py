@@ -4,7 +4,7 @@ from pathlib import Path
 from torch import nn
 import wandb
 
-from pytorch_lightning import Trainer
+from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.plugins import DDPPlugin
@@ -35,6 +35,12 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 
 def main():
     args = parse_args_finetune()
+    seed = args.seed
+    if seed >= 0:
+        seed_everything(seed, workers=True)
+    else:
+        seed = np.random.randint(0, 2 ** 32)
+        seed_everything(seed, workers=True)
     if args.mask_feature_extractor is not None:
         # build paths
         ckpt_dir = Path(args.mask_feature_extractor)

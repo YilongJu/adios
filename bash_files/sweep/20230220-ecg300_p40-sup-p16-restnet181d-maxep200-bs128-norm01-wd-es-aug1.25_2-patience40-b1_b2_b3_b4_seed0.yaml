@@ -4,8 +4,8 @@ metric:
   name: val_auroc
   goal: maximize
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
-project: adios_ecg-supervised-tstransformer_1D-ECG_normalized-20230213_v33
-name: supervised-tstransformer_1D-ECG_normalized-20230213_v34-maxep200-es_patience40-mixup-ls-aug_selected_20221029_prob1.25
+project: adios_ecg-supervised-ResNet18_1D-ECG_normalized-20230220_v36
+name: supervised-ResNet18_1D-ECG_normalized-20230220_v36-maxep200-early_stopping_patience40-mixup-label_smoothing-aug_selected_20221029-prob1.25_2-seed0
 entity: yilongju # replace with your own wandb entity (username)
 #entity: jspace # replace with your own wandb entity (username)
 #early_terminate:
@@ -14,29 +14,13 @@ entity: yilongju # replace with your own wandb entity (username)
 #  eta: 2
 parameters:
   name:
-    value: "supervised-tstransformer_1D-ECG_normalized-20230213_v34-maxep200-es_patience40-mixup-ls-aug_selected_20221029_prob1.25"
-  cluster_name:
-    value: "auto"
-  n_classes:
+    value: "supervised-ResNet18_1D-ECG_normalized-20230220_v36-maxep200-early_stopping_patience40-mixup-label_smoothing-aug_selected_20221029-prob1.25_2-seed0"
+  encoder:
+    value: "clocs_cnn1d"
+  stride:
     value: 2
-  feat_dim:
-    value: 1
-  num_layers:
-    values: [4]
-  dim_feedforward:
-    values: [256, 512]
-  pos_encoding:
-    value: "learned"
-  activation:
-    value: "gelu"
-  d_model:
-    values: [64, 128, 256]
-  use_raw_patch:
-    value: False
-  nhead:
-    values: [8, 16]
   aug_prob:
-    values: [1.25]
+    values: [1.25, 2]
   mixup_alpha:
     values: [0.2]
   label_smoothing:
@@ -44,19 +28,19 @@ parameters:
   transforms:
     values: ["SelectedAug_20221029"]
   batch_size:
-    value: 128 # Should be halfed when transforms are used (effective batch size = batch_size * 2)
+    value: 128 # Should be halfed when no transforms are used (effective batch size = batch_size * 2)
   seed:
-    values: [0, 1, 2, 3, 4]
+    values: [0]
   lr:
-    values: [0.0001, 0.001]
+    values: [0.0001, 0.000316, 0.001, 0.00316, 0.01]
   optimizer:
     values: ["adam", "sgd"]
   weight_decay:
-    values: [1e-6]
+    value: 1e-6
   max_epochs:
     value: 200
   patience:
-    value: 100
+    value: 40
   precision:
     value: 32
   lars:
@@ -71,10 +55,10 @@ parameters:
     value: True
   gpus:
     value: 0
-  encoder:
-    value: "ts_transformer1d"
   ecg_resampling_length_target:
-    value: 256
+    value: 300
+  embedding_dim:
+    values: [256]
   dataset:
     value: "ecg-TCH-40_patient-20220201"
   ptl_accelerator:
@@ -95,3 +79,5 @@ parameters:
     value: False
   train_backbone:
     value: True
+  cluster_name:
+    value: "auto"

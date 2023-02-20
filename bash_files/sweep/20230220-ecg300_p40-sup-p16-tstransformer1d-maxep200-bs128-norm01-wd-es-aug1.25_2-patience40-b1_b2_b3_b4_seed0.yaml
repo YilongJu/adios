@@ -4,8 +4,8 @@ metric:
   name: val_auroc
   goal: maximize
 description: sweep for ECG data from TCH 40 patients with Sinus and JET
-project: adios_ecg-supervised-tstransformer_1D-ECG_normalized-20230213_v33
-name: supervised-tstransformer_1D-ECG_normalized-20230213_v34-maxep200-es_patience40-mixup-ls-aug_selected_20221029_prob1.25
+project: adios_ecg-supervised-tstransformer_1D-ECG_normalized-20230220_v35
+name: supervised-tstransformer_1D-ECG_normalized-20230220_v35-maxep200-es_patience40-mixup-ls-aug_selected_20221029_prob1.25_seed0
 entity: yilongju # replace with your own wandb entity (username)
 #entity: jspace # replace with your own wandb entity (username)
 #early_terminate:
@@ -14,9 +14,9 @@ entity: yilongju # replace with your own wandb entity (username)
 #  eta: 2
 parameters:
   name:
-    value: "supervised-tstransformer_1D-ECG_normalized-20230213_v34-maxep200-es_patience40-mixup-ls-aug_selected_20221029_prob1.25"
-  cluster_name:
-    value: "auto"
+    value: "supervised-tstransformer_1D-ECG_normalized-20230220_v35-maxep200-es_patience40-mixup-ls-aug_selected_20221029_prob1.25_seed0"
+  encoder:
+    value: "ts_transformer1d"
   n_classes:
     value: 2
   feat_dim:
@@ -36,7 +36,7 @@ parameters:
   nhead:
     values: [8, 16]
   aug_prob:
-    values: [1.25]
+    values: [1.25, 2]
   mixup_alpha:
     values: [0.2]
   label_smoothing:
@@ -44,11 +44,11 @@ parameters:
   transforms:
     values: ["SelectedAug_20221029"]
   batch_size:
-    value: 128 # Should be halfed when transforms are used (effective batch size = batch_size * 2)
+    value: 128 # Should be halfed when no transforms are used (effective batch size = batch_size * 2)
   seed:
-    values: [0, 1, 2, 3, 4]
+    values: [0]
   lr:
-    values: [0.0001, 0.001]
+    values: [0.0001, 0.000316, 0.001, 0.00316, 0.01]
   optimizer:
     values: ["adam", "sgd"]
   weight_decay:
@@ -71,8 +71,6 @@ parameters:
     value: True
   gpus:
     value: 0
-  encoder:
-    value: "ts_transformer1d"
   ecg_resampling_length_target:
     value: 256
   dataset:
@@ -95,3 +93,5 @@ parameters:
     value: False
   train_backbone:
     value: True
+  cluster_name:
+    value: "auto"

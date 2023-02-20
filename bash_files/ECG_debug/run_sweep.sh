@@ -225,6 +225,14 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20221115_v23/xlj77u6u"
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20221115_v23/xlj77u6u"
 
+# 20230213 ECG (original, without CVP) + TS_Transformer 1D + data augmentation (prob = 1.25)
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-tstransformer_1D-ECG_normalized-20230213_v33/y5iyvs4k"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-tstransformer_1D-ECG_normalized-20230213_v33/y5iyvs4k"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20230208_v33/pq39pbpr"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20230208_v33/pq39pbpr"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20230208_v33/pq39pbpr"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20230208_v33/pq39pbpr"
+
 
 
 
