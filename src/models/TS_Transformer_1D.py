@@ -220,7 +220,8 @@ class TSTransformerEncoderClassiregressor(nn.Module):
         # NOTE: logic for padding masks is reversed to comply with definition in MultiHeadAttention, TransformerEncoderLayer
         if padding_masks is None:
             # Shape = [N, S] = [batch_size, seq_length]
-            padding_masks = torch.ones(size=(batch_size, seq_length)).bool()
+            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            padding_masks = torch.ones(size=(batch_size, seq_length)).bool().to(device)
 
         # print(f"after pos_enc, padding_masks.shape = {padding_masks.shape}")
         output = self.transformer_encoder(inp, src_key_padding_mask=~padding_masks)  # (seq_length, batch_size, d_model)

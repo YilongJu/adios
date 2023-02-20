@@ -67,7 +67,7 @@ class SelfAttentionPooling(nn.Module):
 class Transformer1D(nn.Module):
 
     def __init__(self, d_model=64, nhead=1, dim_feedforward=128, nlayers=3, n_length=300, embedding_dim=64,
-                 n_conv_layers=2, n_class=2, dropout=0.5, dropout_other=0.1, use_raw_patch=False, **kwargs):
+                 n_conv_layers=2, n_class=2, dropout=0.5, dropout_other=0.1, use_raw_patch=False, kernel_size=3, **kwargs):
         super(Transformer1D, self).__init__()
         self.model_type = 'Transformer'
         self.n_class = n_class
@@ -75,6 +75,7 @@ class Transformer1D(nn.Module):
         self.num_features = embedding_dim
         self.relu = torch.nn.ReLU()
         self.d_model = d_model
+        self.kernel_size = kernel_size
         self.d_size = n_length // d_model
         self.use_raw_patch = use_raw_patch
         self.pos_encoder = PositionalEncoding(d_model, dropout, max_len=n_length)
@@ -112,11 +113,11 @@ class Transformer1D(nn.Module):
         # self.init_weights()
         # Transformer Conv. layers
         if not self.use_raw_patch:
-            self.conv1 = torch.nn.Conv1d(in_channels=1, out_channels=2 * embedding_dim, kernel_size=3, stride=1,
+            self.conv1 = torch.nn.Conv1d(in_channels=1, out_channels=2 * embedding_dim, kernel_size=self.kernel_size, stride=1,
                                          padding='same')
-            self.conv2 = torch.nn.Conv1d(in_channels=2 * embedding_dim, out_channels=d_model, kernel_size=3, stride=1,
+            self.conv2 = torch.nn.Conv1d(in_channels=2 * embedding_dim, out_channels=d_model, kernel_size=self.kernel_size, stride=1,
                                          padding=1)
-            self.conv = torch.nn.Conv1d(in_channels=d_model, out_channels=d_model, kernel_size=3, stride=1, padding='same')
+            self.conv = torch.nn.Conv1d(in_channels=d_model, out_channels=d_model, kernel_size=self.kernel_size, stride=1, padding='same')
             # self.bn1 = nn.BatchNorm1d(128)
             # self.bn2 = nn.BatchNorm1d(d_model)
             self.maxpool_list = [
@@ -182,6 +183,7 @@ class Transformer1D(nn.Module):
         return xc
 
 if __name__ == "__main__":
-    model = Transformer1D(stride=2, embedding_dim=16, kernel_size=6)
+    kernel_size = 3
+    model = Transformer1D(stride=2, embedding_dim=16, kernel_size=kernel_size)
     input_dim = (1, 300) # without the batch dimension
     print(summary(model, input_dim))
