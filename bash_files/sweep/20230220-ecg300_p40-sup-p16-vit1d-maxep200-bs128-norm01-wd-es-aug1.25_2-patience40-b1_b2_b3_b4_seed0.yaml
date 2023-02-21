@@ -68,7 +68,7 @@ parameters:
   gpus:
     value: 0
   ecg_resampling_length_target:
-    value: 256
+    value: 300
   dataset:
     value: "ecg-TCH-40_patient-20220201"
   ptl_accelerator:
