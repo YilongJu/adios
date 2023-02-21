@@ -234,7 +234,7 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix a --cud
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-transformer_1D-ECG_normalized-20230208_v33/pq39pbpr"
 
 
-# 20230213 ECG (original, without CVP) + for deep hyperparam ensemble (prob 1.25 + 2)
+# 20230213 ECG (original, without CVP) + for deep hyperparam ensemble (prob 1.25 + 2), ClocsCNN, ResNet18-1D, TSTransformer, Transformer
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20230220_v30-deep_ensemble/juof5v6k"
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20230220_v30-deep_ensemble/juof5v6k"
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-ResNet18_1D-ECG_normalized-20230220_v36/nv4hvgqe"
@@ -243,6 +243,10 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-tstransformer_1D-ECG_normalized-20230220_v35/2hoaak78"
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-tstransformer_1D-ECG_normalized-20230220_v35/2hoaak78"
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-tstransformer_1D-ECG_normalized-20230220_v35/2hoaak78"
+
+# 20230213 ECG (original, without CVP) + for deep hyperparam ensemble (prob 1.25 + 2), Vit1D
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-ViT_1D-ECG_normalized-20230220_v35/hkr94aku"
+
 
 
 

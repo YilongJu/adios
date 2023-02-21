@@ -81,6 +81,8 @@ class ViT(nn.Module):
     def __init__(self, *, seq_len=300, patch_size=15, num_classes=2, dim=256, depth=6, heads=8,
                  mlp_dim=512, channels=1, dim_head=64, dropout=0.1, emb_dropout=0.1, **kwargs):
         super().__init__()
+
+        print(f"seq_len = {seq_len}, patch_size = {patch_size}")
         assert (seq_len % patch_size) == 0
 
         num_patches = seq_len // patch_size
