@@ -151,39 +151,43 @@ class Transformer1D(nn.Module):
             # print('initial src shape:', src.shape)
             #         src = src.view(-1, 1, src.shape[1]) # Resize to --> [batch, input_channels, signal_length]
             src = self.relu(self.conv1(src))
-            # print('src shape after conv1:', src.shape)
+            print('src shape after conv1:', src.shape)
             src = self.relu(self.conv2(src))
             # src = self.maxpool(self.relu(src))
-            # print('src shape after conv2:', src.shape)
+            print('src shape after conv2:', src.shape)
             for i in range(self.n_conv_layers):
                 src = self.relu(self.conv(src))
+                print(f'src shape after conv_{i}:', src.shape)
                 src = self.maxpool_list[i](src)
+                print(f'src shape after maxpool_{i}:', src.shape)
+
 
         # print('src shape after more convlayers:', src.shape)
         # src = self.maxpool(self.relu(src))
         src = src.permute(2, 0, 1)  # reshape from [batch, embedding dim., sequence] --> [sequence, batch, embedding dim.]
-        # print('src shape after permute:', src.shape)
+        print('src shape after permute:', src.shape)
         src = self.pos_encoder(src)
-        # print('src shape after copos_encodernv1:', src.shape)  # [batch, embedding, sequence]
+        print('src shape after copos_encodernv1:', src.shape)  # [batch, embedding, sequence]
         output = self.transformer_encoder(src)  # output: [sequence, batch, embedding dim.], (ex. [3000, 5, 512])
-        # print('output shape 1:', output.shape)
+        print('output shape 1:', output.shape)
         # output = self.avg_maxpool(output)
         # output = torch.mean(output, dim=0) # take mean of sequence dim., output: [batch, embedding dim.]
         output = output.permute(1, 0, 2)
         output = self.self_att_pool(output)
-        # print('output shape 2:', output.shape)
+        print('output shape 2:', output.shape)
         logits = self.decoder(output)  # output: [batch, n_class]
-        # print('output shape 3:', logits.shape)
+        print('output shape 3:', logits.shape)
         logits_concat = logits
         # Linear output layer after concat.
         xc = self.flatten_layer(logits_concat)
-        #         print('shape after flatten', xc.shape)
+        print('shape after flatten', xc.shape)
         #         xc = self.fc_out2(self.dropout(self.relu(self.fc_out1(xc))))
         xc = self.dropout(self.relu(self.fc_out1(xc)))
         return xc
 
 if __name__ == "__main__":
     kernel_size = 3
-    model = Transformer1D(stride=2, embedding_dim=16, kernel_size=kernel_size)
+    model = Transformer1D(d_model=64, nhead=1, dim_feedforward=128, nlayers=3, n_length=300, embedding_dim=64,
+                 n_conv_layers=2, n_class=2, dropout=0.5, dropout_other=0.1, use_raw_patch=False, kernel_size=kernel_size)
     input_dim = (1, 300) # without the batch dimension
     print(summary(model, input_dim))

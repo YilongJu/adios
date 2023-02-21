@@ -1,0 +1,93 @@
+program: main_finetune.py
+method: grid
+metric:
+  name: val_auroc
+  goal: maximize
+description: sweep for ECG data from TCH 40 patients with Sinus and JET
+project: adios_ecg-supervised-ViT_1D-ECG_normalized-20230220_v35
+name: supervised-ViT_1D-ECG_normalized-20230220_v35-maxep200-es_patience40-mixup-ls-aug_selected_20221029-prob1.25_2-seed0
+entity: yilongju # replace with your own wandb entity (username)
+#entity: jspace # replace with your own wandb entity (username)
+#early_terminate:
+#  type: hyperband
+#  min_iter: 2
+#  eta: 2
+parameters:
+  name:
+    value: "supervised-ViT_1D-ECG_normalized-20230220_v35-maxep200-es_patience40-mixup-ls-aug_selected_20221029-prob1.25_2-seed0"
+  encoder:
+    value: "vit_1D"
+  n_classes:
+    value: 2
+  patch_size:
+    value: 15
+  embedding_dim:
+    values: [256]
+  num_layers:
+    values: [4, 8]
+  dim_feedforward:
+    values: [128, 256, 512]
+  d_model:
+    values: [64, 128, 256]
+  nhead:
+    values: [8, 16]
+  aug_prob:
+    values: [1.25, 2]
+  seed:
+    values: [0]
+  lr:
+    values: [0.0001, 0.000316, 0.001, 0.00316, 0.01]
+  optimizer:
+    values: ["adam", "sgd"]
+  weight_decay:
+    values: [1e-6]
+  mixup_alpha:
+    values: [0.2]
+  label_smoothing:
+    values: [0.2]
+  transforms:
+    values: ["SelectedAug_20221029"]
+  batch_size:
+    value: 128 # Should be halfed when no transforms are used (effective batch size = batch_size * 2)
+  max_epochs:
+    value: 200
+  patience:
+    value: 100
+  precision:
+    value: 32
+  lars:
+    value: True
+  exclude_bias_n_norm:
+    value: True
+  scheduler:
+    values: ["warmup_cosine"]
+  num_workers:
+    value: 4
+  wandb:
+    value: True
+  gpus:
+    value: 0
+  ecg_resampling_length_target:
+    value: 256
+  dataset:
+    value: "ecg-TCH-40_patient-20220201"
+  ptl_accelerator:
+    value: "ddp"
+  sync_batchnorm:
+    value: True
+  accumulate_grad_batches:
+    value: 1
+  read_data_by_chunk:
+    value: True
+  data_chunk_folder:
+    value: "ecg-pat40-tch-sinus_jet"
+  shift_signal:
+    value: False
+  normalize_signal:
+    value: True
+  debug:
+    value: False
+  train_backbone:
+    value: True
+  cluster_name:
+    value: "auto"

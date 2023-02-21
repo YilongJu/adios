@@ -106,7 +106,16 @@ def main():
                            dropout=args.dropout,
                            activation=args.activation,
                            use_raw_patch=args.use_raw_patch,
-                           kernel_size=args.kernel_size)
+                           kernel_size=args.kernel_size,
+                           emb_dropout=args.dropout,
+                           seq_len=args.ecg_resampling_length_target,
+                           patch_size=args.patch_size,
+                           dim=args.embedding_dim,
+                           depth=args.num_layers,
+                           heads=args.nhead,
+                           mlp_dim=args.dim_feedforward,
+                           dim_head=args.d_model
+                           )
         # remove fc layer
         model.fc = nn.Identity()
 

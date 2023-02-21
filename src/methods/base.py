@@ -35,6 +35,7 @@ from src.models.CLOCS_1D import cnn_network_contrastive
 from src.models.CLOCS_1D_functorch import cnn_network_contrastive_functorch
 from src.models.Transformer_1D import Transformer1D
 from src.models.TS_Transformer_1D import TSTransformerEncoderClassiregressor
+from src.models.ViT_1D import ViT
 import numpy as np
 
 SUPPORTED_NETWORKS = {
@@ -57,7 +58,8 @@ SUPPORTED_NETWORKS = {
             "clocs_cnn1d": cnn_network_contrastive,
             "clocs_cnn1d_functorch": cnn_network_contrastive_functorch,
             "transformer1d": Transformer1D,
-            "ts_transformer1d": TSTransformerEncoderClassiregressor
+            "ts_transformer1d": TSTransformerEncoderClassiregressor,
+            "vit_1D": ViT
         }
 
 def static_lr(

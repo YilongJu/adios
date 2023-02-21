@@ -279,6 +279,8 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--feat_dim", type=int, default=1) # For TS Transformer_1D
     parser.add_argument("--use_raw_patch", type=str2bool, nargs='?', const=True, default=False)
 
+    parser.add_argument("--patch_size", type=int, default=16) # For ViT 1D
+
     parser.add_argument("--transforms", type=str, default=None)
     parser.add_argument("--wandb_dir", type=str, default="wandb")
     parser.add_argument("--save_eval_dataset", type=str2bool, nargs='?', const=True, default=False)

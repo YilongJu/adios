@@ -249,3 +249,7 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --cud
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --stop
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --stop
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix c --stop
+
+python Send_commands_to_screen_session.py --gpu_ids 1,2,3,4 --prefix a --stop
+python Send_commands_to_screen_session.py --gpu_ids 1,2,3,4 --prefix b --stop
+python Send_commands_to_screen_session.py --gpu_ids 1,2,3,4 --prefix c --stop
