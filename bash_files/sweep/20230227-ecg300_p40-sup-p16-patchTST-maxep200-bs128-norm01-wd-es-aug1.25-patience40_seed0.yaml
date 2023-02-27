@@ -19,6 +19,8 @@ parameters:
     value: "patchTST"
   task_name:
     value: "classification"
+  activation:
+    value: "gelu"
   output_attention:
     value: False
   n_classes:
@@ -28,15 +30,15 @@ parameters:
   stride:
     value: 20
   embedding_dim:
-    values: [256]
+    values: [128]
   num_layers:
     values: [3]
   dim_feedforward:
-    values: [128, 256]
-  d_model:
     values: [64, 128]
+  d_model:
+    values: [16, 32]
   nhead:
-    values: [4]
+    values: [1, 4]
   aug_prob:
     values: [1.25]
   seed:

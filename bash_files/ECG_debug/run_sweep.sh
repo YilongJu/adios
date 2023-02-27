@@ -249,10 +249,8 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-ViT_1D-ECG_normalized-20230220_v35/gtwlpxap"
 
 # 20230213 ECG (original, without CVP) + patchTST
-python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-patchTST-ECG_normalized-20230227_v37/yk5npi5n"
-python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-patchTST-ECG_normalized-20230227_v37/yk5npi5n"
-python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-patchTST-ECG_normalized-20230227_v37/yk5npi5n"
-python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-patchTST-ECG_normalized-20230227_v37/yk5npi5n"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-patchTST-ECG_normalized-20230227_v37/6ozjpxbp"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-patchTST-ECG_normalized-20230227_v37/6ozjpxbp"
 
 
 
