@@ -204,7 +204,7 @@ class SupervisedModel_1D(pl.LightningModule):
             )
             # print(f"[masks] X.shape = {X.shape}")
         feats = self.backbone(X)
-        print(f"feats.shape = {feats.shape}")
+        # print(f"feats.shape = {feats.shape}")
         logits = self.classifier(feats)
         # print(f"logits.shape = {logits.shape}")
         return {"logits": logits, "feats": feats}
