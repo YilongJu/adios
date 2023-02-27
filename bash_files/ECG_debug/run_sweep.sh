@@ -245,7 +245,8 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix a --cud
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-tstransformer_1D-ECG_normalized-20230220_v35/2hoaak78"
 
 # 20230213 ECG (original, without CVP) + for deep hyperparam ensemble (prob 1.25 + 2), Vit1D
-python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-ViT_1D-ECG_normalized-20230220_v35/hkr94aku"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-ViT_1D-ECG_normalized-20230220_v35/gtwlpxap"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-ViT_1D-ECG_normalized-20230220_v35/gtwlpxap"
 
 
 
@@ -254,6 +255,6 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --stop
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix c --stop
 
-python Send_commands_to_screen_session.py --gpu_ids 1,2,3,4 --prefix a --stop
-python Send_commands_to_screen_session.py --gpu_ids 1,2,3,4 --prefix b --stop
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4 --prefix a --stop
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4 --prefix b --stop
 python Send_commands_to_screen_session.py --gpu_ids 1,2,3,4 --prefix c --stop

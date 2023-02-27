@@ -68,6 +68,7 @@ class SupervisedModel_1D(pl.LightningModule):
         self.backbone = backbone
 
         feat_in = self.backbone.inplanes if hasattr(self.backbone, 'inplanes') else self.backbone.num_features
+        print(f"classifier feat_in = {feat_in}")
         self.classifier = nn.Linear(feat_in, n_classes)  # type: ignore
 
         # training related
@@ -203,7 +204,7 @@ class SupervisedModel_1D(pl.LightningModule):
             )
             # print(f"[masks] X.shape = {X.shape}")
         feats = self.backbone(X)
-        # print(f"feats.shape = {feats.shape}")
+        print(f"feats.shape = {feats.shape}")
         logits = self.classifier(feats)
         # print(f"logits.shape = {logits.shape}")
         return {"logits": logits, "feats": feats}

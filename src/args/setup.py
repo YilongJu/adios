@@ -279,6 +279,23 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--feat_dim", type=int, default=1) # For TS Transformer_1D
     parser.add_argument("--use_raw_patch", type=str2bool, nargs='?', const=True, default=False)
 
+    parser.add_argument("--task_name", type=str, default="classification") # For PatchTST
+    # parser.add_argument("--seq_len", type=int, default=300) # For PatchTST
+    # parser.add_argument("--patch_len", type=int, default=15) # For PatchTST
+    # parser.add_argument("--stride", type=int, default=20) # For PatchTST
+    parser.add_argument("--pred_len", type=int, default=1) # For PatchTST
+    # parser.add_argument("--d_model", type=int, default=64) # For PatchTST
+    # parser.add_argument("--dropout", type=float, default=0.1) # For PatchTST
+    parser.add_argument("--factor", type=int, default=5) # For PatchTST
+    parser.add_argument("--output_attention", type=str2bool, nargs='?', const=True, default=False) # For PatchTST
+
+    # parser.add_argument("--activation", type=str, default="relu") # For PatchTST
+    # parser.add_argument("--n_heads", type=int, default=1) # For PatchTST
+    # parser.add_argument("--d_ff", type=int, default=128) # For PatchTST
+    # parser.add_argument("--enc_in", type=int, default=128) # For PatchTST
+    # parser.add_argument("--num_class", type=int, default=2) # For PatchTST
+    # parser.add_argument("--e_layers", type=int, default=4) # For PatchTST
+
     parser.add_argument("--patch_size", type=int, default=16) # For ViT 1D
 
     parser.add_argument("--transforms", type=str, default=None)
@@ -313,6 +330,16 @@ def parse_args_finetune() -> argparse.Namespace:
 
     # parse args
     args = parser.parse_args()
+    args.num_class = args.n_classes
+    args.e_layers = args.num_layers
+    args.d_ff = args.dim_feedforward
+    args.enc_in = args.embedding_dim
+    args.e_layers = args.num_layers
+    args.n_heads = args.nhead
+    args.patch_len = args.patch_size
+    args.seq_len = args.ecg_resampling_length_target
+
+
     args = determine_paths_for_clusters_automatically(args)
     additional_setup_linear(args)
 

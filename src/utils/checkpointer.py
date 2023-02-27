@@ -98,11 +98,11 @@ class Checkpointer(Callback):
                 if 'get_lr' in clrs.keys():
                     clrs.__delitem__('get_lr')
             # print(f"trainer.accelerator.__dict__", trainer.accelerator.__dict__)
-            trainer.accelerator.save_checkpoint(checkpoint, ckpt_path)
+            # trainer.accelerator.save_checkpoint(checkpoint, ckpt_path)
 
-            if self.last_ckpt and self.last_ckpt != ckpt_path and not self.keep_previous_checkpoints:
-                os.remove(self.last_ckpt)
-            self.last_ckpt = ckpt_path
+            # if self.last_ckpt and self.last_ckpt != ckpt_path and not self.keep_previous_checkpoints:
+            #     os.remove(self.last_ckpt)
+            # self.last_ckpt = ckpt_path
 
     def on_train_start(self, trainer: pl.Trainer, _):
         """Executes initial setup and saves arguments.
