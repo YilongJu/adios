@@ -164,10 +164,16 @@ class PatchEmbedding(nn.Module):
 
     def forward(self, x):
         # do patching
+        # print(f"[PatchEmbedding, input] {x.shape}")
         n_vars = x.shape[1]
+        # print(f"[PatchEmbedding, n_vars] {n_vars}")
         x = self.padding_patch_layer(x)
+        # print(f"[PatchEmbedding, after padding_patch_layer] {x.shape}")
         x = x.unfold(dimension=-1, size=self.patch_len, step=self.stride)
+        # print(f"[PatchEmbedding, after unfold] {x.shape}")
         x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))
+        # print(f"[PatchEmbedding, after reshape] {x.shape}")
         # Input encoding
         x = self.value_embedding(x) + self.position_embedding(x)
+        # print(f"[PatchEmbedding, output] {x.shape}")
         return self.dropout(x), n_vars

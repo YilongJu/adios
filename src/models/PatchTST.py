@@ -59,6 +59,7 @@ class PatchTST(nn.Module):
         # Prediction Head
         self.head_nf = configs.d_model * \
             int((configs.seq_len - patch_len) / stride + 2)
+        print(f"[Original] self.head_nf = {self.head_nf}")
 
         print(f"Using config: {configs}")
         if self.task_name == 'long_term_forecast' or self.task_name == 'short_term_forecast':
@@ -68,9 +69,6 @@ class PatchTST(nn.Module):
             self.head = Flatten_Head(configs.enc_in, self.head_nf, configs.seq_len,
                                      head_dropout=configs.dropout)
         elif self.task_name == 'classification':
-            self.head_nf = 150 / (configs.enc_in / 128) * (configs.d_model / 64)
-            print(f"self.head_nf = {self.head_nf}")
-
             self.flatten = nn.Flatten(start_dim=-2)
             self.dropout = nn.Dropout(configs.dropout)
             self.fc = nn.Linear(
@@ -182,6 +180,9 @@ class PatchTST(nn.Module):
 
     def classification(self, x_enc, x_mark_enc=None):
         # Normalization from Non-stationary Transformer
+        # print(f"[classification input] {x_enc.shape}")
+        x_enc = x_enc.permute(0, 2, 1) # Output shape = [batch_size, seq_len, num_channel]
+        # print(f"[after permute(0, 2, 1)] {x_enc.shape}")
         means = x_enc.mean(1, keepdim=True).detach()
         x_enc = x_enc - means
         stdev = torch.sqrt(
@@ -192,6 +193,7 @@ class PatchTST(nn.Module):
         # print(f"[After normalization] x_enc.shape = {x_enc.shape}")
 
         x_enc = x_enc.permute(0, 2, 1)
+        # print(f"[after permute(0, 2, 1)] {x_enc.shape}")
         # u: [bs * nvars x patch_num x d_model]
         enc_out, n_vars = self.patch_embedding(x_enc)
 
@@ -244,7 +246,7 @@ if __name__ == "__main__":
     parser.add_argument("--activation", type=str, default="gelu")
     parser.add_argument("--n_heads", type=int, default=4)
     parser.add_argument("--d_ff", type=int, default=128)
-    parser.add_argument("--enc_in", type=int, default=128)
+    parser.add_argument("--enc_in", type=int, default=1)
     parser.add_argument("--num_class", type=int, default=2)
     parser.add_argument("--e_layers", type=int, default=3)
     configs = parser.parse_args()
