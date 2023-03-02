@@ -335,7 +335,7 @@ class ECG_classification_dataset_with_peak_features(Dataset):
 
         # return X[np.newaxis, :], peak_idx, label, id_vec, peak_features[np.newaxis, :]
         if self.return_id_vec:
-            return [X_aug[np.newaxis, :], id_vec, label]
+            return [X_aug[np.newaxis, :], id_vec.astype(int), label]
         else:
             if self.return_original_signal:
                 return (X[np.newaxis, :], X_aug[np.newaxis, :]), label
