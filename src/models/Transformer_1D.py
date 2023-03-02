@@ -69,6 +69,20 @@ class Transformer1D(nn.Module):
     def __init__(self, d_model=64, nhead=1, dim_feedforward=128, nlayers=3, n_length=300, embedding_dim=64,
                  n_conv_layers=2, n_class=2, dropout=0.5, dropout_other=0.1, use_raw_patch=False, kernel_size=3, **kwargs):
         super(Transformer1D, self).__init__()
+
+        print(f"d_model = {d_model}")
+        print(f"nhead = {nhead}")
+        print(f"dim_feedforward = {dim_feedforward}")
+        print(f"nlayers = {nlayers}")
+        print(f"n_length = {n_length}")
+        print(f"embedding_dim = {embedding_dim}")
+        print(f"n_conv_layers = {n_conv_layers}")
+        print(f"n_class = {n_class}")
+        print(f"dropout = {dropout}")
+        print(f"dropout_other = {dropout_other}")
+        print(f"use_raw_patch = {use_raw_patch}")
+        print(f"kernel_size = {kernel_size}")
+
         self.model_type = 'Transformer'
         self.n_class = n_class
         self.n_conv_layers = n_conv_layers
@@ -186,8 +200,8 @@ class Transformer1D(nn.Module):
         return xc
 
 if __name__ == "__main__":
-    kernel_size = 3
-    model = Transformer1D(d_model=64, nhead=1, dim_feedforward=128, nlayers=3, n_length=300, embedding_dim=64,
-                 n_conv_layers=2, n_class=2, dropout=0.5, dropout_other=0.1, use_raw_patch=False, kernel_size=kernel_size)
+    kernel_size = 7
+    model = Transformer1D(d_model=8, nhead=1, dim_feedforward=128, nlayers=3, n_length=300, embedding_dim=256,
+                 n_conv_layers=2, n_class=2, dropout=0.1, dropout_other=0.1, use_raw_patch=False, kernel_size=kernel_size)
     input_dim = (1, 300) # without the batch dimension
     print(summary(model, input_dim))

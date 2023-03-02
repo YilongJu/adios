@@ -20,6 +20,9 @@ from torch.optim.lr_scheduler import (
 # from pynvml import *
 from torch.autograd import Variable
 
+from src.models.Debugging import plot_grad_flow
+
+
 softmax = torch.nn.Softmax(dim=1)
 
 
@@ -68,6 +71,7 @@ class SupervisedModel_1D(pl.LightningModule):
         self.backbone = backbone
 
         feat_in = self.backbone.inplanes if hasattr(self.backbone, 'inplanes') else self.backbone.num_features
+        print(f"classifier feat_in = {feat_in}")
         self.classifier = nn.Linear(feat_in, n_classes)  # type: ignore
 
         # training related
@@ -329,6 +333,7 @@ class SupervisedModel_1D(pl.LightningModule):
 
         log = {"train_loss": loss, "train_acc1": acc1, "train_acc5": float('nan')}
         self.log_dict(log, on_epoch=True, sync_dist=True)
+        # print(f"[Batch {batch_idx}]training loss = {loss.item():.4f}")
 
         return loss
 

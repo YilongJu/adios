@@ -114,10 +114,13 @@ def main():
                            depth=args.num_layers,
                            heads=args.nhead,
                            mlp_dim=args.dim_feedforward,
-                           dim_head=args.d_model
+                           dim_head=args.d_model,
+                           configs=args,
+                           patch_len=args.patch_len,
                            )
         # remove fc layer
         model.fc = nn.Identity()
+        print(f"model.fc: {model.fc}")
 
     model.pretrained_occlusion_model_dict = pretrained_occlusion_model_dict
 
@@ -275,13 +278,13 @@ def main():
         callbacks.append(lr_monitor)
 
         # save checkpoint on last epoch only
-        # save_args = Checkpointer(
-        #     args,
-        #     logdir=os.path.join(args.checkpoint_dir, "linear", args.name),
-        #     frequency=args.checkpoint_frequency,
-        #     keep_previous_checkpoints=False
-        # )
-        # callbacks.append(save_args)
+        save_args = Checkpointer(
+            args,
+            logdir=os.path.join(args.checkpoint_dir, "linear", args.name),
+            frequency=args.checkpoint_frequency,
+            keep_previous_checkpoints=False
+        )
+        callbacks.append(save_args)
         # PyTorch Lightning Checkpointer
         chkt_dir = os.path.join(args.checkpoint_dir, "linear", args.name, wandb_logger.version)
         ckpt = ModelCheckpoint(monitor='val_auroc', dirpath=chkt_dir,
