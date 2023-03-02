@@ -134,7 +134,6 @@ class ViT(nn.Module):
 
 
 if __name__ == "__main__":
-    kernel_size = 3
     model = ViT(
         seq_len = 300,
         patch_size = 15,
