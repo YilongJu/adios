@@ -54,7 +54,7 @@ SUPPORTED_NETWORKS = {
             "poolformer_s36": poolformer_s36,
             "poolformer_m36": poolformer_m36,
             "poolformer_m48": poolformer_m48,
-            "resnet1d": ResNet1D,
+            "resnet18_1d": ResNet1D,
             "clocs_cnn1d": cnn_network_contrastive,
             "clocs_cnn1d_functorch": cnn_network_contrastive_functorch,
             "transformer1d": Transformer1D,
