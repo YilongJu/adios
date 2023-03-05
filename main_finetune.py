@@ -288,7 +288,7 @@ def main():
         # PyTorch Lightning Checkpointer
         chkt_dir = os.path.join(args.checkpoint_dir, "linear", args.name, wandb_logger.version)
         ckpt = ModelCheckpoint(monitor='val_auroc', dirpath=chkt_dir,
-                               save_top_k=-1, mode='max',
+                               save_top_k=5, mode='max',
                                filename=f"{args.name}-{wandb_logger.version}-" + '{epoch:02d}-{val_auroc:.4f}',
                                auto_insert_metric_name=True, every_n_epochs=1)
         callbacks.append(ckpt)

@@ -324,8 +324,7 @@ class ECG_classification_dataset_with_peak_features(Dataset):
     def __getitem__(self, idx):
         X = self.ecg_mat[idx, :]
         if self.ecg_resampling_length_target != self.ecg_resampling_length:
-            X = resample_poly(X, self.ecg_resampling_length_target, self.ecg_resampling_length,
-                              padtype="line")
+            X = resample_poly(X, self.ecg_resampling_length_target, self.ecg_resampling_length, padtype="line")
         X = Normalize(X)
         X_aug = self.obtain_perturbed_frame(X)
         peak_idx = self.peak_label_list[idx]
@@ -335,7 +334,7 @@ class ECG_classification_dataset_with_peak_features(Dataset):
 
         # return X[np.newaxis, :], peak_idx, label, id_vec, peak_features[np.newaxis, :]
         if self.return_id_vec:
-            return [X_aug[np.newaxis, :], id_vec.astype(int), label]
+            return X_aug[np.newaxis, :], id_vec.astype(int), label
         else:
             if self.return_original_signal:
                 return (X[np.newaxis, :], X_aug[np.newaxis, :]), label
