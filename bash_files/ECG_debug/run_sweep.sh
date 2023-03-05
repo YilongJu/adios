@@ -257,6 +257,9 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-ResNet18_1D-ECG_normalized-20230220_v36/mq4ozsbt"
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix c --cuda --command "wandb agent yilongju/adios_ecg-supervised-ResNet18_1D-ECG_normalized-20230220_v36/mq4ozsbt"
 
+# 20230305 ECG (original, without CVP) + ResNet18-1D (ensemble)
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-ResNet18_1D-ECG_normalized-20230220_v36/o9cl7hch"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-ResNet18_1D-ECG_normalized-20230220_v36/o9cl7hch"
 
 
 
