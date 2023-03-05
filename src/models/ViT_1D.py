@@ -146,5 +146,5 @@ if __name__ == "__main__":
         emb_dropout = 0.1,
         channels=1, dim_head=16
     )
-    input_dim = (1, 300) # without the batch dimension
-    print(summary(model, input_dim))
+    input_dim = (2, 1, 300) # without the batch dimension
+    print(summary(model, input_size=input_dim))
