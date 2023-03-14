@@ -254,7 +254,7 @@ class ECG_classification_dataset_with_peak_features(Dataset):
                  peak_loc_name="p_ind_resampled", label_name="label", short_identifier_list=None,
                  peak_feature_name_list=None, shift_signal=False, shift_amount=None, normalize_signal=False,
                  transforms=None, dataset_name="ecg-TCH-40_patient-20220201", aug_prob=0,
-                 return_original_signal=None, return_id_vec=False):
+                 return_original_signal=None, return_id_vec=False, return_idx=False):
         """
         normalize_signal: Normalize each individual signal to 0 - 1 range
         """
@@ -288,6 +288,7 @@ class ECG_classification_dataset_with_peak_features(Dataset):
         self.short_identifier_mat = self.feature_df_all_selected_p_ind_with_ecg[self.short_identifier_list].values
         self.peak_feature_mat = self.feature_df_all_selected_p_ind_with_ecg[self.peak_feature_name_list].values
         self.return_id_vec = return_id_vec
+        self.return_idx = return_idx
 
         self.shift_signal = shift_signal
         self.shift_amount = shift_amount
@@ -313,6 +314,7 @@ class ECG_classification_dataset_with_peak_features(Dataset):
         else:
             self.return_original_signal = return_original_signal
 
+
     def obtain_perturbed_frame(self, frame):
         frame = Transform_frame(frame, transforms=self.transforms, dataset_name=self.dataset_name,
                                 aug_prob=self.aug_prob)
@@ -334,12 +336,22 @@ class ECG_classification_dataset_with_peak_features(Dataset):
 
         # return X[np.newaxis, :], peak_idx, label, id_vec, peak_features[np.newaxis, :]
         if self.return_id_vec:
-            return X_aug[np.newaxis, :], id_vec.astype(int), label
+            if self.return_idx:
+                return X_aug[np.newaxis, :], id_vec.astype(int), label, idx
+            else:
+                return X_aug[np.newaxis, :], id_vec.astype(int), label
         else:
             if self.return_original_signal:
-                return (X[np.newaxis, :], X_aug[np.newaxis, :]), label
+                if self.return_idx:
+                    return (X[np.newaxis, :], X_aug[np.newaxis, :]), label, idx
+                else:
+                    return (X[np.newaxis, :], X_aug[np.newaxis, :]), label
             else:
-                return X_aug[np.newaxis, :], label
+                if self.return_idx:
+                    return X_aug[np.newaxis, :], label, idx
+                else:
+                    return X_aug[np.newaxis, :], label
+
 
 
 

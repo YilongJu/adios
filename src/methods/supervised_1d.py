@@ -10,6 +10,7 @@ from src.utils.lars import LARSWrapper
 from src.utils.metrics import accuracy_at_k, weighted_mean, AUROC, Get_target_and_preds_from_AUROC_object
 from src.utils.blocks import str2bool
 from src.utils.tricks import mixup_data, mixup_criterion, LabelSmoothingLoss
+from src.losses.sat import SelfAdativeTraining
 from src.methods.base import SUPPORTED_NETWORKS
 from torch.optim.lr_scheduler import (
     CosineAnnealingLR,
@@ -30,6 +31,7 @@ class SupervisedModel_1D(pl.LightningModule):
     def __init__(
             self,
             backbone: nn.Module,
+            num_examples: int,
             n_classes: int,
             max_epochs: int,
             batch_size: int,
@@ -44,7 +46,10 @@ class SupervisedModel_1D(pl.LightningModule):
             train_backbone: bool,
             mixup_alpha: float,
             label_smoothing: float,
+            sat_momentum: float = 0.9,
+            sat_pretrain: int = 60,
             lr_decay_steps: Optional[Sequence[int]] = None,
+            loss_type: str = "ce",
             **kwargs,
     ):
         """Implements linear evaluation.
@@ -72,7 +77,6 @@ class SupervisedModel_1D(pl.LightningModule):
 
         feat_in = self.backbone.inplanes if hasattr(self.backbone, 'inplanes') else self.backbone.num_features
         print(f"classifier feat_in = {feat_in}")
-        self.classifier = nn.Linear(feat_in, n_classes)  # type: ignore
 
         # training related
         self.max_epochs = max_epochs
@@ -88,11 +92,17 @@ class SupervisedModel_1D(pl.LightningModule):
         self.train_backbone = train_backbone
         self.mixup_alpha = mixup_alpha
         self.label_smoothing = label_smoothing
-        self.criterion = LabelSmoothingLoss(n_classes=2,
-                                            smoothing=self.label_smoothing) if self.label_smoothing > 0 else nn.CrossEntropyLoss()
-
+        self.loss_type = loss_type
+        self.num_examples = num_examples
+        self.sat_momentum = sat_momentum
+        self.sat_pretrain = sat_pretrain
+        if self.loss_type == "ce":
+            self.criterion = LabelSmoothingLoss(n_classes=n_classes, smoothing=self.label_smoothing) if self.label_smoothing > 0 else nn.CrossEntropyLoss()
+        elif self.loss_type == "sat":
+            self.criterion = SelfAdativeTraining(num_examples=self.num_examples, num_classes=n_classes + 1, mom=self.sat_momentum)
         # all the other parameters
         self.extra_args = kwargs
+        print(f"self.extra_optimizer_args: {self.extra_optimizer_args}")
 
         # TODO: Implement this for supervised_2D
         self.pretrained_occlusion_model_dict = self.backbone.pretrained_occlusion_model_dict
@@ -113,6 +123,9 @@ class SupervisedModel_1D(pl.LightningModule):
                 3, 64, kernel_size=3, stride=1, padding=2, bias=False
             )
             self.backbone.maxpool = nn.Identity()
+
+        print(f"self.loss_type: {self.loss_type}, self.sat_momentum: {self.sat_momentum}, self.sat_pretrain: {self.sat_pretrain}")
+        self.classifier = nn.Linear(feat_in, n_classes + 1 if self.loss_type == "sat" else n_classes)  # type: ignore
 
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
@@ -230,6 +243,8 @@ class SupervisedModel_1D(pl.LightningModule):
             optimizer = torch.optim.Adam
         else:
             raise ValueError(f"{self.optimizer} not in (sgd, adam)")
+
+
         model_parameters = list(self.backbone.parameters()) + list(self.classifier.parameters())
         optimizer = optimizer(
             model_parameters,
@@ -275,21 +290,42 @@ class SupervisedModel_1D(pl.LightningModule):
             Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]:
                 batch size, loss, accuracy @1 and accuracy @5.
         """
-        X, targets = batch
-        # print(f"batch, input dim = {X.shape}")
+        if self.loss_type == "sat":
+            X, targets, indices = batch
+        else:
+            X, targets = batch
+
         if isinstance(X, list):
             X = torch.cat(X, dim=0)
             targets = torch.cat([targets, targets], dim=0)
 
         if mode == "train":
-            use_cuda = torch.cuda.is_available()
-            X, targets_a, targets_b, lam = mixup_data(X, targets, self.mixup_alpha, use_cuda)
-            X, targets_a, targets_b = map(Variable, (X, targets_a, targets_b))
-            out = self(X)["logits"]
-            loss = mixup_criterion(self.criterion, out, targets_a, targets_b, lam)
+            if self.loss_type == "ce":
+                use_cuda = torch.cuda.is_available()
+                X, targets_a, targets_b, lam = mixup_data(X, targets, self.mixup_alpha, use_cuda)
+                X, targets_a, targets_b = map(Variable, (X, targets_a, targets_b))
+                out = self(X)["logits"]
+                loss = mixup_criterion(self.criterion, out, targets_a, targets_b, lam)
+            elif self.loss_type == "sat":
+                out = self(X)["logits"]
+                if self.current_epoch >= self.sat_pretrain:
+                    loss = self.criterion(out, targets, indices)
+                else:
+                    # print(f"out.shape = {out.shape}, targets.shape = {targets.shape}")
+                    loss = F.cross_entropy(out[:, :-1], targets)
+            else:
+                raise NotImplementedError("Unkown loss type.")
         else:
             out = self(X)["logits"]
-            loss = self.criterion(out, targets)
+            if self.loss_type == "ce":
+                loss = self.criterion(out, targets)
+            elif self.loss_type == "sat":
+                # print(f"out.shape = {out.shape}, targets.shape = {targets.shape}")
+                loss = F.cross_entropy(out[:, :-1], targets)
+            else:
+                raise NotImplementedError("Unkown loss type.")
+
+        # print(f"self.current_epoch = {self.current_epoch}")
 
         # print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
 

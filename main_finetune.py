@@ -97,7 +97,7 @@ def main():
                            c4_multiplier=args.c4_multiplier,
                            in_channels=args.in_channels,
                            in_channels_type=args.in_channels_type,
-                           n_classes=args.n_classes,
+                           n_classes=args.n_classes + 1 if args.loss_type == "sat" else args.n_classes,
                            n_length=args.ecg_resampling_length_target,
                            num_layers=args.num_layers,
                            d_model=args.d_model,
@@ -127,7 +127,6 @@ def main():
     # model = SupervisedModel(model, **args.__dict__)
 
     if args.dataset in ["ecg-TCH-40_patient-20220201"]:
-        model = SupervisedModel_1D(model, **args.__dict__)
 
         feature_with_ecg_df_train, feature_with_ecg_df_test, feature_with_ecg_df_dev, feature_with_ecg_df_val, save_folder = Data_preprocessing(
             args)
@@ -137,6 +136,8 @@ def main():
         feature_with_ecg_df_val_single_lead = feature_with_ecg_df_val.query(f"channel_ID == {channel_ID}")
         feature_with_ecg_df_test_single_lead = feature_with_ecg_df_test.query(f"channel_ID == {channel_ID}")
         print(f"Single lead: dev: {feature_with_ecg_df_dev_single_lead.shape}, val: {feature_with_ecg_df_val_single_lead.shape}, test: {feature_with_ecg_df_test_single_lead.shape}")
+        num_examples = len(feature_with_ecg_df_dev_single_lead)
+        model = SupervisedModel_1D(model, num_examples=num_examples, **args.__dict__)
 
         if args.save_eval_dataset:
             feature_with_ecg_df_val_single_lead.to_csv(
@@ -150,6 +151,7 @@ def main():
         ecg_colnames = [f"ecg{i + 1}" for i in range(ecg_resampling_length)]
         ecg_mat = feature_with_ecg_df_dev_single_lead[ecg_colnames].values
         signal_min_train = np.min(ecg_mat.ravel())
+        return_idx = True if args.loss_type == "sat" else False
 
         train_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_dev_single_lead,
                                                                       shift_signal=args.shift_signal,
@@ -157,17 +159,20 @@ def main():
                                                                       normalize_signal=args.normalize_signal,
                                                                       ecg_resampling_length_target=args.ecg_resampling_length_target,
                                                                       transforms=args.transforms,
-                                                                      aug_prob=args.aug_prob)
+                                                                      aug_prob=args.aug_prob,
+                                                                      return_idx=return_idx)
         val_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_val_single_lead,
                                                                     shift_signal=args.shift_signal,
                                                                     shift_amount=signal_min_train,
                                                                     normalize_signal=args.normalize_signal,
-                                                                    ecg_resampling_length_target=args.ecg_resampling_length_target)
+                                                                    ecg_resampling_length_target=args.ecg_resampling_length_target,
+                                                                    return_idx=return_idx)
         test_dataset = ECG_classification_dataset_with_peak_features(feature_with_ecg_df_test_single_lead,
                                                                      shift_signal=args.shift_signal,
                                                                      shift_amount=signal_min_train,
                                                                      normalize_signal=args.normalize_signal,
-                                                                     ecg_resampling_length_target=args.ecg_resampling_length_target)
+                                                                     ecg_resampling_length_target=args.ecg_resampling_length_target,
+                                                                     return_idx=return_idx)
 
         if Lower(args.transforms) in [Lower("Identity")]:
             args.batch_size = args.batch_size * 2

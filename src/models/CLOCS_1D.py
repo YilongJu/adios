@@ -26,7 +26,7 @@ from src.models.Debugging import *
 class cnn_network_contrastive(nn.Module):
     """ CNN for Self-Supervision """
 
-    def __init__(self, dropout_type="drop1d", p1=0.1, p2=0.1, p3=0.1, nencoders=1, stride=3, in_channels=None,
+    def __init__(self, dropout_type="drop1d", p1=0.1, p2=0.1, p3=0.1, nencoders=1, stride=3, n_classes=2, in_channels=None,
                  c4_multiplier=10, embedding_dim=256, kernel_size=7, trial='CLOCS', device='', in_channels_type=None, **kwargs):
         # dropout_type = ['drop1d'] or 'drop2d'
         # p1 = dropout probability for first layer (default = 0.1)

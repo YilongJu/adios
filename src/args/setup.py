@@ -308,6 +308,12 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--in_channels", type=int, default=1)
     parser.add_argument("--in_channels_type", type=str, default="ECG")
 
+    parser.add_argument("--loss_type", type=str, default="ce")
+    parser.add_argument("--momentum", type=float, default=0.9) # for SGD
+    parser.add_argument("--sat_momentum", type=float, default=0.9)
+    parser.add_argument("--sat_pretrain", type=int, default=60)
+
+
     # add pytorch lightning trainer args
     parser = pl.Trainer.add_argparse_args(parser)
 
