@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 import wandb
+import numpy as np
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
@@ -115,6 +116,7 @@ class SupervisedModel_1D(pl.LightningModule):
         self.test_auroc = AUROC(pos_label=1)
         self.buffer_train_auroc = -1
         self.max_val_auroc = -1
+        self.min_val_loss = np.inf
         self.corresponding_train_auroc = -1
         self.update_corresponding_train_auroc = True
 
@@ -329,7 +331,7 @@ class SupervisedModel_1D(pl.LightningModule):
 
         # print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
 
-        scores = softmax(out)[:, 1].detach()
+        scores = (softmax(out)[:, :2] / torch.sum(softmax(out)[:, :2], dim=1, keepdim=True))[:, 1].detach()
         if mode in ["train"]:
             self.train_auroc.update(scores, targets.detach())
             # print(mode, len(self.train_auroc.preds))
@@ -441,6 +443,12 @@ class SupervisedModel_1D(pl.LightningModule):
         val_acc1 = weighted_mean(outs, "val_acc1", "batch_size")
         # val_acc5 = weighted_mean(outs, "val_acc5", "batch_size")
         log = {"val_loss": val_loss, "val_acc1": val_acc1, "val_acc5": float('nan')}
+
+        if val_loss < self.min_val_loss:
+            self.min_val_loss = val_loss
+        self.log("min_val_loss", self.min_val_loss, on_epoch=True, sync_dist=True)
+
+
         self.log_dict(log, sync_dist=True)
 
     def test_step(self, batch: torch.Tensor, batch_idx: int) -> Dict[str, Any]:
