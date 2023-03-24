@@ -455,8 +455,6 @@ class SupervisedModel_1D_PNTK(pl.LightningModule):
         results = accuracy_at_k(out, targets, top_k=(1,))
         batch_size = X.size(0)
 
-
-
         # return batch_size, loss, results['acc1'], results['acc5']
         return batch_size, loss, results['acc1'], results['acc1']
         # return batch_size, loss

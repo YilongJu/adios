@@ -137,7 +137,7 @@ def main():
         feature_with_ecg_df_test_single_lead = feature_with_ecg_df_test.query(f"channel_ID == {channel_ID}")
         print(f"Single lead: dev: {feature_with_ecg_df_dev_single_lead.shape}, val: {feature_with_ecg_df_val_single_lead.shape}, test: {feature_with_ecg_df_test_single_lead.shape}")
         num_examples = len(feature_with_ecg_df_dev_single_lead)
-        model = SupervisedModel_1D(model, num_examples=num_examples, **args.__dict__)
+        model = SupervisedModel_1D(model, num_examples=num_examples, **args.__dict__) # pytorchlightning
 
         if args.save_eval_dataset:
             feature_with_ecg_df_val_single_lead.to_csv(

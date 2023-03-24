@@ -126,7 +126,7 @@ class SupervisedModel_1D(pl.LightningModule):
 
         print(f"self.loss_type: {self.loss_type}, self.sat_momentum: {self.sat_momentum}, self.sat_pretrain: {self.sat_pretrain}")
         self.classifier = nn.Linear(feat_in, n_classes + 1 if self.loss_type == "sat" else n_classes)  # type: ignore
-
+        self.save_hyperparameters()
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser) -> ArgumentParser:
         """Adds basic linear arguments.
