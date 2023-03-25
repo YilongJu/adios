@@ -330,8 +330,10 @@ class SupervisedModel_1D(pl.LightningModule):
         # print(f"self.current_epoch = {self.current_epoch}")
 
         # print(f"[{mode}] batch_size = {batch_size}, type(X) = {type(X)}, X.shape = {X.shape}, targets.shape = {targets.shape}")
-
-        scores = (softmax(out)[:, :2] / torch.sum(softmax(out)[:, :2], dim=1, keepdim=True))[:, 1].detach()
+        scores_all = softmax(out)
+        scores_selected = scores_all[:, :2]
+        scores_selected_normalized = scores_selected / torch.sum(scores_selected, dim=1, keepdim=True)
+        scores = scores_selected_normalized[:, 1].detach()
         if mode in ["train"]:
             self.train_auroc.update(scores, targets.detach())
             # print(mode, len(self.train_auroc.preds))
@@ -429,14 +431,14 @@ class SupervisedModel_1D(pl.LightningModule):
             self.update_corresponding_train_auroc = False
 
         self.log("max_val_auroc", self.max_val_auroc, on_epoch=True, sync_dist=True)
-        target, preds = Get_target_and_preds_from_AUROC_object(self.val_auroc)
-        title = "Validation ROC"
-        if len(target) > 0 and len(preds) > 0:
-            try:
-                wandb.log({title: wandb.plot.roc_curve(target, preds, labels=["Sinus", "JET"], classes_to_plot=[1], title=title)})
-            except:
-                print(f"target: {target}")
-                print(f"preds: {preds}")
+        # target, preds = Get_target_and_preds_from_AUROC_object(self.val_auroc)
+        # title = "Validation ROC"
+        # if len(target) > 0 and len(preds) > 0:
+        #     try:
+        #         wandb.log({title: wandb.plot.roc_curve(target, preds, labels=["Sinus", "JET"], classes_to_plot=[1], title=title)})
+        #     except:
+        #         print(f"target: {target}")
+        #         print(f"preds: {preds}")
         self.val_auroc.reset()
 
         val_loss = weighted_mean(outs, "val_loss", "batch_size")
@@ -484,10 +486,10 @@ class SupervisedModel_1D(pl.LightningModule):
         """
         test_auroc = self.test_auroc.compute()
         self.log("test_auroc", test_auroc, on_epoch=True, sync_dist=True)
-        target, preds = Get_target_and_preds_from_AUROC_object(self.test_auroc)
-        title = "Test ROC"
-        if len(target) > 0 and len(preds) > 0:
-            wandb.log({title: wandb.plot.roc_curve(target, preds, labels=["Sinus", "JET"], classes_to_plot=[1], title=title)})
+        # target, preds = Get_target_and_preds_from_AUROC_object(self.test_auroc)
+        # title = "Test ROC"
+        # if len(target) > 0 and len(preds) > 0:
+        #     wandb.log({title: wandb.plot.roc_curve(target, preds, labels=["Sinus", "JET"], classes_to_plot=[1], title=title)})
         self.test_auroc.reset()
 
         test_loss = weighted_mean(outs, "test_loss", "batch_size")
