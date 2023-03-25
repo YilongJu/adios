@@ -12,7 +12,7 @@ from src.models.Debugging import *
 
 # %%
 """ Functions in this scripts:
-    1) cnn_network_contrastive 
+    1) cnn_network_contrastive
     2) second_cnn_network
 """
 
@@ -52,7 +52,7 @@ class cnn_network_contrastive(nn.Module):
         print(s, p1, p2, p3, nencoders, embedding_dim, trial, device)
         print(f"Using kernel size: {k}")
 
-        super(cnn_network_contrastive, self).__init__()
+        super().__init__()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.embedding_dim = embedding_dim
         self.num_features = self.embedding_dim
