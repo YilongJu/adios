@@ -109,7 +109,7 @@ class cnn_network_contrastive(nn.Module):
         Outputs:
             h (torch.Tensor): latent embedding for each of the N views (BxHxN)
         """
-        print(f"clocs 1d input dim: {x.shape}")
+        # print(f"clocs 1d input dim: {x.shape}")
         x = x.float()
         x = x.unsqueeze(3)  # [20221009] Each view is fed seperatedly to the CNN
         batch_size = x.shape[0]
