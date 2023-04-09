@@ -20,7 +20,7 @@ parameters:
   encoder:
     value: "clocs_cnn1d"
   in_channels_type:
-    value: ["ECG", "ECG,CVP"]
+    values: ["ECG", "ECG,CVP"]
   stride:
     value: 2
   c4_multiplier:
