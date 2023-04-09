@@ -187,7 +187,6 @@ def main():
             test_dataset, batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, drop_last=False
         )
     elif args.dataset in ["ecg-TCH-40_patient-20220201_with_CVP"]:
-        model = SupervisedModel_1D(model, **args.__dict__)
 
         _, feature_with_ecg_df_test, feature_with_ecg_df_dev, feature_with_ecg_df_val, save_folder = Data_preprocessing(
             args)
@@ -216,6 +215,7 @@ def main():
             data_label_test = feature_with_ecg_df_test_single_lead['data_label']
 
         print(f"Single lead: dev: {data_tensor_dev.shape}, val: {data_tensor_val.shape}, test: {data_tensor_test.shape}")
+        model = SupervisedModel_1D(model, num_examples=data_tensor_dev.shape[0], **args.__dict__)
 
         train_dataset = ECG_classification_dataset_with_CVP(data_tensor_dev,
                                                             data_label_dev,
