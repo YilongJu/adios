@@ -1,0 +1,87 @@
+program: main_finetune.py
+method: grid
+metric:
+  name: val_auroc
+  goal: maximize
+description: sweep for ECG data from TCH 40 patients with Sinus and JET
+project: adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20230220_v30-deep_ensemble
+name: supervised-clocsCNN_1D-ECG_CVP_normalized-20230427_v100-deep_ensemble-maxep50-early_stopping_patience100-mixup-label_smoothing-aug_selected_20221029-prob1.25
+entity: yilongju # replace with your own wandb entity (username)
+#entity: jspace # replace with your own wandb entity (username)
+#early_terminate:
+#  type: hyperband
+#  min_iter: 2
+#  eta: 2
+parameters:
+  name:
+    value: "supervised-clocsCNN_1D-ECG_CVP_normalized-20230427_v100-deep_ensemble-maxep50-early_stopping_patience100-mixup-label_smoothing-aug_selected_20221029-prob1.25"
+  dataset:
+    value: "ecg-TCH-40_patient-20220201_with_CVP"
+  encoder:
+    value: "clocs_cnn1d"
+  in_channels_type:
+    values: ["CVP"]
+  stride:
+    value: 2
+  c4_multiplier:
+    value: 3
+  aug_prob:
+    values: [1.25]
+  mixup_alpha:
+    values: [0.2]
+  label_smoothing:
+    values: [0.2]
+  transforms:
+    values: ["SelectedAug_20221029"]
+  batch_size:
+    value: 128 # Should be halfed when no transforms are used (effective batch size = batch_size * 2)
+  seed:
+    values: [0, 1, 2]
+  lr:
+    values: [0.0001, 0.001, 0.01, 0.1]
+  optimizer:
+    values: ["adam", "sgd"]
+  weight_decay:
+    values: [0, 1e-6, 1e-5]
+  lars:
+    values: [True, False]
+  embedding_dim:
+    values: [32, 256]
+  max_epochs:
+    value: 50
+  patience:
+    value: 100
+  precision:
+    value: 32
+  exclude_bias_n_norm:
+    value: True
+  scheduler:
+    values: ["warmup_cosine"]
+  num_workers:
+    value: 4
+  wandb:
+    value: True
+  gpus:
+    value: 0
+  ecg_resampling_length_target:
+    value: 300
+  ptl_accelerator:
+    value: "ddp"
+  sync_batchnorm:
+    value: True
+  accumulate_grad_batches:
+    value: 1
+  read_data_by_chunk:
+    value: True
+  data_chunk_folder:
+    value: "ecg-pat40-tch-sinus_jet"
+  shift_signal:
+    value: False
+  normalize_signal:
+    value: True
+  debug:
+    value: False
+  train_backbone:
+    value: True
+  cluster_name:
+    value: "auto"

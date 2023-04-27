@@ -28,6 +28,8 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix c -
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --create
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --create
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix c --create
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix a --create
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --create
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix c --create
 
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix a --setup
@@ -36,6 +38,8 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix c -
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --setup
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --setup
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix c --setup
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix a --setup
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix b --setup
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5 --prefix c --setup
 
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20221016_v11/nh1hsqbb"
