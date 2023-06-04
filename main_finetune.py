@@ -133,6 +133,11 @@ def main():
         channel_ID = args.channel_ID
         """ Get dataloader """
         feature_with_ecg_df_dev_single_lead = feature_with_ecg_df_dev.query(f"channel_ID == {channel_ID}")
+        print(f"[Before sampling] num examples per patient: {feature_with_ecg_df_dev_single_lead.groupby(['patient_ID']).size()}")
+        feature_with_ecg_df_dev_single_lead = feature_with_ecg_df_dev_single_lead.groupby(['patient_ID'], group_keys=False).apply(
+            lambda x: x.sample(frac=args.training_data_frac, replace=False, random_state=args.seed))
+        print(f"[After sampling] num examples per patient: {feature_with_ecg_df_dev_single_lead.groupby(['patient_ID']).size()}")
+
         feature_with_ecg_df_val_single_lead = feature_with_ecg_df_val.query(f"channel_ID == {channel_ID}")
         feature_with_ecg_df_test_single_lead = feature_with_ecg_df_test.query(f"channel_ID == {channel_ID}")
         print(f"Single lead: dev: {feature_with_ecg_df_dev_single_lead.shape}, val: {feature_with_ecg_df_val_single_lead.shape}, test: {feature_with_ecg_df_test_single_lead.shape}")

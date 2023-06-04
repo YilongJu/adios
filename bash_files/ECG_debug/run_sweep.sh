@@ -284,6 +284,10 @@ python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20230220_v30-deep_ensemble/b2mbkkxx"
 python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix c --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20230220_v30-deep_ensemble/b2mbkkxx"
 
+# 20230427 CVP + ClocsCNN
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix a --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20230220_v30-deep_ensemble/yh52n1b6"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix b --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20230220_v30-deep_ensemble/yh52n1b6"
+python Send_commands_to_screen_session.py --gpu_ids 0,1,2,3,4,5,6,7,8 --prefix c --cuda --command "wandb agent yilongju/adios_ecg-supervised-clocsCNN_1D-ECG_normalized-20230220_v30-deep_ensemble/yh52n1b6"
 
 
 

@@ -308,6 +308,9 @@ def parse_args_finetune() -> argparse.Namespace:
     parser.add_argument("--in_channels", type=int, default=1)
     parser.add_argument("--in_channels_type", type=str, default="ECG")
 
+    parser.add_argument("--training_data_frac", type=float, default=1.0)
+
+
     parser.add_argument("--loss_type", type=str, default="ce")
     parser.add_argument("--momentum", type=float, default=0.9) # for SGD
     parser.add_argument("--sat_momentum", type=float, default=0.9)
@@ -344,10 +347,11 @@ def parse_args_finetune() -> argparse.Namespace:
     args.n_heads = args.nhead
     args.patch_len = args.patch_size
     args.seq_len = args.ecg_resampling_length_target
+    args.max_epochs = int(args.max_epochs / args.training_data_frac)
 
 
     args = determine_paths_for_clusters_automatically(args)
-    additional_setup_linear(args)
+    additional_setup_linear(args) # Added 0.9 momentum for SGD
 
     return args
 
