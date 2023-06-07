@@ -2,9 +2,9 @@ import torch
 from torch import Tensor
 import torch.nn as nn
 from typing import Type, Any, Callable, Union, List, Optional
+from src.models.Debugging import *
 
 """ Adapted from PyTorch official ResNet18 implementation. """
-
 def conv3x3_1d(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1) -> nn.Conv1d:
     """3x3 convolution with padding"""
     return nn.Conv1d(in_planes, out_planes, kernel_size=3, stride=stride,
@@ -236,3 +236,8 @@ class ResNet1D(nn.Module):
     def forward(self, x: Tensor) -> Tensor:
         x = x.float()
         return self._forward_impl(x)
+
+if __name__ == "__main__":
+    model = ResNet1D(num_classes=2)
+    input_dim = (5, 1, 300) # without the batch dimension
+    print(summary(model, input_dim))
