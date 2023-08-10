@@ -300,8 +300,8 @@ class ECG_classification_dataset_with_peak_features(Dataset):
             self.ecg_mat -= self.shift_amount  # Shift ECG to 0 baseline
 
         if self.normalize_signal:
-            ecg_min = np.min(self.ecg_mat, axis=1)[:, np.newaxis]
-            ecg_max = np.max(self.ecg_mat, axis=1)[:, np.newaxis]
+            ecg_min = np.min(self.ecg_mat, axis=2)[:, :, np.newaxis]
+            ecg_max = np.max(self.ecg_mat, axis=2)[:, :, np.newaxis]
             self.ecg_mat = (self.ecg_mat - ecg_min) / (ecg_max - ecg_min)
 
         if return_original_signal is None:

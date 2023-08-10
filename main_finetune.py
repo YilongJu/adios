@@ -201,7 +201,10 @@ def main():
         feature_with_ecg_df_test_single_lead = feature_with_ecg_df_test
 
         ecg_mat = feature_with_ecg_df_dev_single_lead['data_tensor']
+
         signal_min_train = np.min(ecg_mat.ravel())
+        # signal_min_train = np.min(np.min(ecg_mat, axis=0), axis=1) # Should be C x 1 vector for each channel
+
 
         if args.debug:
             sample_num = 5000
