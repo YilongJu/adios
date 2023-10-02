@@ -300,8 +300,8 @@ class ECG_classification_dataset_with_peak_features(Dataset):
             self.ecg_mat -= self.shift_amount  # Shift ECG to 0 baseline
 
         if self.normalize_signal:
-            ecg_min = np.min(self.ecg_mat, axis=2)[:, :, np.newaxis]
-            ecg_max = np.max(self.ecg_mat, axis=2)[:, :, np.newaxis]
+            ecg_min = np.min(self.ecg_mat, axis=1)[:, np.newaxis]
+            ecg_max = np.max(self.ecg_mat, axis=1)[:, np.newaxis]
             self.ecg_mat = (self.ecg_mat - ecg_min) / (ecg_max - ecg_min)
 
         if return_original_signal is None:
@@ -424,3 +424,36 @@ class ECG_classification_dataset_with_CVP(Dataset):
             return X_aug, label
         else:
             return (X, X_aug), label
+
+if __name__ == "__main__":
+    if platform.system() == "Darwin":
+        print("Using MacOS.")
+        data_folder = os.path.normpath("/Users/yj31/Dropbox/Study/GitHub/JET-Detection")
+    elif platform.system() == "Linux":
+        print("Using Linux.")
+    else:
+        print("Using Windows.")
+        data_folder = os.path.normpath("D:\\Dropbox\\Study\\GitHub\\JET-Detection")
+        # data_folder = os.path.normpath("D:\\Backup\\JET-Detection\\")
+
+    # Load data
+    dataset = "ecg-TCH-40_patient-20220201"
+    # dataset = "ecg-TCH-40_patient-20220201_with_CVP"
+    if dataset in ["ecg-TCH-40_patient-20220201"]:
+        feature_df_all_selected_with_ecg = pd.read_csv(os.path.join(data_folder, "feature_df_all_selected_with_ecg_20220210_rtfixed.csv"))
+        feature_with_ecg_df_train = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_train} and channel_ID == 2")
+        feature_with_ecg_df_test = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_test} and channel_ID == 2")
+        feature_with_ecg_df_dev = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_dev} and channel_ID == 2")
+        feature_with_ecg_df_val = feature_df_all_selected_with_ecg.query(f"patient_ID in {patient_ID_list_val} and channel_ID == 2")
+        print(f"Data shape: {feature_df_all_selected_with_ecg.shape}, train: {feature_with_ecg_df_train.shape}, dev: {feature_with_ecg_df_dev.shape}, val: {feature_with_ecg_df_val.shape}, test: {feature_with_ecg_df_test.shape}")  # Data shape: (1899356, 370), train: (1447728, 370), dev: (1266878, 370), val: (180850, 370), test: (451628, 370) - all
+        # Data shape: (1899356, 370), train: (362268, 370), dev: (317545, 370), val: (44723, 370), test: (114412, 370)
+
+    elif dataset in ["ecg-TCH-40_patient-20220201_with_CVP"]:
+        feature_with_ecg_df_train = None
+        feature_with_ecg_df_dev = np.load(os.path.join(data_folder, "ECG_CVP_20221101_dev.npz"))
+        feature_with_ecg_df_val = np.load(os.path.join(data_folder, "ECG_CVP_20221101_val.npz"))
+        feature_with_ecg_df_test = np.load(os.path.join(data_folder, "ECG_CVP_20221101_test.npz"))
+        print(f"Data shape: dev: {feature_with_ecg_df_dev['data_tensor'].shape}, val: {feature_with_ecg_df_val['data_tensor'].shape}, test: {feature_with_ecg_df_test['data_tensor'].shape}")  # Data shape: dev: (299201, 2, 300), val: (29988, 2, 300), test: (82583, 2, 300)
+    else:
+        raise ValueError(f"Unknown dataset: {dataset}")
+
