@@ -155,6 +155,6 @@ class second_cnn_network(nn.Module):
         return output
 
 if __name__ == "__main__":
-    model = cnn_network_contrastive(stride=2, embedding_dim=32, kernel_size=3)
+    model = cnn_network_contrastive(stride=2, embedding_dim=256, kernel_size=7)
     input_dim = (5, 1, 300) # without the batch dimension
     print(summary(model, input_dim))
