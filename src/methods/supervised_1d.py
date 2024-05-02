@@ -111,9 +111,10 @@ class SupervisedModel_1D(pl.LightningModule):
             self.flip_occlusion_model_grad(False)
 
         """ member for auroc calculation """
-        self.train_auroc = AUROC(pos_label=1)
-        self.val_auroc = AUROC(pos_label=1)
-        self.test_auroc = AUROC(pos_label=1)
+        self.train_auroc = AUROC("binary")
+        self.val_auroc = AUROC("binary")
+        self.test_auroc = AUROC("binary")
+
         self.buffer_train_auroc = -1
         self.max_val_auroc = -1
         self.min_val_loss = np.inf
